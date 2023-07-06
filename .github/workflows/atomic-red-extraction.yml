@@ -1,0 +1,37 @@
+name: Atomic Red Attack Extraction
+
+on:
+  schedule:
+    - cron: '30 10 * * *'
+
+jobs:
+  atomic_red_extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Extraction script
+        run: |
+          pip install gitpython pandas pyyaml tabulate
+          rm -rf atomic-red-attacks.csv atomic-red-attacks.md
+          python atomic-extractor.py
+
+      - name: Generate commit with extracted Content
+        run: |
+          git config --local user.name "${{ secrets.GIT_NAME }}"
+          git config --local user.email "${{ secrets.GIT_MAIL }}"
+          git add atomic-red-attacks.csv atomic-red-attacks.md
+          git commit -m "$(TZ=Asia/Kolkata date +'%Y-%m-%d - %H:%M IST - Atomic Red Attack Extraction')"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GIT_TOKEN }}
+          branch: ${{ github.ref }}
