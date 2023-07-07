@@ -2,7 +2,7 @@ name: Atomic Red Attack Extraction
 
 on:
   schedule:
-    - cron: '30 10 * * *'
+    - cron: '30 5 * * 1'
 
 jobs:
   atomic_red_extract:
@@ -23,6 +23,7 @@ jobs:
           pip install gitpython pandas pyyaml tabulate
           rm -rf atomic-red-attacks.csv atomic-red-attacks.md
           python atomic-extractor.py
+          rm -rf atomic-red-team
 
       - name: Generate commit with extracted Content
         run: |
