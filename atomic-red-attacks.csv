@@ -1655,6 +1655,26 @@ input_arguments.Path_ie4uinit.type: path
 input_arguments.Path_ie4uinit.default: c:\windows\system32\ie4uinit.exe
 
 "
+T1218,Signed Binary Proxy Execution,LOLBAS CustomShellHost to Spawn Process,b1eeb683-90bb-4365-bbc2-2689015782fe,"This test simulates an adversary copying `customshellhost.exe` and `calc.exe` from `C:\windows\system32\` to `C:\temp\`, renaming `calc.exe` to `explorer.exe`.
+Upon execution, customshellhost.exe will spawn calc.exe.
+Note this will only work on Windows 10 or 11.
+[LOLBAS](https://lolbas-project.github.io/lolbas/Binaries/CustomShellHost/)
+[BishopFox](https://bishopfox.com/blog/edr-bypass-with-lolbins)
+",windows,,,"if (-not (Test-Path #{dest_path})) {
+New-Item -Path #{dest_path} -ItemType Directory
+} else {
+Write-Host ""Directory #{dest_path} already exists."" }
+Copy-Item -Path ""C:\windows\system32\customshellhost.exe"" -Destination ""#{dest_path}\customshellhost.exe"" -Force
+Copy-Item -Path ""C:\windows\system32\calc.exe"" -Destination ""#{dest_path}\explorer.exe"" -Force
+#{dest_path}\customshellhost.exe
+",powershell,True,,"Remove-Item -Path #{dest_path} -Recurse -Force
+",,,"input_arguments.dest_path.description: Directory to copy files into
+
+input_arguments.dest_path.type: path
+
+input_arguments.dest_path.default: C:\test
+
+"
 T1573,Encrypted Channel,OpenSSL C2,21caf58e-87ad-440c-a6b8-3ac259964003,"Thanks to @OrOneEqualsOne for this quick C2 method.
 This is to test to see if a C2 session can be established using an SSL socket.
 More information about this technique, including how to set up the listener, can be found here:
@@ -6909,6 +6929,37 @@ input_arguments.executable_command.description: Command to execute as a service
 input_arguments.executable_command.type: string
 
 input_arguments.executable_command.default: C:\Windows\System32\calc.exe
+
+"
+T1564,Hide Artifacts,Command Execution with NirCmd,2748ab4a-1e0b-4cf2-a2b0-8ef765bec7be,"NirCmd is used by threat actors to execute commands, which can include recon and privilege escalation via running commands via the SYSTEM account
+See https://www.kroll.com/en/insights/publications/cyber/black-basta-technical-analysis
+",windows,,,"cmd /c #{nircmd_location} #{command_to_execute}
+",powershell,False,,"cmd /c #{nircmd_location} #{cleanup_command_to_execute} -erroraction silentlycontinue | out-null
+",powershell,"dependencies.0.description: The Nircmd executable must exist at (#{nircmd_location})
+
+dependencies.0.prereq_command: if (Test-Path #{nircmd_location}) {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+invoke-webrequest ""https://www.nirsoft.net/utils/nircmd-x64.zip"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\nircmd.zip"" 
+expand-archive -path ""PathToAtomicsFolder\..\ExternalPayloads\nircmd.zip"" -destinationpath PathToAtomicsFolder\..\ExternalPayloads\
+
+","input_arguments.nircmd_location.description: Location of nircmd executable
+
+input_arguments.nircmd_location.type: Path
+
+input_arguments.nircmd_location.default: PathToAtomicsFolder\..\ExternalPayloads\nircmd.exe
+
+input_arguments.command_to_execute.description: Command for nircmd to execute
+
+input_arguments.command_to_execute.type: Path
+
+input_arguments.command_to_execute.default: win child class ""Shell_TrayWnd"" hide class ""TrayClockWClass""
+
+input_arguments.cleanup_command_to_execute.description: Cleanup command to undo the arbitrary command ran by nircmd
+
+input_arguments.cleanup_command_to_execute.type: Path
+
+input_arguments.cleanup_command_to_execute.default: win child class ""Shell_TrayWnd"" show class ""TrayClockWClass""
 
 "
 T1566.001,Phishing: Spearphishing Attachment,Download Macro-Enabled Phishing Attachment,114ccff9-ae6d-4547-9ead-4cd69f687306,"This atomic test downloads a macro enabled document from the Atomic Red Team GitHub repository, simulating an end user clicking a phishing link to download the file.
