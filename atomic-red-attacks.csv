@@ -5128,6 +5128,16 @@ A thread is then created in the target process, using the remote section view as
 ",windows,,,"$notepad = Start-Process notepad -passthru
 Start-Process $PathToAtomicsFolder\T1055\bin\x64\InjectView.exe
 ",powershell,,,Stop-Process $notepad.pid,,,
+T1055,Process Injection,Dirty Vanity process Injection,c6952f41-6cf0-450a-b352-2cajg7t7c178,"This test used the Windows undocumented remote-fork API RtlCreateProcessReflection to create a cloned process of the parent process
+with shellcode written in its memory. The shellcode is executed after being forked to the child process. The technique was first presented at 
+BlackHat Europe 2022. Shellcode will open a messsage box and a notepad.
+",windows,,,Start-Process $PathToAtomicsFolder\T1055\bin\x64\redVanity.exe #{pid},powershell,False,,"Get-Process -Name calc, CalculatorApp -ErrorAction SilentlyContinue | Stop-Process -Force",,,"input_arguments.pid.description: Parent process ID
+
+input_arguments.pid.type: string
+
+input_arguments.pid.default: (Start-Process calc.exe -PassThru).Id
+
+"
 T1055.001,Process Injection: Dynamic-link Library Injection,Process Injection via mavinject.exe,74496461-11a1-4982-b439-4d87a550d254,"Windows 10 Utility To Inject DLLS.
 
 Upon successful execution, powershell.exe will download T1055.dll to disk. Powershell will then spawn mavinject.exe to perform process injection in T1055.dll.
@@ -11543,6 +11553,25 @@ input_arguments.ads_filename.description: Name of ADS file.
 input_arguments.ads_filename.type: string
 
 input_arguments.ads_filename.default: adstest.txt
+
+"
+T1564.004,Hide Artifacts: NTFS File Attributes,Create Hidden Directory via $index_allocation,3e6791e7-232c-481c-a680-a52f86b83fdf,"Create an Alternate Data Stream Directory and File with the command prompt. Write access is required. Upon execution, 
+run ""dir /A /Q /R"" in the %temp% folder to view that the alternate data stream folder exists. To view the data in the  
+alternate data stream, run ""type %temp%\...$.......::$index_allocation\secrets.txt""
+",windows,,,"md #{folder_name}
+echo too many secrets > #{folder_name}\#{hidden_filename}
+",command_prompt,,,"rmdir /S /Q #{folder_name} >nul 2>&1
+",,,"input_arguments.folder_name.description: File name of file to create inside the folder.
+
+input_arguments.folder_name.type: string
+
+input_arguments.folder_name.default: %temp%\...$.......::$index_allocation
+
+input_arguments.hidden_filename.description: Name of the files containing the hidden information
+
+input_arguments.hidden_filename.type: string
+
+input_arguments.hidden_filename.default: secrets.txt
 
 "
 T1546.009,Event Triggered Execution: AppCert DLLs,Create registry persistence via AppCert DLL,a5ad6104-5bab-4c43-b295-b4c44c7c6b05,"Creates a new 'AtomicTest' value pointing to an AppCert DLL in the AppCertDlls registry key. 
