@@ -1894,21 +1894,17 @@ whoami
 exit
 ",sh,True,,"rmuser -y art 
 ",,,
-T1078.003,Valid Accounts: Local Accounts,Login as nobody (Linux),3d2cd093-ee05-41bd-a802-59ee5c301b85,"An adversary may try to re-purpose a system account to appear legitimate. In this test change the login shell of the nobody account, change its password to nobody, su to nobody, exit, then reset nobody's shell to /usr/sbin/nologin.
-",linux,,,"cat /etc/passwd |grep nobody 
-# -> nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+T1078.003,Valid Accounts: Local Accounts,Login as nobody (Linux),3d2cd093-ee05-41bd-a802-59ee5c301b85,"An adversary may try to re-purpose a system account to appear legitimate. In this test change the login shell of the nobody account, change its password to nobody, su to nobody, exit, then reset nobody's shell to /usr/sbin/nologin. Here is how the nobody entry should look like in `/etc/passwd` before the test is executed and right after the cleanup: `# -> nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin`
+",linux,,,"cat /etc/passwd |grep nobody
 chsh --shell /bin/bash nobody
 usermod --password $(openssl passwd -1 nobody) nobody
-su nobody
-whoami
-exit
+su -c ""whoami"" nobody
 ",bash,True,,"chsh --shell /usr/sbin/nologin nobody
-cat /etc/passwd |grep nobody 
+cat /etc/passwd |grep nobody
 # -> nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
 ",,,
-T1078.003,Valid Accounts: Local Accounts,Login as nobody (freebsd),16f6374f-7600-459a-9b16-6a88fd96d310,"An adversary may try to re-purpose a system account to appear legitimate. In this test change the login shell of the nobody account, change its password to nobody, su to nobody, exit, then reset nobody's shell to /usr/sbin/nologin.
-",linux,,,"cat /etc/passwd |grep nobody 
-# -> nobody:x:65534:65534:Unprivileged user:/nonexistent:/usr/sbin/nologin
+T1078.003,Valid Accounts: Local Accounts,Login as nobody (freebsd),16f6374f-7600-459a-9b16-6a88fd96d310,"An adversary may try to re-purpose a system account to appear legitimate. In this test change the login shell of the nobody account, change its password to nobody, su to nobody, exit, then reset nobody's shell to /usr/sbin/nologin. Here is how the nobody entry should look like in `/etc/passwd` before the test is executed and right after the cleanup: `# -> nobody:x:65534:65534:Unprivileged user:/nonexistent:/usr/sbin/nologin`
+",linux,,,"cat /etc/passwd |grep nobody
 pw usermod nobody -s /bin/sh
 echo $(openssl passwd -1 art) | pw mod user nobody -h 0
 su nobody
@@ -3934,24 +3930,20 @@ input_arguments.rc_service_file.default: art-test
 
 "
 T1543.002,Create or Modify System Process: SysV/Systemd Service,"Create Systemd Service file,  Enable the service , Modify and Reload the service.",c35ac4a8-19de-43af-b9f8-755da7e89c89,"This test creates a systemd service unit file and enables it to autostart on boot. Once service is created and enabled, it also modifies this same service file showcasing both Creation and Modification of system process. 
-",linux,,,"cat > /etc/init.d/T1543.002 << EOF
-#!/bin/bash
-### BEGIN INIT INFO
-# Provides : Atomic Test T1543.002
-# Required-Start: $all
-# Required-Stop : 
-# Default-Start: 2 3 4 5
-# Default-Stop: 
-# Short Description: Atomic Test for Systemd Service Creation
-### END INIT INFO
-python3 -c ""import os, base64;exec(base64.b64decode('aW1wb3J0IG9zCm9zLnBvcGVuKCdlY2hvIGF0b21pYyB0ZXN0IGZvciBDcmVhdGluZyBTeXN0ZW1kIFNlcnZpY2UgVDE1NDMuMDAyID4gL3RtcC9UMTU0My4wMDIuc3lzdGVtZC5zZXJ2aWNlLmNyZWF0aW9uJykK'))""
-EOF
-
+",linux,,,"echo ""#!/bin/bash"" > /etc/init.d/T1543.002
+echo ""### BEGIN INIT INFO"" >> /etc/init.d/T1543.002
+echo ""# Provides : Atomic Test T1543.002"" >> /etc/init.d/T1543.002
+echo ""# Required-Start: \$all"" >> /etc/init.d/T1543.002
+echo ""# Required-Stop : "" >> /etc/init.d/T1543.002
+echo ""# Default-Start: 2 3 4 5"" >> /etc/init.d/T1543.002
+echo ""# Default-Stop: "" >> /etc/init.d/T1543.002
+echo ""# Short Description: Atomic Test for Systemd Service Creation"" >> /etc/init.d/T1543.002
+echo ""### END INIT INFO"" >> /etc/init.d/T1543.002
+echo ""python3 -c \""import os, base64;exec(base64.b64decode('aW1wb3J0IG9zCm9zLnBvcGVuKCdlY2hvIGF0b21pYyB0ZXN0IGZvciBDcmVhdGluZyBTeXN0ZW1kIFNlcnZpY2UgVDE1NDMuMDAyID4gL3RtcC9UMTU0My4wMDIuc3lzdGVtZC5zZXJ2aWNlLmNyZWF0aW9uJykK')) \"" "" >> /etc/init.d/T1543.002
 chmod +x /etc/init.d/T1543.002
-if [ $(cat /etc/os-release | grep -i ID=ubuntu) ] || [ $(cat /etc/os-release | grep -i ID=kali) ]; then update-rc.d T1543.002 defaults; elif [ $(cat /etc/os-release | grep -i 'ID=""centos""') ]; then chkconfig T1543.002 on ; else echo ""Please run this test on Ubnutu , kali OR centos"" ; fi ;
+if [ $(cat /etc/os-release | grep -i ID=ubuntu) ] || [ $(cat /etc/os-release | grep -i ID=kali) ]; then update-rc.d T1543.002 defaults; elif [ $(cat /etc/os-release | grep -i 'ID=""centos""') ]; then chkconfig T1543.002 on ; else echo ""Please run this test on Ubnutu , kali OR centos"" ; fi
 systemctl enable T1543.002
 systemctl start T1543.002
-
 echo ""python3 -c \""import os, base64;exec(base64.b64decode('aW1wb3J0IG9zCm9zLnBvcGVuKCdlY2hvIGF0b21pYyB0ZXN0IGZvciBtb2RpZnlpbmcgYSBTeXN0ZW1kIFNlcnZpY2UgVDE1NDMuMDAyID4gL3RtcC9UMTU0My4wMDIuc3lzdGVtZC5zZXJ2aWNlLm1vZGlmaWNhdGlvbicpCg=='))\"""" | sudo tee -a /etc/init.d/T1543.002
 systemctl daemon-reload
 systemctl restart T1543.002
@@ -4775,7 +4767,7 @@ T1069.001,Permission Groups Discovery: Local Groups,WMIObject Group Discovery,69
 ",windows,,,"Get-WMIObject Win32_Group
 ",powershell,,,,,,
 T1069.001,Permission Groups Discovery: Local Groups,Permission Groups Discovery for Containers- Local Groups,007d7aa4-8c4d-4f55-ba6a-7c965d51219c,"Attackers may try to obtain a list of services that are operating on remote hosts and local network infrastructure devices, in order to identify potential vulnerabilities that can be exploited through remote software attacks. They typically use tools to conduct port and vulnerability scans in order to obtain this information.",containers,,,"docker build -t t1069 $PathtoAtomicsFolder/T1069.001/src/
-docker run --name t1069_container  -d -t t1069
+docker run --name t1069_container --rm -d -t t1069
 docker exec t1069_container ./test.sh",sh,,,"docker stop t1069_container
 docker rmi -f t1069",sh,"dependencies.0.description: Verify docker is installed.
 dependencies.0.prereq_command: which docker
@@ -5329,6 +5321,33 @@ input_arguments.ping_target.type: url
 input_arguments.ping_target.default: 8.8.8.8
 
 "
+T1016.001,System Network Configuration Discovery: Internet Connection Discovery,Check internet connection using Test-NetConnection in PowerShell (ICMP-Ping),f8160cde-4e16-4c8b-8450-6042d5363eb0,"Check internet connection using PowerShell's Test-NetConnection cmdlet and the ICMP/Ping protocol. The default target is 8.8.8.8 (Google Public DNS).
+",windows,,,"Test-NetConnection -ComputerName #{target}
+",powershell,False,,,,,"input_arguments.target.description: target of the request
+
+input_arguments.target.type: string
+
+input_arguments.target.default: 8.8.8.8
+
+"
+T1016.001,System Network Configuration Discovery: Internet Connection Discovery,Check internet connection using Test-NetConnection in PowerShell (TCP-HTTP),7c35779d-42ec-42ab-a283-6255b28e9d68,"Check internet connection using PowerShell's Test-NetConnection cmdlet and the TCP protocol to check for outbound HTTP (Port 80) access. The default target is www.google.com.
+",windows,,,"Test-NetConnection -CommonTCPPort HTTP -ComputerName #{target}
+",powershell,False,,,,,"input_arguments.target.description: target of the request
+
+input_arguments.target.type: string
+
+input_arguments.target.default: www.google.com
+
+"
+T1016.001,System Network Configuration Discovery: Internet Connection Discovery,Check internet connection using Test-NetConnection in PowerShell (TCP-SMB),d9c32b3b-7916-45ad-aca5-6c902da80319,"Check internet connection using PowerShell's Test-NetConnection cmdlet and the TCP protocol to check for outbound SMB (Port 445) access. The default target is 8.8.8.8.
+",windows,,,"Test-NetConnection -CommonTCPPort SMB -ComputerName #{target}
+",powershell,False,,,,,"input_arguments.target.description: target of the request
+
+input_arguments.target.type: string
+
+input_arguments.target.default: 8.8.8.8
+
+"
 T1546,Event Triggered Execution,Persistence with Custom AutodialDLL,aca9ae16-7425-4b6d-8c30-cad306fdbd5b,"The DLL pointed to by the AutodialDLL registry key is loaded every time a process connects to the internet. Attackers can gain persistent code execution by setting this key to a DLL of their choice. 
 
 The sample dll provided, AltWinSock2DLL, will launch the notepad process. Starting and stopping a web browser such as MS Edge or Chrome should result in the dll executing.
@@ -5430,6 +5449,18 @@ input_arguments.dll_inf.default: C:\Windows\System32\amsi.dll
 "
 T1546,Event Triggered Execution,Persistence using automatic execution of custom DLL during RDP session,b7fc4c3f-fe6e-479a-ba27-ef91b88536e3,"When remote desktop session is accepted, the system queries the key it queries the Registry key:HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\AddIns\TestDVCPlugin. 
 If such key exists, the OS will attempt to read the Path value underneath.Once the Path is read, the DLL that it points to will be loaded via LoadLibrary.",windows,,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\AddIns\TestDVCPlugin"" /v Path /t REG_SZ /d ""C:\Windows\System32\amsi.dll"" /f",command_prompt,True,,"reg delete ""HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\AddIns\TestDVCPlugin"" /f",,,
+T1546,Event Triggered Execution,Persistence via ErrorHandler.cmd script execution,547a4736-dd1c-4b48-b4fe-e916190bb2e7,"Create persistence by triggering script within ErrorHandler.cmd upon the execution of specific binaries within the oobe directory.
+Upon test execution, Setup.exe will be executed to further execute script within ErrorHandlercmd to launch Notepad.
+",windows,,,"Copy-Item -Path PathToAtomicsFolder\T1546\src\ErrorHandler.cmd -Destination C:\Windows\Setup\Scripts\ErrorHandler.cmd
+C:\windows\System32\oobe\Setup
+",powershell,True,,Remove-Item C:\Windows\Setup\Scripts\ErrorHandler.cmd      ,,"dependencies.0.description: ErrorHandler.cmd script must exist on disk at specified at PathToAtomicsFolder\T1546\bin\ErrorHandler.cmd
+
+dependencies.0.prereq_command: if (Test-Path PathToAtomicsFolder\T1546\src\ErrorHandler.cmd) { exit 0} else { exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\T1546\src\"" -ErrorAction ignore | Out-Null
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1546/src/ErrorHandler.cmd"" -OutFile ""PathToAtomicsFolder\T1546\src\ErrorHandler.cmd""      
+
+",
 T1546,Event Triggered Execution,Persistence using STARTUP-PATH in MS-WORD,f0027655-25ef-47b0-acaf-3d83d106156c,"When Word starts, it searches for the registry key HKCU\Software\Microsoft\Office\<version>\Word\Options\STARTUP-PATH and if it exists,
 it will treat it as a user specific start-up folder and load the contents of the folder with file extensions of .wll,.lnk,.dotm,.dot,.dotx
 The registry key can be abused to load malware from the mentioned path. Reboot might be required.",windows,,,"reg add ""HKCU\Software\Microsoft\Office\16.0\Word\Options"" /v STARTUP-PATH /t REG_SZ /d ""C:\Users\%USERNAME%\AppData\Roaming\Microsoft\Windows\Recent"" /f",command_prompt,True,,reg delete HKCU\Software\Microsoft\Office\16.0\Word\Options /v STARTUP-PATH /f,,,
@@ -11459,7 +11490,7 @@ echo ""WantedBy=timers.target"" >> #{path_to_systemd_timer}
 systemctl start #{systemd_timer_name}
 systemctl enable #{systemd_timer_name}
 systemctl daemon-reload
-",bash,,,"systemctl stop #{systemd_timer_name}
+",bash,True,,"systemctl stop #{systemd_timer_name}
 systemctl disable #{systemd_timer_name}
 rm #{path_to_systemd_service}
 rm #{path_to_systemd_timer}
@@ -15345,12 +15376,12 @@ input_arguments.computer_name.default: computer1
 
 "
 T1135,Network Share Discovery,Network Share Discovery - linux,875805bc-9e86-4e87-be86-3a5527315cae,"Network Share Discovery using smbstatus
-",linux,,,"sudo smbstatus --shares
+",linux,,,"smbstatus --shares
 ",bash,True,,,bash,"dependencies.0.description: Package with smbstatus (samba) must exist on device
 
 dependencies.0.prereq_command: if #{package_checker} > /dev/null; then exit 0; else exit 1; fi
 
-dependencies.0.get_prereq_command: sudo #{package_installer} 
+dependencies.0.get_prereq_command: #{package_installer}
 
 ","input_arguments.package_checker.description: Package checking command. Debian - dpkg -s samba
 
@@ -17597,7 +17628,7 @@ input_arguments.user_account.default: ubuntu
 T1056.001,Input Capture: Keylogging,Auditd keylogger,a668edb9-334e-48eb-8c2e-5413a40867af,"The linux audit tool auditd can be used to capture 32 and 64 bit command execution and place the command in the /var/log/audit/audit.log audit log. 
 ",linux,,,"auditctl -a always,exit -F arch=b64 -S execve -k CMDS 
 auditctl -a always,exit -F arch=b32 -S execve -k CMDS
-whoami; ausearch -i --start $(date +""%d/%m/%y %H:%M:%S"") 
+whoami; ausearch -i --start now
 ",sh,True,,"systemctl restart auditd
 ",sh,"dependencies.0.description: This test requires sshd and auditd
 
@@ -18089,7 +18120,13 @@ input_arguments.folder_to_delete.default: /tmp/victim-folder
 "
 T1070.004,Indicator Removal on Host: File Deletion,Overwrite and delete a file with shred,039b4b10-2900-404b-b67f-4b6d49aa6499,"Use the `shred` command to overwrite the temporary file and then delete it
 ",linux,,,"shred -u #{file_to_shred}
-",sh,,,,,,"input_arguments.file_to_shred.description: Path of file to shred
+",sh,,,,,"dependencies.0.description: Check if file already exists
+
+dependencies.0.prereq_command: if [ -f ""#{file_to_shred}"" ]; then echo ""File already exists""; else echo ""File does NOT exist yet""; exit 1; fi
+
+dependencies.0.get_prereq_command: touch #{file_to_shred}
+
+","input_arguments.file_to_shred.description: Path of file to shred
 
 input_arguments.file_to_shred.type: path
 
@@ -19773,7 +19810,7 @@ input_arguments.7zip_exe.default: %ProgramFiles%\7-zip\7z.exe
 "
 T1560.001,Archive Collected Data: Archive via Utility,Data Compressed - nix - zip,c51cec55-28dd-4ad2-9461-1eacbc82c3a0,"An adversary may compress data (e.g., sensitive documents) that is collected prior to exfiltration. This test uses standard zip compression.
 ",linux,macos,,"zip #{output_file} #{input_files}
-",sh,False,,"rm -f #{output_file}
+",bash,True,,"rm -f #{output_file}
 ",,"dependencies.0.description: Files to zip must exist (#{input_files})
 
 dependencies.0.prereq_command: if [ $(ls #{input_files} | wc -l) > 0 ] && [ -x $(which zip) ] ; then exit 0; else exit 1; fi;
