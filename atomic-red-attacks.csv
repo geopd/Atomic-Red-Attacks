@@ -7319,6 +7319,7 @@ input_arguments.output_file.default: %temp%\service-list.txt
 T1007,System Service Discovery,System Service Discovery - systemctl/service,f4b26bce-4c2c-46c0-bcc5-fce062d38bef,"Enumerates system service using systemctl/service
 ",linux,,,"if [ ""$(uname)"" = 'FreeBSD' ]; then service -e; else systemctl --type=service; fi;
 ",bash,,,,,,
+T1007,System Service Discovery,Get-Service Execution,51f17016-d8fa-4360-888a-df4bf92c4a04,Executes the Get-Service cmdlet to gather objects representing all services on the local system.,windows,,,powershell.exe Get-Service,command_prompt,,,,,,
 T1546.015,Event Triggered Execution: Component Object Model Hijacking,COM Hijacking - InprocServer32,48117158-d7be-441b-bc6a-d9e36e47b52b,"This test uses PowerShell to hijack a reference to a Component Object Model by creating registry values under InprocServer32 key in the HKCU hive then calling the Class ID to be executed via rundll32.exe.
 
 Reference: https://bohops.com/2018/06/28/abusing-com-registry-structure-clsid-localserver32-inprocserver32/",windows,,,"New-Item -Path 'HKCU:\SOFTWARE\Classes\CLSID\#{clsid}' -Value '#{clsid_description}'
@@ -26316,6 +26317,7 @@ T1082,System Information Discovery,sysctl to gather macOS hardware info,c8d40da9
 T1082,System Information Discovery,operating system discovery ,70e13ef4-5a74-47e4-9d16-760b41b0e2db,"operating system discovery using get-ciminstance
 https://petri.com/getting-operating-system-information-powershell/",windows,,,"Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, ServicePackMajorVersion, OSArchitecture, CSName, WindowsDirectory | Out-null",powershell,False,,,,,
 T1082,System Information Discovery,"Check OS version via ""ver"" command",f6ecb109-df24-4303-8d85-1987dbae6160,Ver command shows information about os version.,windows,,,ver,command_prompt,,,,,,
+T1082,System Information Discovery,"Display volume shadow copies with ""vssadmin""",7161b085-816a-491f-bab4-d68e974b7995,"The command shows all available volume shadow copies, along with their creation time and location.",windows,,,vssadmin.exe list shadows,command_prompt,True,,,,,
 T1574.001,Hijack Execution Flow: DLL Search Order Hijacking,DLL Search Order Hijacking - amsi.dll,8549ad4b-b5df-4a2d-a3d7-2aee9e7052a3,"Adversaries can take advantage of insecure library loading by PowerShell to load a vulnerable version of amsi.dll in order to bypass AMSI (Anti-Malware Scanning Interface)
 https://enigma0x3.net/2017/07/19/bypassing-amsi-via-com-server-hijacking/
 
