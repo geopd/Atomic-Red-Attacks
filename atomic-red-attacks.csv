@@ -3803,6 +3803,11 @@ when sucessfully executed, details of windows firewall is displayed.
 Get-NetFirewallSetting
 Get-NetFirewallRule | select DisplayName, Enabled, Description
 ",powershell,True,,,,,
+T1518.001,Software Discovery: Security Software Discovery,Get Windows Defender exclusion settings using WMIC,e31564c8-4c60-40cd-a8f4-9261307e8336,"In this test, a WMIC command is used to probe the local Windows system for the configuration of Windows Defender's exclusions. This command targets the MSFT_MpPreference 
+class within the Windows Management Instrumentation (WMI) namespace, allowing the retrieval of critical settings such as disabled real-time monitoring and specified 
+exclusion paths, file extensions, and processes. Attackers might use this approach to understand what is excluded from antivirus scans, enabling further exploitation.
+",windows,,,"wmic /Node:localhost /Namespace:\\root\Microsoft\Windows\Defender Path MSFT_MpPreference Get /format:list | findstr /i /C:""DisableRealtimeMonitoring"" /C:""ExclusionPath"" /C:""ExclusionExtension"" /C:""ExclusionProcess""
+",command_prompt,True,,,,,
 T1553.003,Subvert Trust Controls: SIP and Trust Provider Hijacking,SIP (Subject Interface Package) Hijacking via Custom DLL,e12f5d8d-574a-4e9d-8a84-c0e8b4a8a675,"Registers a DLL that logs signature checks, mimicking SIP hijacking. This test uses a DLL from 
 https://github.com/gtworek/PSBits/tree/master/SIP and registers it using regsvr32, thereby causing
 the system to utilize it during signature checks, and logging said checks.
