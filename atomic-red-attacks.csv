@@ -4507,6 +4507,10 @@ https://github.com/The-DFIR-Report/Sigma-Rules/blob/dc72f0b557fc63347379be0a3343
 https://thedfirreport.com/2023/01/09/unwrapping-ursnifs-gifts/
 ",windows,,,"time
 ",command_prompt,,,,,,
+T1124,System Time Discovery,Discover System Time Zone via Registry,25c5d1f1-a24b-494a-a6c5-5f50a1ae7f47,"Identify the Operating System Time Zone via registry with the reg.exe command.
+Upon execution, the system Time Zone will be shown.
+",windows,,,"reg query ""HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation"" /v TimeZoneKeyName
+",command_prompt,False,,,,,
 T1530,Data from Cloud Storage Object,Azure - Enumerate Azure Blobs with MicroBurst,3dab4bcc-667f-4459-aea7-4162dd2d6590,"Upon successful execution, this test will utilize a wordlist to enumerate the public facing containers and blobs of a specified Azure storage account. 
 See https://www.netspi.com/blog/technical/cloud-penetration-testing/anonymously-enumerating-azure-file-resources/ . 
 ",iaas:azure,,,"import-module ""PathToAtomicsFolder\..\ExternalPayloads\Invoke-EnumerateAzureBlobs.ps1""
@@ -19981,7 +19985,16 @@ the machine's location and user language preferences. The command outputs system
 ",command_prompt,,,"cmd.exe /c del ""%TMP%\a.txt""
 ",,,
 T1082,System Information Discovery,Enumerate Available Drives via gdr,c187c9bc-4511-40b3-aa10-487b2c70b6a5,"This test simulates an attacker attempting to list the available drives on the system to gather data about file storage locations.
-",windows,,,"powershell.exe -c ""gdr -PSProvider 'FileSystem'""",command_prompt,,,,,,
+",windows,,,"powershell.exe -c ""gdr -PSProvider 'FileSystem'""
+",command_prompt,,,,,,
+T1082,System Information Discovery,Discover OS Product Name via Registry,be3b5fe3-a575-4fb8-83f6-ad4a68dd5ce7,"Identify the Operating System Product Name via registry with the reg.exe command.
+Upon execution, the OS Product Name will be displayed.
+",windows,,,"reg query ""HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion"" /v ProductName
+",command_prompt,False,,,,,
+T1082,System Information Discovery,Discover OS Build Number via Registry,acfcd709-0013-4f1e-b9ee-bc1e7bafaaec,"Identify the Operating System Build Number via registry with the reg.exe command.
+Upon execution, the OS Build Number will be displayed.
+",windows,,,"reg query ""HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion"" /v CurrentBuildNumber
+",command_prompt,False,,,,,
 T1055.001,Process Injection: Dynamic-link Library Injection,Process Injection via mavinject.exe,74496461-11a1-4982-b439-4d87a550d254,"Windows 10 Utility To Inject DLLS.
 
 Upon successful execution, powershell.exe will download T1055.dll to disk. Powershell will then spawn mavinject.exe to perform process injection in T1055.dll.
@@ -26858,8 +26871,8 @@ input_arguments.registry_value.default: autocheck autoche *
 "
 T1547.001,Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder,Allowing custom application to execute during new RDP logon session,b051b3c0-66e7-4a81-916d-e6383bd3a669,"When a users logs in to a computer via RDP,Windows will search for the key in HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\Wds\rdpwd registry
 By default, rdpclip is the value stored. An attacker with administrator privileges can alter the value stored to allow for the custom application to execute during RDP login session.The test will allow running cal rather rdpclip when a user logs in via RDP
-",windows,,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\Wds\rdpwd"" /v StartupPrograms /t REG_SZ /d ""#{malicious_app}""
-",command_prompt,True,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\Wds\rdpwd"" /v StartupPrograms /t REG_SZ /d ""rdpclip""",,,"input_arguments.malicious_app.description: Application to be executed during successful RDP session
+",windows,,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\Wds\rdpwd"" /f /v StartupPrograms /t REG_SZ /d ""#{malicious_app}""
+",command_prompt,True,,"reg add ""HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\Wds\rdpwd"" /f /v StartupPrograms /t REG_SZ /d ""rdpclip""",,,"input_arguments.malicious_app.description: Application to be executed during successful RDP session
 
 input_arguments.malicious_app.type: string
 
@@ -26869,7 +26882,7 @@ input_arguments.malicious_app.default: calc
 T1547.001,Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder,Creating Boot Verification Program Key for application execution during successful boot,6e1666d5-3f2b-4b9a-80aa-f011322380d4,"Microsoft allows users to define a custom boot verification program for those situations by creating the registry key “HKLM\System\CurrentControlSet\Control\BootVerificationProgram” and setting the value of ImagePath to the path of boot verification program.Threat Actor
 can abuse by creating this registry key and providing a malicious application to be executed during successful boot
 ",windows,,,"reg add HKLM\System\CurrentControlSet\Control\BootVerificationProgram /v ImagePath /t REG_SZ /d ""#{malicious_file}""
-",command_prompt,True,,reg delete HKLM\System\CurrentControlSet\Control\BootVerificationProgram,,,"input_arguments.malicious_file.description: Application to be executed during successful boot
+",command_prompt,True,,reg delete HKLM\System\CurrentControlSet\Control\BootVerificationProgram /f,,,"input_arguments.malicious_file.description: Application to be executed during successful boot
 
 input_arguments.malicious_file.type: string
 
