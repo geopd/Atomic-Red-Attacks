@@ -24736,6 +24736,105 @@ input_arguments.subscription_name.type: string
 input_arguments.subscription_name.default: None
 
 "
+T1526,Cloud Service Discovery,AWS - Enumerate common cloud services,aa8b9bcc-46fa-4a59-9237-73c7b93a980c,"Upon successful execution, this test will enumerate common resources that are contained within a valid AWS account.
+",iaas:aws,,,"Import-Module ""PathToAtomicsFolder\T1526\src\AWSDiscovery.ps1""
+$access_key = ""#{access_key}""
+$secret_key = ""#{secret_key}""
+$session_token = ""#{session_token}""
+$aws_profile = ""#{profile}""
+$regions = ""#{regions}""
+Set-AWSAuthentication -AccessKey $access_key -SecretKey $secret_key -SessionToken $session_token -AWSProfile $aws_profile
+Get-AWSDiscoveryData -Regions $regions -OutputDirectory ""#{output_directory}""
+Remove-BlankFiles -OutputDirectory ""#{output_directory}""
+",powershell,,,,powershell,"dependencies.0.description: The AWS PowerShell module must be installed.
+
+dependencies.0.prereq_command: try {if (Get-InstalledModule -Name AWSPowerShell -ErrorAction SilentlyContinue) {exit 0} else {exit 1}} catch {exit 1}
+
+dependencies.0.get_prereq_command: Install-Module -Name AWSPowerShell -Force
+
+","input_arguments.access_key.description: AWS Access Key
+
+input_arguments.access_key.type: string
+
+input_arguments.access_key.default: 
+
+input_arguments.secret_key.description: AWS Secret Key
+
+input_arguments.secret_key.type: string
+
+input_arguments.secret_key.default: 
+
+input_arguments.session_token.description: AWS Session Token
+
+input_arguments.session_token.type: string
+
+input_arguments.session_token.default: 
+
+input_arguments.profile.description: AWS profile
+
+input_arguments.profile.type: string
+
+input_arguments.profile.default: 
+
+input_arguments.regions.description: AWS regions
+
+input_arguments.regions.type: string
+
+input_arguments.regions.default: us-east-1,us-east-2,us-west-1,us-west-2
+
+input_arguments.output_directory.description: Directory to output results to
+
+input_arguments.output_directory.type: string
+
+input_arguments.output_directory.default: $env:TMPDIR/aws_discovery
+
+"
+T1526,Cloud Service Discovery,Azure - Enumerate common cloud services,58f57c8f-db14-4e62-a4d3-5aaf556755d7,"Upon successful execution, this test will enumerate common resources that are contained within a valid Azure subscription.
+",iaas:azure,,,"Import-Module ""PathToAtomicsFolder\T1526\src\AzureDiscovery.ps1""
+$client_id = ""#{client_id}""
+$client_secret = ""#{client_secret}""
+$tenant_id = ""#{tenant_id}""
+$environment = ""#{cloud}""
+Set-AzureAuthentication -ClientID $client_id -ClientSecret $client_secret -TenantID $tenant_id -Environment $environment
+Get-AzureDiscoveryData -OutputDirectory ""#{output_directory}"" -Environment $environment
+Remove-BlankFiles -OutputDirectory ""#{output_directory}""
+",powershell,,,,powershell,"dependencies.0.description: The Az module must be installed.
+
+dependencies.0.prereq_command: try {if (Get-InstalledModule -Name Az -ErrorAction SilentlyContinue) {exit 0} else {exit 1}} catch {exit 1}
+
+dependencies.0.get_prereq_command: Install-Module -Name Az -Force
+
+","input_arguments.client_id.description: Azure AD client ID
+
+input_arguments.client_id.type: string
+
+input_arguments.client_id.default: None
+
+input_arguments.client_secret.description: Azure AD client secret
+
+input_arguments.client_secret.type: string
+
+input_arguments.client_secret.default: None
+
+input_arguments.tenant_id.description: Azure AD tenant ID
+
+input_arguments.tenant_id.type: string
+
+input_arguments.tenant_id.default: None
+
+input_arguments.cloud.description: Azure cloud environment
+
+input_arguments.cloud.type: string
+
+input_arguments.cloud.default: AzureCloud
+
+input_arguments.output_directory.description: Directory to output results to
+
+input_arguments.output_directory.type: string
+
+input_arguments.output_directory.default: $env:TMPDIR/azure_discovery
+
+"
 T1048,Exfiltration Over Alternative Protocol,Exfiltration Over Alternative Protocol - SSH,f6786cc8-beda-4915-a4d6-ac2f193bb988,"Input a domain and test Exfiltration over SSH
 
 Remote to Local
