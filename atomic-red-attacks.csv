@@ -4640,6 +4640,35 @@ dependencies.0.prereq_command: try {
 dependencies.0.get_prereq_command: Write-Host ""You will need to install Microsoft Word manually to meet this requirement""
 
 ",
+T1595.003,Active Scanning: Wordlist Scanning,Web Server Wordlist Scan,89a83c3e-0b39-4c80-99f5-c2aa084098bd,"This test will scan a target system with a wordlist of common directories and file paths.
+",windows,linux,macos,"Import-Module ""PathToAtomicsFolder/T1595.003/src/WebServerScan.ps1""
+Invoke-WordlistScan -Target ""#{target}"" -Wordlist ""#{wordlist}"" -Timeout ""#{request_timeout}"" -OutputFile ""#{output_file}""
+Write-Host ""Scan complete. Results saved to: #{output_file}""
+",powershell,,,,,,"input_arguments.target.description: The target system to scan
+
+input_arguments.target.type: string
+
+input_arguments.target.default: http://localhost
+
+input_arguments.wordlist.description: The wordlist to use for scanning
+
+input_arguments.wordlist.type: path
+
+input_arguments.wordlist.default: PathToAtomicsFolder/T1595.003/src/wordlist.txt
+
+input_arguments.request_timeout.description: The timeout for each request (in seconds)
+
+input_arguments.request_timeout.type: integer
+
+input_arguments.request_timeout.default: 5
+
+input_arguments.output_file.description: File to output results to
+
+input_arguments.output_file.type: string
+
+input_arguments.output_file.default: $env:TMPDIR/wordlist_scan.txt
+
+"
 T1055.004,Process Injection: Asynchronous Procedure Call,Process Injection via C#,611b39b7-e243-4c81-87a4-7145a90358b1,"Process Injection using C#
 reference: https://github.com/pwndizzle/c-sharp-memory-injection
 Excercises Five Techniques
@@ -5029,7 +5058,8 @@ T1614.001,System Location Discovery: System Language Discovery,Discover System L
 `GetKeyboardLayout`, `GetKeyboardLayoutList`, `GetUserDefaultUILanguage`, `GetSystemDefaultUILanguage`, `GetUserDefaultLangID`.
 
 Documentation for these functions is located [here](https://learn.microsoft.com/en-us/windows/win32/api/winuser/).    
-",windows,,,PathToAtomicsFolder\..\ExternalPayloads\LanguageKeyboardLayout.exe,command_prompt,False,,,powershell,"dependencies.0.description: LanguageKeyboardLayout.exe must exist on disk (default location: PathToAtomicsFolder\..\ExternalPayloads\LanguageKeyboardLayout.exe)
+",windows,,,"PathToAtomicsFolder\..\ExternalPayloads\LanguageKeyboardLayout.exe
+",command_prompt,False,,,powershell,"dependencies.0.description: LanguageKeyboardLayout.exe must exist on disk (default location: PathToAtomicsFolder\..\ExternalPayloads\LanguageKeyboardLayout.exe)
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\LanguageKeyboardLayout.exe"") {exit 0} else {exit 1}
 
@@ -5037,6 +5067,40 @@ dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""PathTo
 Invoke-WebRequest -Uri ""https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1614.001/bin/LanguageKeyboardLayout.exe"" -OutFile ""PathToAtomicsFolder\..\ExternalPayloads\LanguageKeyboardLayout.exe""
 
 ",
+T1614.001,System Location Discovery: System Language Discovery,Discover System Language with WMIC,4758003d-db14-4959-9c0f-9e87558ac69e,"WMIC (Windows Management Instrumentation Command-line) is a command-line tool that provides a simplified interface to query and manage Windows system configurations, processes, and hardware information using WMI. 
+
+The command in this test retrieves information about the system's locale, operating system language, and multilingual user interface (MUI) languages.
+",windows,,,"wmic /node:#{target_host} os get Locale,OSLanguage,MUILanguages /format:#{format_style}
+",command_prompt,False,,,,,"input_arguments.target_host.description: The host that will be queried.
+
+If the host contains special characters, it may need to be wrapped in double quotes or double + single quotes. 
+
+For example: ""DESKTOP-123"" or ""'DESKTOP-123'"".
+
+
+input_arguments.target_host.type: string
+
+input_arguments.target_host.default: localhost
+
+input_arguments.format_style.description: You can specify multipe output formats for wmic such as table, list and csv.
+
+input_arguments.format_style.type: string
+
+input_arguments.format_style.default: table
+
+"
+T1614.001,System Location Discovery: System Language Discovery,Discover System Language with Powershell,1f23bfe8-36d4-49ce-903a-19a1e8c6631b,"This PowerShell script collects key system settings, such as the UI language, user language preferences, system locale, current culture, UI culture, and time zone, into a hash table. 
+
+It then outputs these settings in a readable key-value format directly to the terminal. The script is simple and efficient for quickly displaying system configuration details.
+",windows,,,"$info = @{
+  UILanguage     = Get-WinUILanguageOverride
+  UserLanguages  = (Get-WinUserLanguageList).LanguageTag -join ', '
+  SystemLocale   = Get-WinSystemLocale
+  CurrentCulture = [System.Globalization.CultureInfo]::CurrentCulture.Name
+  CurrentUICulture = [System.Globalization.CultureInfo]::CurrentUICulture.Name
+  TimeZone       = (Get-TimeZone).Id
+}
+$info.GetEnumerator() | ForEach-Object { ""$($_.Name): $($_.Value)"" }",powershell,False,,,,,
 T1070,Indicator Removal on Host,Indicator Removal using FSUtil,b4115c7a-0e92-47f0-a61e-17e7218b2435,"Manages the update sequence number (USN) change journal, which provides a persistent log of all changes made to files on the volume. Upon execution, no output
 will be displayed. More information about fsutil can be found at https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/fsutil-usn
 ",windows,,,"fsutil usn deletejournal /D C:
@@ -26988,6 +27052,9 @@ input_arguments.malicious_file.type: string
 input_arguments.malicious_file.default: C:\Program Files\Internet Explorer\iexplore.exe
 
 "
+T1547.001,Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder,Add persistence via Windows Context Menu,de47f4a0-2acb-416d-9a6b-cee584a4c4d1,"This atomic test add persistence taking advantage of the  Windows Context Menu [Hexacorn](https://www.hexacorn.com/blog/2018/07/29/beyond-good-ol-run-key-part-82/)
+User have to right click on the main screen or in the white space of the opened folder (e.g. Size Modify).
+",windows,,,"reg add ""HKEY_CLASSES_ROOT\Directory\Background\shell\Size Modify\command"" /ve /t REG_SZ /d ""C:\Windows\System32\calc.exe"" /f",command_prompt,True,,"reg delete ""HKEY_CLASSES_ROOT\Directory\Background\shell\Size Modify"" /f",,,
 T1559.002,Inter-Process Communication: Dynamic Data Exchange,Execute Commands,f592ba2a-e9e8-4d62-a459-ef63abd819fd,"Executes commands via DDE using Microsfot Word
 ",windows,,,,manual,,"Open Microsoft Word
 
