@@ -11969,6 +11969,27 @@ input_arguments.timeout_ms.default: 200
 T1046,Network Service Discovery,Remote Desktop Services Discovery via PowerShell,9e55750e-4cbf-4013-9627-e9a045b541bf,"Availability of remote desktop services can be checked using get- cmdlet of PowerShell
 ",windows,,,"Get-Service -Name ""Remote Desktop Services"", ""Remote Desktop Configuration""
 ",powershell,True,,,,,
+T1046,Network Service Discovery,Port Scan using nmap (Port range),0d5a2b03-3a26-45e4-96ae-89485b4d1f97,"Scan multiple ports to check for listening ports with nmap
+",linux,macos,,"nmap -Pn -sV -p #{port_range} #{host}
+",sh,True,,,sh,"dependencies.0.description: Check if nmap command exists on the machine
+
+dependencies.0.prereq_command: if [ -x ""$(command -v nmap)"" ]; then exit 0; else exit 1; fi;
+
+dependencies.0.get_prereq_command: (which yum && yum -y install epel-release nmap)||(which apt-get && DEBIAN_FRONTEND=noninteractive apt-get install -y nmap)||(which pkg && pkg install -y nmap)||(which brew && brew install nmap)
+
+","input_arguments.host.description: Host(s) to scan.
+
+input_arguments.host.type: string
+
+input_arguments.host.default: 127.0.0.1
+
+input_arguments.port_range.description: Port range(s) to scan.
+
+input_arguments.port_range.type: string
+
+input_arguments.port_range.default: 0-65535
+
+"
 T1542.001,Pre-OS Boot: System Firmware,UEFI Persistence via Wpbbin.exe File Creation,b8a49f03-e3c4-40f2-b7bb-9e8f8fdddbf1,"Creates Wpbbin.exe in %systemroot%. This technique can be used for UEFI-based pre-OS boot persistence mechanisms.
 - https://grzegorztworek.medium.com/using-uefi-to-inject-executable-files-into-bitlocker-protected-drives-8ff4ca59c94c
 - http://download.microsoft.com/download/8/a/2/8a2fb72d-9b96-4e2d-a559-4a27cf905a80/windows-platform-binary-table.docx
@@ -13702,6 +13723,154 @@ input_arguments.download.description: link to download ngrok
 input_arguments.download.type: string
 
 input_arguments.download.default: https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip
+
+"
+T1572,Protocol Tunneling,Microsoft Dev tunnels (Linux/macOS),9f94a112-1ce2-464d-a63b-83c1f465f801,"Dev Tunnels enables insiders as well as threat actors to expose local ports over the internet via Microsoft dev tunnels.
+
+This atomic will generate a dev tunnel binding it to the local service running on the provided port. Can be used to expose local services, web applications and local files etc.
+Reference:
+- [Microsoft Docs](https://learn.microsoft.com/en-us/tunnels/dev-tunnels-overview)
+- [LOT Tunnels](https://lottunnels.github.io/lottunnels/Binaries/devtunnels/)
+",linux,macos,,"#{binary_path} host -p #{port} &
+",bash,,,"pkill -9 $(basename ""#{binary_path}"")
+#{binary_path} user logout
+rm #{binary_path}
+",,"dependencies.0.description: Download devtunnel
+
+dependencies.0.prereq_command: test -f #{binary_path}
+
+dependencies.0.get_prereq_command: mkdir -p $(dirname #{binary_path})
+curl -L ""#{download_url}"" -o ""#{binary_path}""
+chmod +x #{binary_path}
+
+dependencies.1.description: Login to Microsoft Dev tunnels
+
+dependencies.1.prereq_command: #{binary_path} user show | grep -q ""Not logged in"" && exit 1 || exit 0
+
+dependencies.1.get_prereq_command: echo ""Login to devtunnel using the following command: #{binary_path} user login""
+
+","input_arguments.port.description: port number for tunnel
+
+input_arguments.port.type: integer
+
+input_arguments.port.default: 8080
+
+input_arguments.download_url.description: link to download devtunnel
+
+input_arguments.download_url.type: string
+
+input_arguments.download_url.default: https://aka.ms/TunnelsCliDownload/linux-x64
+
+input_arguments.binary_path.description: path to download devtunnel
+
+input_arguments.binary_path.type: string
+
+input_arguments.binary_path.default: PathToAtomicsFolder/../ExternalPayloads/devtunnel
+
+"
+T1572,Protocol Tunneling,VSCode tunnels (Linux/macOS),b877943f-0377-44f4-8477-f79db7f07c4d,"Visual Studio Code Remote Tunnels can be used for exposing local development environment/services/files over the internet.
+This atomic will generate a dev tunnel binding it to the local service running on the provided port.
+Reference:
+- [Microsoft Docs](https://code.visualstudio.com/docs/remote/tunnels)
+- [LOT Tunnels](https://lottunnels.github.io/lottunnels/Binaries/vscode-server/)
+",linux,macos,,"nohup code tunnel --accept-server-license-terms #{additional_args} >/dev/null 2>&1 &
+",sh,,,"pkill -9 tunnel
+code tunnel unregister
+code tunnel user logout
+",,"dependencies.0.description: Install code-cli
+
+dependencies.0.prereq_command: which code
+
+dependencies.0.get_prereq_command: ARCH_SUFFIX=$(uname -m | grep -q ""arm64\|aarch64"" && echo ""arm64"" || echo ""x64"")
+if [ ""$(uname)"" = ""Darwin"" ]
+then brew install code-cli
+elif [ ""$(expr substr $(uname) 1 5)"" = ""Linux"" ]
+then mkdir -p $(dirname #{payload_path})        
+  PKG_TYPE=$(command -v apt >/dev/null && echo ""deb"" || echo ""rpm"")
+  curl -L ""#{artifact_base_url}?build=#{artifact_build}&os=linux-${PKG_TYPE}-${ARCH_SUFFIX}"" -o ""#{payload_path}/code.${PKG_TYPE}""
+  (which apt && apt install -y ""#{payload_path}/code.${PKG_TYPE}"") || (which yum && yum install -y ""#{payload_path}/code.${PKG_TYPE}"")
+  rm ""#{payload_path}/code.${PKG_TYPE}""
+fi
+
+dependencies.1.description: Login to VSCode Dev tunnels
+
+dependencies.1.prereq_command: code tunnel user show | grep -q ""not logged in"" && exit 1 || exit 0
+
+dependencies.1.get_prereq_command: echo ""Login to code tunnel using the following command: code tunnel user login""
+
+","input_arguments.artifact_base_url.description: Base URL to download code-cli
+
+input_arguments.artifact_base_url.type: string
+
+input_arguments.artifact_base_url.default: https://code.visualstudio.com/sha/download
+
+input_arguments.artifact_build.description: build to download - Allowed values (stable/insiders)
+
+input_arguments.artifact_build.type: string
+
+input_arguments.artifact_build.default: stable
+
+input_arguments.payload_path.description: path to download code-cli
+
+input_arguments.payload_path.type: string
+
+input_arguments.payload_path.default: PathToAtomicsFolder/../ExternalPayloads
+
+input_arguments.additional_args.description: additional arguments to pass to code tunnel
+
+input_arguments.additional_args.type: string
+
+input_arguments.additional_args.default: 
+
+"
+T1572,Protocol Tunneling,Cloudflare tunnels (Linux/macOS),228c336a-2f79-4043-8aef-bfa453a611d5,"Cloudflared can be used for exposing local development environment/services/files over the internet.
+This atomic will generate a dev tunnel binding it to the local service running on the provided port.
+Reference:
+- [Cloudflared Docs](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
+- [LOT Tunnels](https://lottunnels.github.io/lottunnels/Binaries/cloudflared/)
+",linux,macos,,"nohup #{binary_path} tunnel --url #{url_to_tunnel} #{additional_args} >/dev/null 2>&1 &
+",sh,,,"pkill -9 $(basename ""#{binary_path}"")
+rm -f ""#{binary_path}""
+",,"dependencies.0.description: Download cloudflared
+
+dependencies.0.prereq_command: test -f ""#{binary_path}"" && exit 0 || exit 1
+
+dependencies.0.get_prereq_command: ARCH_SUFFIX=$(uname -m | grep -q ""arm64\|aarch64"" && echo ""arm64"" || echo ""amd64"")
+if [ ""$(uname)"" = ""Darwin"" ]
+then curl -L ""#{cloudflared_artifact_base_url}/cloudflared-darwin-${ARCH_SUFFIX}.tgz"" -o ""$(dirname #{binary_path})/cloudflared-darwin-${ARCH_SUFFIX}.tgz"" 
+  cd ""$(dirname #{binary_path})""
+  tar -xzf ""cloudflared-darwin-${ARCH_SUFFIX}.tgz""
+  rm -f ""cloudflared-darwin-${ARCH_SUFFIX}.tgz""
+  chmod +x ""#{binary_path}""
+elif [ ""$(expr substr $(uname) 1 5)"" = ""Linux"" ]
+then mkdir -p $(dirname #{binary_path})
+  curl -L ""#{cloudflared_artifact_base_url}/cloudflared-linux-${ARCH_SUFFIX}"" -o ""#{binary_path}""
+  chmod +x ""#{binary_path}""
+fi
+
+","input_arguments.cloudflared_artifact_base_url.description: Base URL to download cloudflared
+
+input_arguments.cloudflared_artifact_base_url.type: string
+
+input_arguments.cloudflared_artifact_base_url.default: https://github.com/cloudflare/cloudflared/releases/latest/download
+
+input_arguments.binary_path.description: path to download cloudflared
+
+input_arguments.binary_path.type: string
+
+input_arguments.binary_path.default: PathToAtomicsFolder/../ExternalPayloads/cloudflared
+
+input_arguments.url_to_tunnel.description: IP and port to expose
+
+input_arguments.url_to_tunnel.type: string
+
+input_arguments.url_to_tunnel.default: localhost:8080
+
+input_arguments.additional_args.description: Additional arguments to pass to cloudflared
+
+input_arguments.additional_args.type: string
+
+input_arguments.additional_args.default: 
 
 "
 T1614,System Location Discovery,Get geolocation info through IP-Lookup services using curl Windows,fe53e878-10a3-477b-963e-4367348f5af5,"Get geolocation info through IP-Lookup services using curl Windows. The default URL of the IP-Lookup service is https://ipinfo.io/. References: https://securelist.com/transparent-tribe-part-1/98127/ and https://news.sophos.com/en-us/2016/05/03/location-based-ransomware-threat-research/
@@ -26335,30 +26504,6 @@ dependencies.0.get_prereq_command: echo ""The plist file doesn't exist. Check th
 input_arguments.plist_filename.type: string
 
 input_arguments.plist_filename.default: com.atomicredteam.plist
-
-input_arguments.path_malicious_plist.description: Name of file to store in cron folder
-
-input_arguments.path_malicious_plist.type: string
-
-input_arguments.path_malicious_plist.default: $PathToAtomicsFolder/T1543.004/src/atomicredteam_T1543_004.plist
-
-"
-T1543.004,Create or Modify System Process: Launch Daemon,Launch Daemon - Users Directory,6f899f9d-8a8e-4143-89a5-26fc2c3ec438,"Utilize LaunchDaemon in /Users directory  to touch temporary file in /tmp
-",macos,,,"sudo cp #{path_malicious_plist} ~/Library/LaunchDaemons/#{plist_filename}
-sudo launchctl load -w ~/Library/LaunchDaemons/#{plist_filename}
-",bash,True,,"sudo launchctl unload ~/Library/LaunchDaemons/#{plist_filename}
-sudo rm ~/Library/LaunchDaemons/#{plist_filename}
-sudo rm /tmp/T1543_004_atomicredteam.txt",bash,"dependencies.0.description: The shared library must exist on disk at specified location (#{path_malicious_plist})
-
-dependencies.0.prereq_command: if [ -f #{path_malicious_plist} ]; then exit 0; else exit 1; fi;
-
-dependencies.0.get_prereq_command: echo ""The plist file doesn't exist. Check the path and try again.""; exit 1;
-
-","input_arguments.plist_filename.description: filename
-
-input_arguments.plist_filename.type: string
-
-input_arguments.plist_filename.default: com.atomicredteam.T1543.004.plist
 
 input_arguments.path_malicious_plist.description: Name of file to store in cron folder
 
