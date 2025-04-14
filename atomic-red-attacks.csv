@@ -116,8 +116,8 @@ T1569.002,System Services: Service Execution,Use PsExec to execute a command on 
 Will start a process on a remote host.
 
 Upon successful execution, cmd will utilize psexec.exe to spawn calc.exe on a remote endpoint (default:localhost).
-",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"" \\#{remote_host} -u #{user_name} -p #{password} -accepteula ""C:\Windows\System32\calc.exe""
-",command_prompt,,,,powershell,"dependencies.0.description: PsExec tool from Sysinternals must exist in the ExternalPayloads directory
+",windows,,,"""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"" \\#{remote_host} -i -u #{user_name} -p #{password} -accepteula ""C:\Windows\System32\calc.exe""
+",command_prompt,True,,,powershell,"dependencies.0.description: PsExec tool from Sysinternals must exist in the ExternalPayloads directory
 
 dependencies.0.prereq_command: if (Test-Path ""PathToAtomicsFolder\..\ExternalPayloads\PsExec.exe"") { exit 0} else { exit 1}
 
@@ -8730,7 +8730,8 @@ T1218.005,Signed Binary Proxy Execution: Mshta,Mshta Executes Remote HTML Applic
 $var.content|out-file ""#{temp_file}""
 mshta ""#{temp_file}""
 start-sleep -s 15
-stop-process -name ""calculator"" -Force
+stop-process -name ""calculator"" -Force -ErrorAction Ignore
+stop-process -name ""CalculatorApp"" -Force -ErrorAction Ignore
 ",powershell,,,"remove-item ""#{temp_file}"" -ErrorAction Ignore
 ",,,"input_arguments.temp_file.description: temp_file location for hta
 
