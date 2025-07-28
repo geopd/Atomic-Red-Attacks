@@ -17761,12 +17761,20 @@ input_arguments.local_file.type: string
 input_arguments.local_file.default: Easter_egg.password
 
 "
-T1027.013,Obfuscated Files or Information: Encrypted/Encoded File,T1027.013 Encrypted/Encoded File,7693ccaa-8d64-4043-92a5-a2eb70359535,"Decode the eicar value, and write it to file, for AV/EDR to try to catch.",windows,macos,linux,"$encodedString = ""WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo=""
+T1027.013,Obfuscated Files or Information: Encrypted/Encoded File,Decode Eicar File and Write to File,7693ccaa-8d64-4043-92a5-a2eb70359535,"Decode the eicar value, and write it to file, for AV/EDR to try to catch.",windows,macos,linux,"$encodedString = ""WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo=""
 $bytes = [System.Convert]::FromBase64String($encodedString)
 $decodedString = [System.Text.Encoding]::UTF8.GetString($bytes)
 
 #write the decoded eicar string to file
 $decodedString | Out-File T1027.013_decodedEicar.txt",powershell,False,,Just delete the resulting T1027.013_decodedEicar.txt file.,,,
+T1027.013,Obfuscated Files or Information: Encrypted/Encoded File,Decrypt Eicar File and Write to File,b404caaa-12ce-43c7-9214-62a531c044f7,"Decrypt the eicar value, and write it to file, for AV/EDR to try to catch.",windows,macos,linux,"$encryptedString = ""76492d1116743f0423413b16050a5345MgB8AGkASwA0AHMAbwBXAFoAagBkAFoATABXAGIAdAA5AFcAWAB1AFMANABVAEEAPQA9AHwAZQBjAGMANgAwADQAZAA0AGQAMQAwADUAYgA4ADAAMgBmADkAZgBjADEANQBjAGMANQBiAGMANwA2AGYANQBmADUANABhAGIAYgAyAGMANQA1AGQAMgA5ADEANABkADUAMgBiAGMANgA2AGMAMAAxADUAZABjADAAOABjAGIANAA1ADUANwBjADcAZQBlAGQAYgAxADEAOQA4AGIAMwAwADMANwAwADAANQA2ADQAOAA4ADkAZgA4ADMAZQA4ADgAOQBiAGEAMAA2ADMAMQAyADYAMwBiAGUAMAAxADgANAA0ADYAOAAxADQANQAwAGUANwBkADkANABjADcANQAxADgAYQA2ADMANQA4AGIAYgA1ADkANQAzAGIAMwAxADYAOAAwADQAMgBmADcAZQBjADYANQA5AGIANwBkADUAOAAyAGEAMgBiADEAMQAzAGQANABkADkAZgA3ADMAMABiADgAOQAxADAANAA4ADcAOQA5ADEAYQA1ADYAZAAzADQANwA3AGYANgAyADcAMAAwADEAMQA4ADEAZgA5ADUAYgBmAGYANQA3ADQAZQA4AGUAMAAxADUANwAwAGQANABiADMAMwA2ADgANwA0AGIANwAyADMAMQBhADkAZABhADEANQAzADQAMgAzADEANwAxADAAZgAxADkAYQA1ADEAMQA=""
+$key = [byte]1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32
+
+$decrypt = ConvertTo-SecureString -String $encryptedString -Key $key
+$decryptedString = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($decrypt))
+
+#Write the decrypted eicar string to a file
+$decryptedString | out-file T1027.013_decryptedEicar.txt",powershell,False,,Just delete the resulting T1027.013_decryptedEicar.txt file.,,,
 T1090.003,Proxy: Multi-hop Proxy,Psiphon,14d55ca0-920e-4b44-8425-37eedd72b173,"Psiphon 3 is a circumvention tool from Psiphon Inc. that utilizes VPN, SSH and HTTP Proxy technology to provide you
 with uncensored access to Internet.
 This process will launch Psiphon 3 and establish a connection. Shortly after it will be shut down via process kill commands.
