@@ -14727,6 +14727,9 @@ input_arguments.plink_file.type: path
 input_arguments.plink_file.default: PathToAtomicsFolder\..\ExternalPayloads\plink.exe
 
 "
+T1529,System Shutdown/Reboot,abuse of linux magic system request key for reboot,d2a1f4bc-a064-4223-8281-a086dce5423c,"adversaries with root or sufficient privileges to silently manipulate or destabilize a system. By writing to /proc/sysrq-trigger, they can forced to reboot.
+",linux,,,"echo ""b"" > /proc/sysrq-trigger
+",bash,True,,,bash,,
 T1016.001,System Network Configuration Discovery: Internet Connection Discovery,Check internet connection using ping Windows,e184b6bd-fb28-48aa-9a59-13012e33d7dc,"Check internet connection using ping on Windows. The default target of the ping is 8.8.8.8 (Google Public DNS).
 ",windows,,,"ping -n 4 #{ping_target}
 ",command_prompt,False,,,,,"input_arguments.ping_target.description: target of the ping
@@ -17655,9 +17658,17 @@ cp -R ~/Library/Mail/* ~/Library/Mail/copy
 echo ""Manipulated data"" > ~/Library/Mail/copy/manipulated.txt
 ",bash,True,,"rm -rf ~/Library/Mail/copy
 ",,,
-T1123,Audio Capture,using device audio capture commandlet,9c3ad250-b185-4444-b5a9-d69218a10c95,"[AudioDeviceCmdlets](https://github.com/cdhunt/WindowsAudioDevice-Powershell-Cmdlet)
-",windows,,,"powershell.exe -Command WindowsAudioDevice-Powershell-Cmdlet
-",powershell,,,,,,
+T1123,Audio Capture,using device audio capture commandlet,9c3ad250-b185-4444-b5a9-d69218a10c95,"Uses AudioDeviceCmdlets to set the default recording device and simulate audio capture.
+Module repo: [AudioDeviceCmdlets](https://github.com/frgnca/AudioDeviceCmdlets)
+",windows,,,"$mic = Get-AudioDevice -Recording
+Set-AudioDevice -ID $mic.ID
+Start-Sleep -Seconds 5
+",powershell,,,,,"dependencies.0.description: AudioDeviceCmdlets module must be installed
+dependencies.0.prereq_command: if (Get-Module -ListAvailable -Name AudioDeviceCmdlets) { exit 0 } else { exit 1 } 
+
+dependencies.0.get_prereq_command: Install with: Install-Module -Name AudioDeviceCmdlets -Force"" 
+
+",
 T1123,Audio Capture,Registry artefact when application use microphone,7a21cce2-6ada-4f7c-afd9-e1e9c481e44a,"[can-you-track-processes-accessing-the-camera-and-microphone](https://svch0st.medium.com/can-you-track-processes-accessing-the-camera-and-microphone-7e6885b37072)
 ",windows,,,"reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone\NonPackaged\C:#Windows#Temp#atomic.exe /v LastUsedTimeStart /t REG_BINARY /d a273b6f07104d601 /f
 reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone\NonPackaged\C:#Windows#Temp#atomic.exe /v LastUsedTimeStop /t REG_BINARY /d 96ef514b7204d601 /f
@@ -22202,7 +22213,7 @@ input_arguments.server_name.type: url
 input_arguments.server_name.default: https://www.example.com
 
 "
-T1036.005,Masquerading: Match Legitimate Name or Location,Execute a process from a directory masquerading as the current parent directory.,812c3ab8-94b0-4698-a9bf-9420af23ce24,"Create and execute a process from a directory masquerading as the current parent directory (`...` instead of normal `..`)
+T1036.005,Masquerading: Match Legitimate Name or Location,Execute a process from a directory masquerading as the current parent directory,812c3ab8-94b0-4698-a9bf-9420af23ce24,"Create and execute a process from a directory masquerading as the current parent directory (`...` instead of normal `..`)
 ",macos,linux,,"mkdir $HOME/...
 cp $(which sh) $HOME/...
 $HOME/.../sh -c ""echo #{test_message}""
@@ -22231,6 +22242,58 @@ Start-Process -FilePath ""#{executable_filepath}""
 input_arguments.executable_filepath.type: string
 
 input_arguments.executable_filepath.default: $Env:windir\Temp\svchost.exe
+
+"
+T1036.005,Masquerading: Match Legitimate Name or Location,Masquerading cmd.exe as VEDetector.exe,03ae82a6-9fa0-465b-91df-124d8ca5c4e8,"This test simulates an adversary renaming cmd.exe to VEDetector.exe to masquerade as a legitimate application.
+The test copies cmd.exe, renames it to VEDetector.exe, adds a registry run key for persistence, and executes the renamed binary.
+This technique may be used to evade detection by mimicking legitimate software names or locations.
+
+**Expected Output:**
+- A new process named VEDetector.exe appears in the process list, but its behavior matches cmd.exe.
+- SIEM/EDR systems may detect this as suspicious process activity (e.g., Sysmon Event ID 1 for process creation, or Event ID 13 for registry modifications).
+- Registry modification in HKLM:\Software\Microsoft\Windows\CurrentVersion\Run may trigger persistence alerts in XDR platforms.
+
+**References:**
+- [MITRE ATT&CK T1036.005](https://attack.mitre.org/techniques/T1036/005/)
+- [Sysmon Process Creation](https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon)
+",windows,,,"# Copy and rename cmd.exe to VEDetector.exe
+Copy-Item -Path ""#{source_file}"" -Destination ""#{ved_path}\VEDetector.exe"" -Force
+
+# Create registry run key for persistence
+New-ItemProperty -Path ""HKLM:\Software\Microsoft\Windows\CurrentVersion\Run"" -Name ""VEDetector"" -Value ""#{ved_path}\VEDetector.exe"" -PropertyType String -Force
+
+# Start the renamed process
+Start-Process -FilePath ""#{ved_path}\VEDetector.exe""
+
+Start-Sleep -Seconds 5
+",powershell,True,,"# Remove registry key
+Remove-ItemProperty -Path ""HKLM:\Software\Microsoft\Windows\CurrentVersion\Run"" -Name ""VEDetector"" -ErrorAction SilentlyContinue
+
+# Stop the process
+Stop-Process -Name ""VEDetector"" -Force -ErrorAction SilentlyContinue
+
+# Remove the file
+Remove-Item -Path ""#{ved_path}\VEDetector.exe"" -Force -ErrorAction SilentlyContinue
+
+Write-Host ""[+] Cleaned up VEDetector artifacts""
+",powershell,"dependencies.0.description: The source cmd.exe file must exist on the system.
+
+dependencies.0.prereq_command: if (Test-Path ""#{source_file}"") { exit 0 } else { exit 1 }
+
+dependencies.0.get_prereq_command: Write-Host ""[-] Source file not found: #{source_file}. Ensure cmd.exe exists in the specified path.""
+exit 1
+
+","input_arguments.ved_path.description: Directory path where VEDetector.exe will be created
+
+input_arguments.ved_path.type: Path
+
+input_arguments.ved_path.default: $env:TEMP
+
+input_arguments.source_file.description: Path to the source cmd.exe file
+
+input_arguments.source_file.type: Path
+
+input_arguments.source_file.default: $env:SystemRoot\System32\cmd.exe
 
 "
 T1505.005,Server Software Component: Terminal Services DLL,Simulate Patching termsrv.dll,0b2eadeb-4a64-4449-9d43-3d999f4a317b,"Simulates patching of termsrv.dll by making a benign change to the file and replacing it with the original afterwards.
