@@ -5804,7 +5804,7 @@ input_arguments.remote_payload.default: https://raw.githubusercontent.com/redcan
 T1007,System Service Discovery,System Service Discovery,89676ba1-b1f8-47ee-b940-2e1a113ebc71,"Identify system services.
 
 Upon successful execution, cmd.exe will execute service commands with expected result to stdout.
-",windows,,,"tasklist.exe
+",windows,,,"tasklist.exe /svc
 sc query
 sc query state= all
 ",command_prompt,True,,,,,
@@ -5824,6 +5824,33 @@ T1007,System Service Discovery,System Service Discovery - systemctl/service,f4b2
 ",linux,,,"if [ ""$(uname)"" = 'FreeBSD' ]; then service -e; else systemctl --type=service; fi;
 ",bash,,,,,,
 T1007,System Service Discovery,Get-Service Execution,51f17016-d8fa-4360-888a-df4bf92c4a04,Executes the Get-Service cmdlet to gather objects representing all services on the local system.,windows,,,powershell.exe Get-Service,command_prompt,,,,,,
+T1007,System Service Discovery,System Service Discovery - macOS launchctl,9b378962-a75e-4856-b117-2503d6dcebba,"Enumerates services on macOS using launchctl. Used by adversaries for
+identifying daemons, background services, and persistence mechanisms.
+",macos,,,launchctl list,sh,,,,,,
+T1007,System Service Discovery,System Service Discovery - Windows Scheduled Tasks (schtasks),7cd7eaa3-9ccc-460d-96d2-c6fb13e6d58a,"Enumerates scheduled tasks on Windows using schtasks.exe.
+",windows,,,schtasks /query /fo LIST /v,command_prompt,,,,,,
+T1007,System Service Discovery,System Service Discovery - Services Registry Enumeration,d70d82bd-bb00-4837-b146-b40d025551b2,"Enumerates Windows services by reading the Services registry key
+(HKLM\SYSTEM\CurrentControlSet\Services) instead of using Service Control
+Manager APIs or CLI tools such as sc.exe or Get-Service.
+",windows,,,"Get-ChildItem -Path 'HKLM:\SYSTEM\CurrentControlSet\Services' |
+  ForEach-Object {
+    $p = Get-ItemProperty -Path $_.PSPath -ErrorAction SilentlyContinue
+    [PSCustomObject]@{
+      Name        = $_.PSChildName
+      DisplayName = $p.DisplayName
+      ImagePath   = $p.ImagePath
+      StartType   = $p.Start
+    }
+  }
+",powershell,,,,,,
+T1007,System Service Discovery,System Service Discovery - Linux init scripts,8f2a5d2b-4018-46d4-8f3f-0fea53754690,"Enumerates system services by listing SysV init scripts and runlevel
+symlinks under /etc/init.d and /etc/rc*.d.
+",linux,,,"echo ""[*] Listing SysV init scripts (/etc/init.d):""
+if [ -d /etc/init.d ]; then ls -l /etc/init.d; else echo ""/etc/init.d not present on this system""; fi
+echo
+echo ""[*] Listing runlevel directories (/etc/rc*.d):""
+ls -ld /etc/rc*.d 2>/dev/null || echo ""No /etc/rc*.d directories found""
+",sh,,,,,,
 T1176,Browser Extensions,Chrome/Chromium (Developer Mode),3ecd790d-2617-4abf-9a8c-4e8d47da9ee1,Turn on Chrome/Chromium developer mode and Load Extension found in the src directory,linux,windows,macos,,manual,,"1. Navigate to [chrome://extensions](chrome://extensions) and
 tick 'Developer Mode'.
 
@@ -18801,16 +18828,32 @@ input_arguments.at_command.default: echo Hello from Atomic Red Team
 "
 T1049,System Network Connections Discovery,System Network Connections Discovery,0940a971-809a-48f1-9c4d-b1d785e96ee5,"Get a listing of network connections.
 
-Upon successful execution, cmd.exe will execute `netstat`, `net use` and `net sessions`. Results will output via stdout.
-",windows,,,"netstat
+Upon successful execution, cmd.exe will execute `netstat`, `net use` and `net sessions`. `net sessions` requires
+elevated privileges; on standard user accounts this command may not return results. Results will output via stdout.
+",windows,,,"netstat -ano
 net use
-net sessions
+net sessions 2>nul
 ",command_prompt,,,,,,
 T1049,System Network Connections Discovery,System Network Connections Discovery with PowerShell,f069f0f1-baad-4831-aa2b-eddac4baac4a,"Get a listing of network connections.
-
 Upon successful execution, powershell.exe will execute `get-NetTCPConnection`. Results will output via stdout.
 ",windows,,,"Get-NetTCPConnection
 ",powershell,,,,,,
+T1049,System Network Connections Discovery,System Network Connections Discovery via PowerShell (Process Mapping),b52c8233-8f71-4bd7-9928-49fec8215cf5,"Enumerate TCP connections and map to owning process names via PowerShell.
+",windows,,,"Get-NetTCPConnection | ForEach-Object {
+  $p = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue
+  [pscustomobject]@{
+    Local   = ""$($_.LocalAddress):$($_.LocalPort)""
+    Remote  = ""$($_.RemoteAddress):$($_.RemotePort)""
+    State   = $_.State
+    PID     = $_.OwningProcess
+    Process = if ($p) { $p.ProcessName } else { $null }
+  }
+} | Sort-Object State,Process | Format-Table -AutoSize
+",powershell,,,,,,
+T1049,System Network Connections Discovery,System Network Connections Discovery via ss or lsof (Linux/MacOS),bcf05343-ef1d-4052-8a27-b00c9be42b9f,"List active TCP/UDP network connections using ss, with lsof as a fallback
+when ss is unavailable. Serves as an alternative to the netstat-based test.
+",linux,macos,,"if command -v ss >/dev/null 2>&1; then ss -antp 2>/dev/null || ss -ant; ss -aunp 2>/dev/null || true; else lsof -i -nP 2>/dev/null || true; fi
+",bash,,,,,,
 T1049,System Network Connections Discovery,"System Network Connections Discovery FreeBSD, Linux & MacOS",9ae28d3f-190f-4fa0-b023-c7bd3e0eabf2,"Get a listing of network connections.
 
 Upon successful execution, sh will execute `netstat` and `who -a`. Results will output via stdout.
@@ -18823,6 +18866,11 @@ dependencies.0.prereq_command: if [ -x ""$(command -v netstat)"" ]; then exit 0;
 dependencies.0.get_prereq_command: echo ""Install netstat on the machine.""; exit 1;
 
 ",
+T1049,System Network Connections Discovery,"System Network Connections Discovery via sockstat (Linux, FreeBSD)",997bb0a6-421e-40c7-b5d2-0f493904ef9b,"Enumerate IPv4/IPv6 network endpoints on FreeBSD using sockstat.
+",linux,,,"sockstat -4
+sockstat -6 2>/dev/null || true
+sockstat -l 2>/dev/null || true
+",sh,,,,,,
 T1049,System Network Connections Discovery,System Discovery using SharpView,96f974bb-a0da-4d87-a744-ff33e73367e9,"Get a listing of network connections, domains, domain users, and etc.  
 sharpview.exe located in the bin folder, an opensource red-team tool.
 Upon successful execution, cmd.exe will execute sharpview.exe <method>. Results will output via stdout.
