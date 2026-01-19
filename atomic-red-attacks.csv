@@ -16198,6 +16198,24 @@ T1496,Resource Hijacking,FreeBSD/macOS/Linux - Simulate CPU Load with Yes,904a5a
 End the test by using CTRL/CMD+C to break.
 ",linux,macos,,"yes > /dev/null
 ",sh,,,,,,
+T1496,Resource Hijacking,Windows - Simulate CPU Load with PowerShell,44315fb0-f78d-4cef-b10f-cf21c1fe2c75,"This test simulates high CPU load using PowerShell, commonly seen in resource hijacking.
+Spawns background jobs to stress CPU cores for a specified duration.
+",windows,,,"$end = (Get-Date).AddSeconds(#{duration_seconds})
+1..#{cpu_threads} | ForEach-Object { Start-Job { param($t) while((Get-Date) -lt $t) { $i=0; while($i -lt 200000){$i++} } } -ArgumentList $end }
+Get-Job | Wait-Job | Remove-Job
+",powershell,,,,,,"input_arguments.duration_seconds.description: Duration in seconds to run the CPU stress test
+
+input_arguments.duration_seconds.type: integer
+
+input_arguments.duration_seconds.default: 30
+
+input_arguments.cpu_threads.description: Number of threads to stress (default 4)
+
+input_arguments.cpu_threads.type: integer
+
+input_arguments.cpu_threads.default: 4
+
+"
 T1610,Deploy a container,Deploy Docker container,59aa6f26-7620-417e-9318-589e0fb7a372,"Adversaries may deploy containers based on retrieved or built malicious images or from benign images that download and execute malicious payloads at runtime. They can do this using docker create and docker start commands. Kinsing & Doki was exploited using this technique. 
 ",containers,,,"docker build -t t1610 $PathtoAtomicsFolder/T1610/src/
 docker run --name t1610_container --rm -itd t1610 bash /tmp/script.sh
