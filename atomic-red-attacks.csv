@@ -13166,6 +13166,44 @@ input_arguments.project-id.type: string
 input_arguments.project-id.default: atomic-project-1
 
 "
+T1562.008,Impair Defenses: Disable Cloud Logs,AWS - Config Logs Disabled,4608bc1b-e682-466b-a7d7-dbd76760db31,"Disables AWS Config by stopping the configuration recorder, deleting the delivery channel, and deleting the configuration recorder. An attacker with sufficient permissions can use this to stop configuration change recording and avoid detection of subsequent activity.
+",iaas:aws,,,"aws configservice stop-configuration-recorder --configuration-recorder-name #{configuration_recorder_name} --region #{region}
+echo ""*** Configuration recorder stopped ***""
+aws configservice delete-delivery-channel --delivery-channel-name #{delivery_channel_name} --region #{region}
+echo ""*** Delivery channel deleted ***""
+aws configservice delete-configuration-recorder --configuration-recorder-name #{configuration_recorder_name} --region #{region}
+echo ""*** Configuration recorder deleted ***""
+",sh,False,,aws configservice list-configuration-recorders --region us-west-2,,"dependencies.0.description: Check if ~/.aws/credentials file has a default stanza is configured
+
+dependencies.0.prereq_command: cat ~/.aws/credentials | grep ""default""
+
+dependencies.0.get_prereq_command: echo Please install the aws-cli and configure your AWS default profile using: aws configure
+
+dependencies.1.description: Check if terraform is installed.
+
+dependencies.1.prereq_command: terraform version
+
+dependencies.1.get_prereq_command: echo Please install terraform and configure your AWS default profile
+
+","input_arguments.configuration_recorder_name.description: Name of the configuration recorder
+
+input_arguments.configuration_recorder_name.type: string
+
+input_arguments.configuration_recorder_name.default: redatomictestconfigurationrecorder
+
+input_arguments.delivery_channel_name.description: Name of the delivery channel
+
+input_arguments.delivery_channel_name.type: string
+
+input_arguments.delivery_channel_name.default: redatomictestdeliverychannel
+
+input_arguments.region.description: Name of the region
+
+input_arguments.region.type: string
+
+input_arguments.region.default: us-west-2
+
+"
 T1195,Supply Chain Compromise,Octopus Scanner Malware Open Source Supply Chain,82a9f001-94c5-495e-9ed5-f530dbded5e2,"This test simulates an adversary Octopus drop the RAT dropper ExplorerSync.db
 [octopus-scanner-malware-open-source-supply-chain](https://securitylab.github.com/research/octopus-scanner-malware-open-source-supply-chain/)
 [the-supreme-backdoor-factory](https://www.dfir.it/blog/2019/02/26/the-supreme-backdoor-factory/)
