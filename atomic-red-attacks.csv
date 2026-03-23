@@ -12628,6 +12628,15 @@ input_arguments.url_path.type: url
 input_arguments.url_path.default: https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1027/bin/t1027js.zip
 
 "
+T1027,Obfuscated Files or Information,Obfuscated PowerShell Command via Character Array,6683baf0-6e77-4f58-b114-814184ea8150,"Spawns a child PowerShell process using character array obfuscation. 
+Both the PowerShell binary name and executed command are constructed 
+from ASCII values at runtime to evade string-based detection.
+",windows,,,"$ps = [char[]](112,111,119,101,114,115,104,101,108,108)
+$cmd = [char[]](83,116,97,114,116,45,80,114,111,99,101,115,115,32,99,97,108,99,46,101,120,101)
+& (-join $ps) ""-Command"" (-join $cmd)
+",powershell,,,"taskkill /f /im calculator.exe >nul 2>nul
+taskkill /f /im CalculatorApp.exe >nul 2>nul
+",,,
 T1134.001,Access Token Manipulation: Token Impersonation/Theft,Named pipe client impersonation,90db9e27-8e7c-4c04-b602-a45927884966,"Uses PowerShell and Empire's [GetSystem module](https://github.com/BC-SECURITY/Empire/blob/v3.4.0/data/module_source/privesc/Get-System.ps1). The script creates a named pipe, and a service that writes to that named pipe. When the service connects to the named pipe, the script impersonates its security context.
 When executed successfully, the test displays the domain and name of the account it's impersonating (local SYSTEM).
 
@@ -26815,17 +26824,45 @@ input_arguments.ping_count.default: 250
 T1027.013,Obfuscated Files or Information: Encrypted/Encoded File,Decode Eicar File and Write to File,7693ccaa-8d64-4043-92a5-a2eb70359535,"Decode the eicar value, and write it to file, for AV/EDR to try to catch.",windows,macos,linux,"$encodedString = ""WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo=""
 $bytes = [System.Convert]::FromBase64String($encodedString)
 $decodedString = [System.Text.Encoding]::UTF8.GetString($bytes)
-
 #write the decoded eicar string to file
 $decodedString | Out-File T1027.013_decodedEicar.txt",powershell,False,,Just delete the resulting T1027.013_decodedEicar.txt file.,,,
 T1027.013,Obfuscated Files or Information: Encrypted/Encoded File,Decrypt Eicar File and Write to File,b404caaa-12ce-43c7-9214-62a531c044f7,"Decrypt the eicar value, and write it to file, for AV/EDR to try to catch.",windows,macos,linux,"$encryptedString = ""76492d1116743f0423413b16050a5345MgB8AGkASwA0AHMAbwBXAFoAagBkAFoATABXAGIAdAA5AFcAWAB1AFMANABVAEEAPQA9AHwAZQBjAGMANgAwADQAZAA0AGQAMQAwADUAYgA4ADAAMgBmADkAZgBjADEANQBjAGMANQBiAGMANwA2AGYANQBmADUANABhAGIAYgAyAGMANQA1AGQAMgA5ADEANABkADUAMgBiAGMANgA2AGMAMAAxADUAZABjADAAOABjAGIANAA1ADUANwBjADcAZQBlAGQAYgAxADEAOQA4AGIAMwAwADMANwAwADAANQA2ADQAOAA4ADkAZgA4ADMAZQA4ADgAOQBiAGEAMAA2ADMAMQAyADYAMwBiAGUAMAAxADgANAA0ADYAOAAxADQANQAwAGUANwBkADkANABjADcANQAxADgAYQA2ADMANQA4AGIAYgA1ADkANQAzAGIAMwAxADYAOAAwADQAMgBmADcAZQBjADYANQA5AGIANwBkADUAOAAyAGEAMgBiADEAMQAzAGQANABkADkAZgA3ADMAMABiADgAOQAxADAANAA4ADcAOQA5ADEAYQA1ADYAZAAzADQANwA3AGYANgAyADcAMAAwADEAMQA4ADEAZgA5ADUAYgBmAGYANQA3ADQAZQA4AGUAMAAxADUANwAwAGQANABiADMAMwA2ADgANwA0AGIANwAyADMAMQBhADkAZABhADEANQAzADQAMgAzADEANwAxADAAZgAxADkAYQA1ADEAMQA=""
 $key = [byte]1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32
-
 $decrypt = ConvertTo-SecureString -String $encryptedString -Key $key
 $decryptedString = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($decrypt))
-
 #Write the decrypted eicar string to a file
 $decryptedString | out-file T1027.013_decryptedEicar.txt",powershell,False,,Just delete the resulting T1027.013_decryptedEicar.txt file.,,,
+T1027.013,Obfuscated Files or Information: Encrypted/Encoded File,Password-Protected ZIP Payload Extraction and Execution,c2ca068a-eb1e-498f-9f93-3d554c455916,"Extracts and executes a script from a password-protected ZIP archive.
+This technique is commonly used by malware families like Emotet and QBot to deliver payloads
+via email attachments where the password is provided in the message body.
+The encrypted ZIP evades static file analysis until extracted at runtime.
+Upon successful execution, displays confirmation and system information.
+",linux,macos,,"echo '#!/bin/bash' > /tmp/art_payload.sh
+echo 'echo ""T1027.013: Payload extracted from encrypted ZIP""' >> /tmp/art_payload.sh
+echo 'echo ""Hostname: $(hostname)""' >> /tmp/art_payload.sh
+echo 'echo ""User: $(whoami)""' >> /tmp/art_payload.sh
+echo 'uname -a' >> /tmp/art_payload.sh
+cd /tmp && zip -P ""#{zip_password}"" art_encrypted.zip art_payload.sh
+rm /tmp/art_payload.sh
+echo ""Encrypted ZIP created. Extracting with password...""
+unzip -P ""#{zip_password}"" -o /tmp/art_encrypted.zip -d /tmp/
+echo ""Executing extracted payload:""
+bash /tmp/art_payload.sh
+",bash,,,"rm -f /tmp/art_payload.sh
+rm -f /tmp/art_encrypted.zip
+",bash,"dependencies.0.description: zip and unzip must be installed
+
+dependencies.0.prereq_command: which zip && which unzip
+
+dependencies.0.get_prereq_command: echo ""Install zip and unzip using your package manager (apt-get, yum, or brew)""
+
+","input_arguments.zip_password.description: Password used to protect the ZIP archive
+
+input_arguments.zip_password.type: String
+
+input_arguments.zip_password.default: infected
+
+"
 T1222.002,"File and Directory Permissions Modification: FreeBSD, Linux and Mac File and Directory Permissions Modification",chmod - Change file or folder mode (numeric mode),34ca1464-de9d-40c6-8c77-690adf36a135,"Changes a file or folder's permissions using chmod and a specified numeric mode.
 ",linux,macos,,"chmod #{numeric_mode} #{file_or_folder}
 ",sh,,,,,,"input_arguments.numeric_mode.description: Specified numeric mode value
