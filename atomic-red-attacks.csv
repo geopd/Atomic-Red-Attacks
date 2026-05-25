@@ -12758,6 +12758,15 @@ dependencies.0.prereq_command: if [ ! -x ""$(command -v bash)"" ]; then exit 1; 
 dependencies.0.get_prereq_command: (which pkg && pkg install -y bash)
 
 ",
+T1546.005,Event Triggered Execution: Trap,Trap DEBUG - Log All Shell Commands,14bd90b1-c3f3-4115-9861-cf0519a59654,"Launch bash shell with command arg to create TRAP on DEBUG.
+The trap logs executed commands to /tmp/art-fish.txt, simulating persistent command interception.
+",linux,macos,,"trap 'echo ""$BASH_COMMAND"" >> /tmp/art-fish.txt' DEBUG
+whoami
+id
+hostname
+cat /tmp/art-fish.txt
+",bash,,,"rm -f /tmp/art-fish.txt
+",,,
 T1611,Escape to Host,Deploy container using nsenter container escape,0b2f9520-a17a-4671-9dba-3bd034099fff,"In this escape `kubectl` is used to launch a new pod, with a container that has the host pids mapped into the container (`hostPID:true`). It uses the alpine linux container image. It runs with privilege on the host (`privileged:true`). When the container is launched the command `nsenter --mount=/proc/1/ns/mnt -- /bin/bash` is ran. Since the host processes have been mapped into the container, the container enters the host namespace, escaping the container.
 
 Additional Details:
